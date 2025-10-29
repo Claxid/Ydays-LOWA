@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "name": "T-shirt BIO - Naturel",
+    "price": 29.00,
+    "description": "T-shirt en coton biologique certifié. Coupe confortable, coloris naturels.",
+    "image": "https://via.placeholder.com/600x600?text=LOWA+T-shirt"
+  },
+  {
+    "id": 2,
+    "name": "Pull recyclé - Gris",
+    "price": 79.00,
+    "description": "Pull fabriqué à partir de fibres recyclées. Chaud et durable.",
+    "image": "https://via.placeholder.com/600x600?text=LOWA+Pull"
+  },
+  {
+    "id": 3,
+    "name": "Pantalon éco - Kaki",
+    "price": 59.00,
+    "description": "Pantalon en tissu certifié avec renforts minimalistes.",
+    "image": "https://via.placeholder.com/600x600?text=LOWA+Pantalon"
+  }
+]
