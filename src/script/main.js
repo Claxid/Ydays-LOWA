@@ -1,4 +1,3 @@
-// main.js — gestion produits et panier côté client (localStorage)
 const PRODUCTS_URL = '../../src/database/products.json';
 const productsContainer = document.getElementById('products');
 const cartButton = document.getElementById('cart-button');
@@ -93,7 +92,6 @@ function renderCart(){
     cartItemsEl.appendChild(el);
   });
   cartTotalEl.textContent = total.toFixed(2);
-  // attach cart buttons
   cartItemsEl.querySelectorAll('.inc').forEach(b=>b.addEventListener('click',()=>changeQuantity(b.dataset.id,1)));
   cartItemsEl.querySelectorAll('.dec').forEach(b=>b.addEventListener('click',()=>changeQuantity(b.dataset.id,-1)));
   cartItemsEl.querySelectorAll('.remove').forEach(b=>b.addEventListener('click',()=>{ removeItem(b.dataset.id); }));
@@ -127,24 +125,21 @@ function closeCart(){
   cartModal.setAttribute('aria-hidden','true');
 }
 
-// events
 cartButton.addEventListener('click', openCart);
 closeCartBtn.addEventListener('click', closeCart);
 clearCartBtn.addEventListener('click', ()=>{ clearCart(); });
 checkoutBtn.addEventListener('click', ()=>{
-  // checkout factice
+
   if(Object.keys(cart).length===0){alert('Votre panier est vide.');return}
   alert('Merci ! Simulation de commande effectuée.');
   clearCart();
   closeCart();
 });
 
-// close on overlay click
+
 cartModal.addEventListener('click', (e)=>{ if(e.target===cartModal) closeCart(); });
 
-// init
 updateCartCount();
 loadProducts();
 
-// Expose for debugging
 window.__LOWA = { cart, products };
