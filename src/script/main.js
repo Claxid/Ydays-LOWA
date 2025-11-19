@@ -1,5 +1,6 @@
-const PRODUCTS_URL = '../../src/database/products.json';
+const PRODUCTS_URL = '/src/database/products.json';
 const productsContainer = document.getElementById('products');
+const searchInput = document.getElementById('search');
 const cartButton = document.getElementById('cart-button');
 const cartCountEl = document.getElementById('cart-count');
 const cartModal = document.getElementById('cart-modal');
@@ -33,10 +34,11 @@ async function loadProducts(){
   renderProducts();
 }
 
-function renderProducts(){
+function renderProducts(list){
+  const toRender = Array.isArray(list) ? list : products;
   if(!productsContainer) return;
   productsContainer.innerHTML = '';
-  products.forEach(p=>{
+  toRender.forEach(p=>{
     const card = document.createElement('article');
     card.className = 'product';
     card.setAttribute('role','listitem');
@@ -56,6 +58,15 @@ function renderProducts(){
     const id = btn.dataset.id;
     addToCart(id);
   }));
+}
+
+function applyFilter(q){
+  if(!q) return renderProducts();
+  const s = q.trim().toLowerCase();
+  const filtered = products.filter(p => {
+    return (p.name && p.name.toLowerCase().includes(s)) || (p.description && p.description.toLowerCase().includes(s)) || String(p.id) === s;
+  });
+  renderProducts(filtered);
 }
 
 function addToCart(id){
@@ -141,5 +152,15 @@ cartModal.addEventListener('click', (e)=>{ if(e.target===cartModal) closeCart();
 
 updateCartCount();
 loadProducts();
+
+if(searchInput){
+  let timeout;
+  searchInput.addEventListener('input', (e)=>{
+    const v = e.target.value;
+  
+    clearTimeout(timeout);
+    timeout = setTimeout(()=> applyFilter(v), 150);
+  });
+}
 
 window.__LOWA = { cart, products };
