@@ -1,56 +1,113 @@
 package main
 
 import (
-    "flag"
-    "fmt"
-    "log"
-    "net/http"
-    "path/filepath"
+	"context"
+	"flag"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/exec"
+	"os/signal"
+	"path/filepath"
+	"runtime"
+	"time"
 )
 
-// Simple dev server to serve the project files and a small API endpoint
 func main() {
-    port := flag.Int("port", 8080, "Port to listen on")
-    dir := flag.String("dir", ".", "Project root directory (default .)")
-    flag.Parse()
+	port := flag.Int("port", 8000, "Port HTTP to listen on")
+	dir := flag.String("dir", ".", "Project root directory to serve")
+	open := flag.Bool("open", true, "Open browser after starting server")
+	flag.Parse()
 
-    root, err := filepath.Abs(*dir)
-    if err != nil {
-        log.Fatalf("failed to resolve project root: %v", err)
-    }
+	root, err := filepath.Abs(*dir)
+	if err != nil {
+		log.Fatalf("failed to resolve project root: %v", err)
+	}
 
-    mux := http.NewServeMux()
+	mux := http.NewServeMux()
 
-    // Serve assets at /assets/
-    assetsPath := filepath.Join(root, "assets")
-    mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(assetsPath))))
+	// API endpoint for products (direct file serve)
+	mux.HandleFunc("/api/products", func(w http.ResponseWriter, r *http.Request) {
+		p := filepath.Join(root, "src", "database", "products.json")
+		http.ServeFile(w, r, p)
+	})
 
-    // Serve src (js, database, etc.) at /src/
-    srcPath := filepath.Join(root, "src")
-    mux.Handle("/src/", http.StripPrefix("/src/", http.FileServer(http.Dir(srcPath))))
+	// If index.html exists at root, serve the root (FileServer serves index.html)
+	indexRoot := filepath.Join(root, "index.html")
+	if fileExists(indexRoot) {
+		mux.Handle("/", http.FileServer(http.Dir(root)))
+	} else {
+		// Serve temp/homepage/homepage.html at /
+		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/" || r.URL.Path == "/index.html" {
+				index := filepath.Join(root, "temp", "homepage", "homepage.html")
+				http.ServeFile(w, r, index)
+				return
+			}
+			// try to serve static files relative to root
+			fsPath := filepath.Join(root, r.URL.Path)
+			if fileExists(fsPath) {
+				http.ServeFile(w, r, fsPath)
+				return
+			}
+			http.NotFound(w, r)
+		})
+	}
 
-    // Serve temp (contains homepage) at /temp/
-    tempPath := filepath.Join(root, "temp")
-    mux.Handle("/temp/", http.StripPrefix("/temp/", http.FileServer(http.Dir(tempPath))))
+	addr := fmt.Sprintf(":%d", *port)
+	srv := &http.Server{Addr: addr, Handler: mux}
 
-    // Root handler: serve temp/homepage/homepage.html when requesting /
-    mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        if r.URL.Path == "/" || r.URL.Path == "/index.html" {
-            index := filepath.Join(root, "temp", "homepage", "homepage.html")
-            http.ServeFile(w, r, index)
-            return
-        }
-        // fallback to file server relative to project root for other paths (not exposing sensitive files)
-        http.NotFound(w, r)
-    })
+	go func() {
+		log.Printf("Serving %s on http://localhost%s", root, addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("server error: %v", err)
+		}
+	}()
 
-    // Simple API endpoint to return products JSON
-    mux.HandleFunc("/api/products", func(w http.ResponseWriter, r *http.Request) {
-        p := filepath.Join(root, "src", "database", "products.json")
-        http.ServeFile(w, r, p)
-    })
+	if *open {
+		go func() {
+			time.Sleep(300 * time.Millisecond)
+			url := fmt.Sprintf("http://localhost:%d/", *port)
+			if err := openBrowser(url); err != nil {
+				log.Printf("failed to open browser: %v", err)
+			}
+		}()
+	}
 
-    addr := fmt.Sprintf(":%d", *port)
-    log.Printf("Starting server at http://localhost%s", addr)
-    log.Fatal(http.ListenAndServe(addr, mux))
+	// graceful shutdown
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	<-stop
+	log.Println("Shutting down server...")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("server shutdown failed: %v", err)
+	}
+	log.Println("Server stopped")
+}
+
+func fileExists(path string) bool {
+	if path == "" {
+		return false
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return !info.IsDir()
+}
+
+func openBrowser(url string) error {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "windows":
+		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
+	case "darwin":
+		cmd = exec.Command("open", url)
+	default:
+		cmd = exec.Command("xdg-open", url)
+	}
+	return cmd.Start()
 }

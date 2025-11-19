@@ -11,6 +11,12 @@
         <header class="site-header">
             <div class="container header-inner">
                 <a class="brand" href="#">LOWA</a>
+                <!-- Search bar -->
+                <div class="search-wrapper">
+                    <label for="site-search" class="visually-hidden">Rechercher</label>
+                    <input id="site-search" class="site-search" type="search" placeholder="Rechercher un produit..." aria-label="Rechercher" autocomplete="off" />
+                    <div id="search-dropdown" class="search-dropdown" aria-hidden="true"></div>
+                </div>
                 <nav class="main-nav" aria-label="Navigation principale">
                     <a href="#">Accueil</a>
                     <a href="#about">À propos</a>
@@ -76,7 +82,8 @@
         </div>
 
         <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
-        <script src="/src/script/main.js" defer></script>
+        <script src="src/script/main.js" defer></script>
+        <script src="src/script/search.js" defer></script>
     </body>
 </html>
 <!DOCTYPE html>
