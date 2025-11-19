@@ -7,6 +7,7 @@
         <meta name="description" content="LOWA — Boutique de vêtements éthiques. Mode responsable, transparence des matériaux et production locale quand possible." />
         <link rel="stylesheet" href="../assets/style/homepage.css" />
     </head>
+    
     <body>
         <header class="site-header">
             <div class="container header-inner">
@@ -29,6 +30,38 @@
                     <p>Des vêtements conçus pour durer, fabriqués avec soin et transparence.</p>
                 </div>
             </section>
+
+            <!-- Category row: placed directly under the hero heading -->
+            <div class="container category-row" aria-label="Catégories">
+                <nav class="category-nav">
+                    <div class="dropdown">
+                        <button class="mainmenubtn" aria-haspopup="true">Homme ▾</button>
+                        <div class="dropdown-child" role="menu">
+                            <a role="menuitem" href="https://www.vinted.fr/catalog/2050-clothing">Petit</a>
+                            <a role="menuitem" href="https://www.vinted.fr/catalog/4-clothing">Moyen</a>
+                            <a role="menuitem" href="https://www.vinted.fr/catalog/1904-women">Grand</a>
+                        </div>
+                    </div>
+
+                    <div class="dropdown">
+                        <button class="mainmenubtn" aria-haspopup="true">Femme ▾</button>
+                        <div class="dropdown-child" role="menu">
+                            <a role="menuitem" href="https://www.vinted.fr/catalog/2050-clothing">Petit</a>
+                            <a role="menuitem" href="https://www.vinted.fr/catalog/4-clothing">Moyen</a>
+                            <a role="menuitem" href="https://www.vinted.fr/catalog/1904-women">Grand</a>
+                        </div>
+                    </div>
+
+                    <div class="dropdown">
+                        <button class="mainmenubtn" aria-haspopup="true">Enfant ▾</button>
+                        <div class="dropdown-child" role="menu">
+                            <a role="menuitem" href="https://www.vinted.fr/catalog/2050-clothing">Petit</a>
+                            <a role="menuitem" href="https://www.vinted.fr/catalog/4-clothing">Moyen</a>
+                            <a role="menuitem" href="https://www.vinted.fr/catalog/1904-women">Grand</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
 
             <section class="container products-section" aria-labelledby="products-heading">
                 <h2 id="products-heading">Nos produits</h2>
@@ -67,6 +100,8 @@
                 </div>
             </div>
         </div>
+
+        
 
         <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
         <script src="../../src/script/main.js" defer></script>
