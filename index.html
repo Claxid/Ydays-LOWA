@@ -12,7 +12,14 @@
             <div class="container header-inner">
                 <a class="brand" href="#">LOWA</a>
                 <nav class="main-nav" aria-label="Navigation principale">
-                    <a href="#">Accueil</a>
+                    <div class="dropdown">
+                        <button class="mainmenubtn" aria-haspopup="true" aria-expanded="false">Collections ▾</button>
+                        <div class="dropdown-child" role="menu" aria-hidden="true">
+                            <a role="menuitem" href="#women">Femmes</a>
+                            <a role="menuitem" href="#men">Hommes</a>
+                            <a role="menuitem" href="#new">Nouveautés</a>
+                        </div>
+                    </div>
                     <a href="#about">À propos</a>
                     <a href="#contact">Contact</a>
                 </nav>
@@ -29,6 +36,36 @@
                     <p>Des vêtements conçus pour durer, fabriqués avec soin et transparence.</p>
                 </div>
             </section>
+
+            <!-- Category navigation row (dropdown-capable) -->
+            <div class="container category-row">
+                <nav class="category-nav" aria-label="Catégories">
+                    <div class="dropdown">
+                        <button class="mainmenubtn">Femmes ▾</button>
+                        <div class="dropdown-child">
+                            <a href="#">Tops</a>
+                            <a href="#">Robes</a>
+                            <a href="#">Accessoires</a>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="mainmenubtn">Hommes ▾</button>
+                        <div class="dropdown-child">
+                            <a href="#">T-shirts</a>
+                            <a href="#">Pantalons</a>
+                            <a href="#">Vestes</a>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="mainmenubtn">Collections ▾</button>
+                        <div class="dropdown-child">
+                            <a href="#">Éco</a>
+                            <a href="#">Recyclé</a>
+                            <a href="#">Classiques</a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
 
             <section class="container products-section" aria-labelledby="products-heading">
                 <h2 id="products-heading">Nos produits</h2>
@@ -77,4 +114,6 @@
 
         <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
         <script src="/src/script/main.js" defer></script>
+        <script src="/src/script/dropdown.js" defer></script>
     </body>
+</html>
