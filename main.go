@@ -51,6 +51,6 @@ func main() {
     })
 
     addr := fmt.Sprintf(":%d", *port)
-    log.Printf("Starting server at http://localhost%s (root=%s)\n", addr, root)
+    log.Printf("Starting server at http://localhost%s", addr)
     log.Fatal(http.ListenAndServe(addr, mux))
 }
