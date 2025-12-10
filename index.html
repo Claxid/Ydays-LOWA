@@ -41,29 +41,30 @@
             <div class="container category-row">
                 <nav class="category-nav" aria-label="Catégories">
                     <div class="dropdown">
-                        <button class="mainmenubtn">Femmes ▾</button>
+                        <button class="mainmenubtn" data-filter="category" data-value="femmes">Femmes ▾</button>
                         <div class="dropdown-child">
-                            <a href="#">Tops</a>
-                            <a href="#">Robes</a>
-                            <a href="#">Accessoires</a>
+                            <a href="#" data-filter="subcategory" data-value="tops">Tops</a>
+                            <a href="#" data-filter="subcategory" data-value="robes">Robes</a>
+                            <a href="#" data-filter="subcategory" data-value="accessoires">Accessoires</a>
                         </div>
                     </div>
                     <div class="dropdown">
-                        <button class="mainmenubtn">Hommes ▾</button>
+                        <button class="mainmenubtn" data-filter="category" data-value="hommes">Hommes ▾</button>
                         <div class="dropdown-child">
-                            <a href="#">T-shirts</a>
-                            <a href="#">Pantalons</a>
-                            <a href="#">Vestes</a>
+                            <a href="#" data-filter="subcategory" data-value="t-shirts">T-shirts</a>
+                            <a href="#" data-filter="subcategory" data-value="pantalons">Pantalons</a>
+                            <a href="#" data-filter="subcategory" data-value="vestes">Vestes</a>
                         </div>
                     </div>
                     <div class="dropdown">
-                        <button class="mainmenubtn">Collections ▾</button>
+                        <button class="mainmenubtn" data-filter="collection" data-value="">Collections ▾</button>
                         <div class="dropdown-child">
-                            <a href="#">Éco</a>
-                            <a href="#">Recyclé</a>
-                            <a href="#">Classiques</a>
+                            <a href="#" data-filter="collection" data-value="eco">Éco</a>
+                            <a href="#" data-filter="collection" data-value="recycle">Recyclé</a>
+                            <a href="#" data-filter="collection" data-value="classiques">Classiques</a>
                         </div>
                     </div>
+                    <button class="btn" id="reset-filters">Tout afficher</button>
                 </nav>
             </div>
 
