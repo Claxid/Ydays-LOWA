@@ -13,13 +13,27 @@ Voir aussi :
 
 Comment tester localement :
 
-1) Depuis la racine du projet, lancer un serveur local simple (recommandé) :
+1) Depuis la racine du projet, lancer le serveur Go inclus :
 
-   python -m http.server 8000
+   ```powershell
+   # Lancer sans compiler
+   go run main.go
 
-2) Ouvrir dans le navigateur :
+   # Ou construire un exécutable puis le lancer
+   go build -o ydays.exe main.go
+   .\ydays.exe
+   ```
 
-   http://localhost:8000/temp/homepage/homepage.html
+2) Ouvrir dans le navigateur (lien cliquable) :
+
+- [http://localhost:8080/](http://localhost:8080/)
+
+Remarque : vous pouvez changer le dossier servi ou le port :
+
+```powershell
+go run main.go --dir ./ --addr :3000
+# puis ouvrir http://localhost:3000/
+```
 
 Notes :
 - Le site est une démo front-end. Le checkout est factice et n'envoie pas de données.

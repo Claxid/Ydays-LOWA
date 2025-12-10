@@ -1,5 +1,0 @@
-[build]
-  # publish the repository root so assets/ and src/ are available
-  publish = "."
-  # no build command for this static site
-  command = ""
