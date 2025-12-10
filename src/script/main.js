@@ -37,7 +37,7 @@ async function loadProducts(){
 function renderProducts(list){
   const toRender = Array.isArray(list) ? list : products;
   if(!productsContainer) return;
-  productsContainer.innerHTML = '';
+  const frag = document.createDocumentFragment();
   toRender.forEach(p=>{
     const card = document.createElement('article');
     card.className = 'product';
@@ -51,13 +51,9 @@ function renderProducts(list){
         <button class="btn add" data-id="${p.id}">Ajouter</button>
       </div>
     `;
-    productsContainer.appendChild(card);
+    frag.appendChild(card);
   });
-  // attach listeners
-  document.querySelectorAll('.btn.add').forEach(btn=>btn.addEventListener('click',()=>{
-    const id = btn.dataset.id;
-    addToCart(id);
-  }));
+  productsContainer.replaceChildren(frag);
 }
 
 function applyFilter(q){
@@ -79,7 +75,6 @@ function addToCart(id){
 }
 
 function renderCart(){
-  cartItemsEl.innerHTML = '';
   const items = Object.values(cart);
   if(items.length===0){
     cartItemsEl.innerHTML = '<p>Votre panier est vide.</p>';
@@ -87,25 +82,21 @@ function renderCart(){
     return;
   }
   let total = 0;
-  items.forEach(item=>{
+  const html = items.map(item=>{
     total += item.price * item.quantity;
-    const el = document.createElement('div');
-    el.className = 'cart-item';
-    el.innerHTML = `
-      <img src="${item.image}" alt="${item.name}" />
-      <div class="info">
-        <div class="title">${item.name}</div>
-        <div class="qty">Qté: <button class="btn small dec" data-id="${item.id}">-</button> <span class="q">${item.quantity}</span> <button class="btn small inc" data-id="${item.id}">+</button></div>
-        <div class="price">${(item.price * item.quantity).toFixed(2)} €</div>
-      </div>
-      <button class="btn remove" data-id="${item.id}">Supprimer</button>
-    `;
-    cartItemsEl.appendChild(el);
-  });
+    return `
+      <div class="cart-item">
+        <img src="${item.image}" alt="${item.name}" />
+        <div class="info">
+          <div class="title">${item.name}</div>
+          <div class="qty">Qté: <button class="btn small dec" data-id="${item.id}">-</button> <span class="q">${item.quantity}</span> <button class="btn small inc" data-id="${item.id}">+</button></div>
+          <div class="price">${(item.price * item.quantity).toFixed(2)} €</div>
+        </div>
+        <button class="btn remove" data-id="${item.id}">Supprimer</button>
+      </div>`;
+  }).join('');
+  cartItemsEl.innerHTML = html;
   cartTotalEl.textContent = total.toFixed(2);
-  cartItemsEl.querySelectorAll('.inc').forEach(b=>b.addEventListener('click',()=>changeQuantity(b.dataset.id,1)));
-  cartItemsEl.querySelectorAll('.dec').forEach(b=>b.addEventListener('click',()=>changeQuantity(b.dataset.id,-1)));
-  cartItemsEl.querySelectorAll('.remove').forEach(b=>b.addEventListener('click',()=>{ removeItem(b.dataset.id); }));
 }
 
 function changeQuantity(id,delta){
@@ -149,6 +140,23 @@ checkoutBtn.addEventListener('click', ()=>{
 
 
 cartModal.addEventListener('click', (e)=>{ if(e.target===cartModal) closeCart(); });
+
+// Event delegation to reduce listener count
+productsContainer?.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.btn.add');
+  if(!btn) return;
+  addToCart(btn.dataset.id);
+});
+
+cartItemsEl?.addEventListener('click', (e)=>{
+  const target = e.target;
+  if(!(target instanceof HTMLElement)) return;
+  const id = target.dataset.id;
+  if(!id) return;
+  if(target.classList.contains('inc')) return changeQuantity(id,1);
+  if(target.classList.contains('dec')) return changeQuantity(id,-1);
+  if(target.classList.contains('remove')) return removeItem(id);
+});
 
 updateCartCount();
 loadProducts();
