@@ -572,6 +572,27 @@ a:hover{ color:var(--muted) }
   font-weight:600;
 }
 
+/* Filter group headers and dividers */
+.filter-group{
+  padding:0.7rem 1.2rem;
+  color:var(--dark);
+  font-size:0.85rem;
+  font-weight:700;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  margin-top:0.5rem;
+}
+
+.filter-group:first-child{
+  margin-top:0;
+}
+
+.filter-divider{
+  height:1px;
+  background:rgba(107,168,107,0.2);
+  margin:0.5rem 0.8rem;
+}
+
 .dropdown-child::before{
   content:'';
   position:absolute;
