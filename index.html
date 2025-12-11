@@ -90,9 +90,32 @@
                     <div class="dropdown">
                         <button class="mainmenubtn" aria-haspopup="true" aria-expanded="false">Collections ▾</button>
                         <div class="dropdown-child" role="menu" aria-hidden="true">
-                            <a role="menuitem" href="#women">Femmes</a>
-                            <a role="menuitem" href="#men">Hommes</a>
-                            <a role="menuitem" href="#new">Nouveautés</a>
+                            <div class="filter-group">
+                                <strong>Catégories</strong>
+                            </div>
+                            <a role="menuitem" href="#" data-filter="category" data-value="femmes">👗 Femmes</a>
+                            <a role="menuitem" href="#" data-filter="category" data-value="hommes">👔 Hommes</a>
+                            <div class="filter-divider"></div>
+                            <div class="filter-group">
+                                <strong>Sous-catégories Femmes</strong>
+                            </div>
+                            <a role="menuitem" href="#" data-filter="subcategory" data-value="tops" style="padding-left:2rem">Tops</a>
+                            <a role="menuitem" href="#" data-filter="subcategory" data-value="robes" style="padding-left:2rem">Robes</a>
+                            <a role="menuitem" href="#" data-filter="subcategory" data-value="accessoires" style="padding-left:2rem">Accessoires</a>
+                            <div class="filter-divider"></div>
+                            <div class="filter-group">
+                                <strong>Sous-catégories Hommes</strong>
+                            </div>
+                            <a role="menuitem" href="#" data-filter="subcategory" data-value="t-shirts" style="padding-left:2rem">T-shirts</a>
+                            <a role="menuitem" href="#" data-filter="subcategory" data-value="pantalons" style="padding-left:2rem">Pantalons</a>
+                            <a role="menuitem" href="#" data-filter="subcategory" data-value="vestes" style="padding-left:2rem">Vestes</a>
+                            <div class="filter-divider"></div>
+                            <div class="filter-group">
+                                <strong>Collections</strong>
+                            </div>
+                            <a role="menuitem" href="#" data-filter="collection" data-value="eco">🌱 Éco</a>
+                            <a role="menuitem" href="#" data-filter="collection" data-value="recycle">♻️ Recyclé</a>
+                            <a role="menuitem" href="#" data-filter="collection" data-value="classiques">✨ Classiques</a>
                         </div>
                     </div>
                     <a href="#about">À propos</a>
@@ -128,37 +151,6 @@
             <!-- Category navigation row (dropdown-capable) -->
             <div class="container category-row">
                 <nav class="category-nav" aria-label="Catégories">
-                    <div class="dropdown">
-                        <button class="mainmenubtn">Collections ▾</button>
-                        <div class="dropdown-child">
-                            <div class="filter-group">
-                                <strong>Catégories</strong>
-                            </div>
-                            <a href="#" data-filter="category" data-value="femmes">👗 Femmes</a>
-                            <a href="#" data-filter="category" data-value="hommes">👔 Hommes</a>
-                            <div class="filter-divider"></div>
-                            <div class="filter-group">
-                                <strong>Sous-catégories Femmes</strong>
-                            </div>
-                            <a href="#" data-filter="subcategory" data-value="tops" style="padding-left:2rem">Tops</a>
-                            <a href="#" data-filter="subcategory" data-value="robes" style="padding-left:2rem">Robes</a>
-                            <a href="#" data-filter="subcategory" data-value="accessoires" style="padding-left:2rem">Accessoires</a>
-                            <div class="filter-divider"></div>
-                            <div class="filter-group">
-                                <strong>Sous-catégories Hommes</strong>
-                            </div>
-                            <a href="#" data-filter="subcategory" data-value="t-shirts" style="padding-left:2rem">T-shirts</a>
-                            <a href="#" data-filter="subcategory" data-value="pantalons" style="padding-left:2rem">Pantalons</a>
-                            <a href="#" data-filter="subcategory" data-value="vestes" style="padding-left:2rem">Vestes</a>
-                            <div class="filter-divider"></div>
-                            <div class="filter-group">
-                                <strong>Collections</strong>
-                            </div>
-                            <a href="#" data-filter="collection" data-value="eco">🌱 Éco</a>
-                            <a href="#" data-filter="collection" data-value="recycle">♻️ Recyclé</a>
-                            <a href="#" data-filter="collection" data-value="classiques">✨ Classiques</a>
-                        </div>
-                    </div>
                     <button class="btn" id="reset-filters">Tout afficher</button>
                 </nav>
             </div>
