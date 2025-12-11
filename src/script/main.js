@@ -9,7 +9,6 @@ const cartTotalEl = document.getElementById('cart-total');
 const closeCartBtn = document.getElementById('close-cart');
 const clearCartBtn = document.getElementById('clear-cart');
 const checkoutBtn = document.getElementById('checkout');
-const resetFiltersBtn = document.getElementById('reset-filters-search');
 
 let products = [];
 let cart = JSON.parse(localStorage.getItem('lowa_cart') || '{}');
@@ -75,8 +74,7 @@ function applyAllFilters(){
   if(currentFilters.search){
     const s = currentFilters.search.trim().toLowerCase();
     filtered = filtered.filter(p => {
-      return (p.name && p.name.toLowerCase().includes(s)) || 
-             String(p.id) === s;
+      return (p.name && p.name.toLowerCase().includes(s));
     });
   }
   
@@ -227,8 +225,16 @@ if(searchInput){
   });
 }
 
-// Gestion des filtres de catégories
+// Gestion des filtres de catégories et bouton reset
 document.addEventListener('click', function(e){
+  // Handle reset button
+  if(e.target.closest('#reset-filters-search')){
+    e.preventDefault();
+    resetFilters();
+    return;
+  }
+  
+  // Handle filter buttons
   const filterEl = e.target.closest('[data-filter]');
   if(filterEl && filterEl.dataset.filter && filterEl.dataset.value !== undefined){
     e.preventDefault();
@@ -237,11 +243,6 @@ document.addEventListener('click', function(e){
     setFilter(filterType, filterValue);
   }
 });
-
-// Reset filters
-if(resetFiltersBtn){
-  resetFiltersBtn.addEventListener('click', resetFilters);
-}
 
 window.__LOWA = { cart, products, currentFilters };
 
