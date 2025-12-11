@@ -688,15 +688,39 @@
             // Theme Management System
             function initTheme() {
                 const savedTheme = localStorage.getItem('lowa_theme') || 'light';
+                const fontSize = localStorage.getItem('lowa_pref_font_size') || 'normal';
+                const spacing = localStorage.getItem('lowa_pref_spacing') || 'normal';
+                const animations = localStorage.getItem('lowa_pref_animations') !== 'false';
+                
                 setTheme(savedTheme);
+                applyFontSize(fontSize);
+                applySpacing(spacing);
+                applyAnimations(animations);
             }
 
             function setTheme(theme) {
                 document.documentElement.setAttribute('data-theme', theme);
                 localStorage.setItem('lowa_theme', theme);
-                
+            }
+
+            function applyFontSize(size) {
+                const sizes = { small: '90%', normal: '100%', large: '110%', xlarge: '120%' };
+                document.documentElement.style.setProperty('--font-scale', sizes[size] || '100%');
+            }
+
+            function applySpacing(spacing) {
+                const spacings = {
+                    compact: '0.75',
+                    normal: '1',
+                    comfortable: '1.25'
+                };
+                const scale = spacings[spacing] || '1';
+                document.documentElement.style.setProperty('--spacing-scale', scale);
+            }
+
+            function applyAnimations(enabled) {
                 // Apply animations preference
-                const animations = localStorage.getItem('lowa_pref_animations') !== 'false';
+                const animations = enabled !== false;
                 if (!animations) {
                     document.documentElement.style.setProperty('--transition-fast', '0s');
                     document.documentElement.style.setProperty('--transition-medium', '0s');

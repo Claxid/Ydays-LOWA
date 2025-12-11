@@ -272,34 +272,68 @@
       </section>
 
       <section class="card section">
-        <h3>Préférences avancées & Thème</h3>
+        <h3>🎨 Personnalisation de l'interface</h3>
         
+        <!-- Theme Selection -->
         <div class="form-group">
-          <label>Thème de l'interface</label>
+          <label><strong>Thème visuel</strong></label>
           <div class="theme-selector">
             <button class="theme-option active" data-theme="light">☀️ Clair</button>
             <button class="theme-option" data-theme="dark">🌙 Sombre</button>
             <button class="theme-option" data-theme="temperate">🍂 Tempéré</button>
           </div>
+          <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--theme-text-muted);">Choisissez votre thème préféré. Il sera appliqué immédiatement sur tous les appareils.</p>
         </div>
 
+        <!-- Font Size -->
         <div class="form-group">
-          <label for="pref-lang">Langue de l'interface</label>
+          <label for="pref-font-size"><strong>Taille de police</strong></label>
+          <select id="pref-font-size">
+            <option value="small">Petit (90%)</option>
+            <option value="normal" selected>Normal (100%)</option>
+            <option value="large">Grand (110%)</option>
+            <option value="xlarge">Très grand (120%)</option>
+          </select>
+          <p style="font-size: 0.85rem; margin-top: 0.25rem; color: var(--theme-text-muted);">Ajuste la taille globale du texte.</p>
+        </div>
+
+        <!-- Language Selection -->
+        <div class="form-group">
+          <label for="pref-lang"><strong>Langue de l'interface</strong></label>
           <select id="pref-lang">
-            <option value="fr">Français</option>
-            <option value="en">English</option>
+            <option value="fr" selected>🇫🇷 Français</option>
+            <option value="en">🇬🇧 English</option>
           </select>
         </div>
 
-        <label style="display:flex;gap:0.5rem;align-items:center;margin-top:0.5rem">
-          <input type="checkbox" id="pref-notif" /> Notifications email promotions
-        </label>
+        <!-- Spacing Density -->
+        <div class="form-group">
+          <label for="pref-spacing"><strong>Densité d'espace</strong></label>
+          <select id="pref-spacing">
+            <option value="compact">Compact (espaces réduits)</option>
+            <option value="normal" selected>Normal</option>
+            <option value="comfortable">Confortable (espaces augmentés)</option>
+          </select>
+          <p style="font-size: 0.85rem; margin-top: 0.25rem; color: var(--theme-text-muted);">Contrôle l'espacement entre les éléments.</p>
+        </div>
 
-        <label style="display:flex;gap:0.5rem;align-items:center;margin-top:0.5rem">
-          <input type="checkbox" id="pref-animations" /> Animations et transitions
-        </label>
+        <!-- Animations & Transitions -->
+        <div style="border-top: 1px solid var(--theme-border); padding-top: 1rem; margin-top: 1rem;">
+          <label style="display:flex;gap:0.5rem;align-items:center;margin:0.5rem 0">
+            <input type="checkbox" id="pref-animations" checked />
+            <strong>Animations et transitions</strong>
+          </label>
+          <p style="font-size: 0.85rem; margin-top: 0.25rem; color: var(--theme-text-muted);">Désactivez pour réduire les animations (utile pour l'accessibilité).</p>
+        </div>
 
-        <p id="prefs-adv-status" style="margin-top:0.5rem;color:var(--theme-text-muted)"></p>
+        <!-- Email Notifications -->
+        <label style="display:flex;gap:0.5rem;align-items:center;margin-top:0.75rem">
+          <input type="checkbox" id="pref-notif" />
+          <strong>Notifications email promotions</strong>
+        </label>
+        <p style="font-size: 0.85rem; margin-top: 0.25rem; color: var(--theme-text-muted);">Recevez nos promotions et nouveautés par email.</p>
+
+        <p id="prefs-adv-status" style="margin-top:1rem;color:var(--theme-text-muted);font-weight:500;"></p>
       </section>
     </main>
 
@@ -401,10 +435,14 @@
         const notif = localStorage.getItem('lowa_pref_notif') === 'true';
         const animations = localStorage.getItem('lowa_pref_animations') !== 'false';
         const theme = localStorage.getItem('lowa_theme') || 'light';
+        const fontSize = localStorage.getItem('lowa_pref_font_size') || 'normal';
+        const spacing = localStorage.getItem('lowa_pref_spacing') || 'normal';
         
         document.getElementById('pref-lang').value = lang;
         document.getElementById('pref-notif').checked = notif;
         document.getElementById('pref-animations').checked = animations;
+        document.getElementById('pref-font-size').value = fontSize;
+        document.getElementById('pref-spacing').value = spacing;
         
         // Set active theme button
         document.querySelectorAll('.theme-option').forEach(btn => {
@@ -412,6 +450,28 @@
             btn.classList.add('active');
           }
         });
+
+        // Apply font size
+        applyFontSize(fontSize);
+        applySpacing(spacing);
+      }
+
+      function applyFontSize(size) {
+        const sizes = { small: '90%', normal: '100%', large: '110%', xlarge: '120%' };
+        document.documentElement.style.setProperty('--font-scale', sizes[size] || '100%');
+        if (document.body.style.fontSize === '') {
+          document.body.style.fontSize = sizes[size] || '100%';
+        }
+      }
+
+      function applySpacing(spacing) {
+        const spacings = {
+          compact: '0.75',
+          normal: '1',
+          comfortable: '1.25'
+        };
+        const scale = spacings[spacing] || '1';
+        document.documentElement.style.setProperty('--spacing-scale', scale);
       }
 
       function saveAdvancedPrefs(){
@@ -419,11 +479,15 @@
         const notif = document.getElementById('pref-notif').checked;
         const animations = document.getElementById('pref-animations').checked;
         const theme = document.documentElement.getAttribute('data-theme');
+        const fontSize = document.getElementById('pref-font-size').value;
+        const spacing = document.getElementById('pref-spacing').value;
         
         localStorage.setItem('lowa_pref_lang', lang);
         localStorage.setItem('lowa_pref_notif', notif);
         localStorage.setItem('lowa_pref_animations', animations);
         localStorage.setItem('lowa_theme', theme);
+        localStorage.setItem('lowa_pref_font_size', fontSize);
+        localStorage.setItem('lowa_pref_spacing', spacing);
         
         // Apply animations preference
         if (!animations) {
@@ -433,8 +497,12 @@
           document.documentElement.style.removeProperty('--transition-fast');
           document.documentElement.style.removeProperty('--transition-medium');
         }
+
+        // Apply font size and spacing
+        applyFontSize(fontSize);
+        applySpacing(spacing);
         
-        document.getElementById('prefs-adv-status').textContent = 'Préférences enregistrées localement';
+        document.getElementById('prefs-adv-status').textContent = '✅ Préférences enregistrées';
         setTimeout(() => {
           document.getElementById('prefs-adv-status').textContent = '';
         }, 3000);
@@ -461,6 +529,8 @@
       document.getElementById('pref-lang').addEventListener('change', saveAdvancedPrefs);
       document.getElementById('pref-notif').addEventListener('change', saveAdvancedPrefs);
       document.getElementById('pref-animations').addEventListener('change', saveAdvancedPrefs);
+      document.getElementById('pref-font-size').addEventListener('change', saveAdvancedPrefs);
+      document.getElementById('pref-spacing').addEventListener('change', saveAdvancedPrefs);
 
       document.getElementById('logout-btn').addEventListener('click', async () => {
         try { await fetch(API + '/logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
