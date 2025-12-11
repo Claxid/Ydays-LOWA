@@ -281,46 +281,61 @@
                     
                     product.style.display = show ? '' : 'none';
                 });
+                
+                // Update active button states
+                updateFilterButtonStates();
             }
             
-            // Add filter click listeners
+            function updateFilterButtonStates() {
+                // Update category buttons
+                document.querySelectorAll('button.mainmenubtn[data-filter="category"]').forEach(btn => {
+                    if (btn.dataset.value === activeFilters.category) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+                
+                // Update collection buttons
+                document.querySelectorAll('button.mainmenubtn[data-filter="collection"]').forEach(btn => {
+                    if (btn.dataset.value === activeFilters.collection) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+                
+                // Update dropdown links
+                document.querySelectorAll('.dropdown-child a[data-filter]').forEach(link => {
+                    if (link.dataset.filter === 'subcategory' && link.dataset.value === activeFilters.subcategory) {
+                        link.classList.add('active');
+                    } else if (link.dataset.filter === 'collection' && link.dataset.value === activeFilters.collection) {
+                        link.classList.add('active');
+                    } else if (link.dataset.filter === 'category' && link.dataset.value === activeFilters.category) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Add filter click listeners - ONLY for dropdown links
             document.addEventListener('click', function(e) {
-                // Check if click is on a filter link in dropdown
-                if (e.target.tagName === 'A' && e.target.dataset.filter) {
+                // Only handle clicks on links inside dropdowns
+                if (e.target.tagName === 'A' && e.target.closest('.dropdown-child') && e.target.dataset.filter) {
                     e.preventDefault();
                     const filterType = e.target.dataset.filter;
                     const filterValue = e.target.dataset.value;
                     
-                    // Update active filters
-                    activeFilters[filterType] = filterValue;
-                    
-                    // Visual feedback
-                    document.querySelectorAll(`[data-filter="${filterType}"]`).forEach(el => {
-                        el.classList.remove('active');
-                    });
-                    if (filterValue) {
-                        e.target.classList.add('active');
+                    // Toggle or set filter
+                    if (activeFilters[filterType] === filterValue) {
+                        activeFilters[filterType] = null;
+                    } else {
+                        activeFilters[filterType] = filterValue;
                     }
                     
                     applyAllFilters();
                     return;
-                }
-                
-                // Check if click is on a filter button
-                if (e.target.classList.contains('mainmenubtn') && e.target.dataset.filter) {
-                    const filterType = e.target.dataset.filter;
-                    const filterValue = e.target.dataset.value;
-                    
-                    // Toggle filter
-                    if (activeFilters[filterType] === filterValue) {
-                        activeFilters[filterType] = null;
-                        e.target.classList.remove('active');
-                    } else {
-                        activeFilters[filterType] = filterValue;
-                        e.target.classList.add('active');
-                    }
-                    
-                    applyAllFilters();
                 }
             });
             
@@ -334,9 +349,6 @@
                         collection: null
                     };
                     searchInput.value = '';
-                    document.querySelectorAll('[data-filter]').forEach(el => {
-                        el.classList.remove('active');
-                    });
                     applyAllFilters();
                 });
             }
