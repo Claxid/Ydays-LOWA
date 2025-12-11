@@ -246,15 +246,69 @@
           <div id="user-info"></div>
         </section>
         <section class="card">
-          <h3>Préférences</h3>
-          <label style="display:flex;gap:0.5rem;align-items:center">
-            <input type="checkbox" id="cookie-consent" />
-            Consentement aux cookies
+          <h3>🎨 Personnalisation de l'interface</h3>
+          
+          <!-- Theme Selection -->
+          <div class="form-group">
+            <label style="font-weight:bold;display:block;margin-bottom:0.5rem">Thème visuel</label>
+            <div class="theme-selector">
+              <button class="theme-option active" data-theme="light">☀️ Clair</button>
+              <button class="theme-option" data-theme="dark">🌙 Sombre</button>
+              <button class="theme-option" data-theme="temperate">🍂 Tempéré</button>
+            </div>
+          </div>
+
+          <!-- Font Size -->
+          <div class="form-group" style="margin-top:1rem">
+            <label for="pref-font-size" style="font-weight:bold">Taille de police</label>
+            <select id="pref-font-size" style="width:100%;padding:0.5rem;margin-top:0.3rem">
+              <option value="small">Petit (90%)</option>
+              <option value="normal" selected>Normal (100%)</option>
+              <option value="large">Grand (110%)</option>
+              <option value="xlarge">Très grand (120%)</option>
+            </select>
+          </div>
+
+          <!-- Spacing Density -->
+          <div class="form-group" style="margin-top:1rem">
+            <label for="pref-spacing" style="font-weight:bold">Densité d'espace</label>
+            <select id="pref-spacing" style="width:100%;padding:0.5rem;margin-top:0.3rem">
+              <option value="compact">Compact</option>
+              <option value="normal" selected>Normal</option>
+              <option value="comfortable">Confortable</option>
+            </select>
+          </div>
+
+          <!-- Animations -->
+          <label style="display:flex;gap:0.5rem;align-items:center;margin-top:1rem">
+            <input type="checkbox" id="pref-animations" checked />
+            <strong>Animations</strong>
           </label>
-          <button id="save-prefs" class="btn primary" style="margin-top:1rem">Enregistrer</button>
-          <p id="prefs-status" style="margin-top:0.5rem;color:var(--theme-text-muted)"></p>
+
+          <p id="prefs-adv-status" style="margin-top:0.5rem;color:var(--theme-text-muted);font-size:0.9rem"></p>
         </section>
       </div>
+
+      <section class="card section">
+        <h3>Préférences</h3>
+        <label style="display:flex;gap:0.5rem;align-items:center">
+          <input type="checkbox" id="cookie-consent" />
+          Consentement aux cookies
+        </label>
+        <div class="form-group" style="margin-top:1rem">
+          <label for="pref-lang" style="font-weight:bold;display:block;margin-bottom:0.5rem">Langue</label>
+          <select id="pref-lang" style="width:100%;padding:0.5rem">
+            <option value="fr" selected>🇫🇷 Français</option>
+            <option value="en">🇬🇧 English</option>
+          </select>
+        </div>
+        <label style="display:flex;gap:0.5rem;align-items:center;margin-top:0.75rem">
+          <input type="checkbox" id="pref-notif" />
+          Notifications email promotions
+        </label>
+        <button id="save-prefs" class="btn primary" style="margin-top:1rem">Enregistrer</button>
+        <p id="prefs-status" style="margin-top:0.5rem;color:var(--theme-text-muted)"></p>
+      </section>
 
       <section class="card section">
         <h3>Historique d'achats</h3>
@@ -269,71 +323,6 @@
           <button class="btn" id="admin-stock">Gérer les stocks</button>
           <button class="btn" id="admin-roles">Gérer les rôles</button>
         </div>
-      </section>
-
-      <section class="card section">
-        <h3>🎨 Personnalisation de l'interface</h3>
-        
-        <!-- Theme Selection -->
-        <div class="form-group">
-          <label><strong>Thème visuel</strong></label>
-          <div class="theme-selector">
-            <button class="theme-option active" data-theme="light">☀️ Clair</button>
-            <button class="theme-option" data-theme="dark">🌙 Sombre</button>
-            <button class="theme-option" data-theme="temperate">🍂 Tempéré</button>
-          </div>
-          <p style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--theme-text-muted);">Choisissez votre thème préféré. Il sera appliqué immédiatement sur tous les appareils.</p>
-        </div>
-
-        <!-- Font Size -->
-        <div class="form-group">
-          <label for="pref-font-size"><strong>Taille de police</strong></label>
-          <select id="pref-font-size">
-            <option value="small">Petit (90%)</option>
-            <option value="normal" selected>Normal (100%)</option>
-            <option value="large">Grand (110%)</option>
-            <option value="xlarge">Très grand (120%)</option>
-          </select>
-          <p style="font-size: 0.85rem; margin-top: 0.25rem; color: var(--theme-text-muted);">Ajuste la taille globale du texte.</p>
-        </div>
-
-        <!-- Language Selection -->
-        <div class="form-group">
-          <label for="pref-lang"><strong>Langue de l'interface</strong></label>
-          <select id="pref-lang">
-            <option value="fr" selected>🇫🇷 Français</option>
-            <option value="en">🇬🇧 English</option>
-          </select>
-        </div>
-
-        <!-- Spacing Density -->
-        <div class="form-group">
-          <label for="pref-spacing"><strong>Densité d'espace</strong></label>
-          <select id="pref-spacing">
-            <option value="compact">Compact (espaces réduits)</option>
-            <option value="normal" selected>Normal</option>
-            <option value="comfortable">Confortable (espaces augmentés)</option>
-          </select>
-          <p style="font-size: 0.85rem; margin-top: 0.25rem; color: var(--theme-text-muted);">Contrôle l'espacement entre les éléments.</p>
-        </div>
-
-        <!-- Animations & Transitions -->
-        <div style="border-top: 1px solid var(--theme-border); padding-top: 1rem; margin-top: 1rem;">
-          <label style="display:flex;gap:0.5rem;align-items:center;margin:0.5rem 0">
-            <input type="checkbox" id="pref-animations" checked />
-            <strong>Animations et transitions</strong>
-          </label>
-          <p style="font-size: 0.85rem; margin-top: 0.25rem; color: var(--theme-text-muted);">Désactivez pour réduire les animations (utile pour l'accessibilité).</p>
-        </div>
-
-        <!-- Email Notifications -->
-        <label style="display:flex;gap:0.5rem;align-items:center;margin-top:0.75rem">
-          <input type="checkbox" id="pref-notif" />
-          <strong>Notifications email promotions</strong>
-        </label>
-        <p style="font-size: 0.85rem; margin-top: 0.25rem; color: var(--theme-text-muted);">Recevez nos promotions et nouveautés par email.</p>
-
-        <p id="prefs-adv-status" style="margin-top:1rem;color:var(--theme-text-muted);font-weight:500;"></p>
       </section>
     </main>
 
