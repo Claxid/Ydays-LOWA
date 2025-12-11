@@ -35,7 +35,7 @@ a:hover{ color:var(--muted) }
 /* Header improvements */
 .site-header{
   background:#fff;
-  border-bottom:1px solid var(--soft-green);
+  border-bottom:2px solid var(--pastel-green);
   box-shadow:var(--shadow-soft);
   position:sticky;
   top:0;
@@ -43,29 +43,42 @@ a:hover{ color:var(--muted) }
   transition:box-shadow var(--transition-fast);
 }
 .site-header:hover{ box-shadow:var(--shadow-medium) }
-.header-inner{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 0;gap:1rem}
+.header-inner{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 0;gap:2rem}
 .brand{
   font-weight:800;
   color:var(--dark);
   text-decoration:none;
-  font-size:1.5rem;
+  font-size:1.3rem;
   letter-spacing:1px;
-  transition:color var(--transition-fast);
+  transition:all var(--transition-fast);
+  white-space:nowrap;
+  flex-shrink:0;
 }
-.brand:hover{ color:var(--accent) }
+.brand:hover{ color:var(--accent);transform:scale(1.05) }
 
 /* Navigation */
-.main-nav{display:flex;align-items:center;gap:2rem;flex:1;justify-content:center}
-.main-nav a{
+.main-nav{display:flex;align-items:center;gap:2rem;flex:1;justify-content:center;flex-wrap:wrap}
+.main-nav a, .main-nav button{
   margin:0;
   color:var(--muted);
   text-decoration:none;
   font-weight:500;
-  transition:color var(--transition-fast);
+  transition:all var(--transition-fast);
   padding:0.5rem 0.75rem;
   border-radius:6px;
+  border:none;
+  background:transparent;
+  cursor:pointer;
 }
-.main-nav a:hover{color:var(--dark);background:rgba(107,168,107,0.08)}
+.main-nav a:hover, .main-nav button:hover{color:var(--dark);background:rgba(107,168,107,0.08);transform:translateY(-1px)}
+
+.nav-accueil{
+  font-weight:700 !important;
+  color:var(--accent) !important;
+  padding:0.6rem 1rem !important;
+  background:rgba(107,168,107,0.1) !important;
+  border-radius:8px !important;
+}
 
 /* Cart button */
 .cart-btn{

@@ -245,3 +245,58 @@ if(resetFiltersBtn){
 }
 
 window.__LOWA = { cart, products, currentFilters };
+
+// User tracking and recommendations
+async function trackUserActivity() {
+  const sessionToken = localStorage.getItem('sessionToken');
+  if (!sessionToken) return; // Only track authenticated users
+  
+  const activity = {
+    page: window.location.pathname,
+    timestamp: new Date().toISOString(),
+    viewedProducts: Object.keys(cart).length > 0 ? Object.keys(cart) : [],
+    cartValue: Object.values(cart).reduce((sum, item) => sum + (item.price * item.quantity), 0)
+  };
+  
+  // Store activity in localStorage for local recommendations
+  const userActivity = JSON.parse(localStorage.getItem('lowa_activity') || '[]');
+  userActivity.push(activity);
+  // Keep last 50 activities
+  if (userActivity.length > 50) userActivity.shift();
+  localStorage.setItem('lowa_activity', JSON.stringify(userActivity));
+  
+  // Optional: Send tracking data to backend if available
+  // This can be extended later to sync with /api/user-activity endpoint
+}
+
+// Track on page load
+window.addEventListener('load', trackUserActivity);
+
+// Get personalized recommendations based on user history
+function getRecommendations() {
+  const activity = JSON.parse(localStorage.getItem('lowa_activity') || '[]');
+  if (activity.length === 0) return products.slice(0, 5); // Return first 5 if no history
+  
+  // Find most viewed categories/products
+  const viewedIds = activity
+    .flatMap(a => a.viewedProducts)
+    .reduce((acc, id) => {
+      acc[id] = (acc[id] || 0) + 1;
+      return acc;
+    }, {});
+  
+  // Recommend similar items
+  const recommended = products.filter(p => {
+    const viewedProducts = activity.flatMap(a => a.viewedProducts);
+    if (viewedProducts.includes(String(p.id))) return false;
+    
+    // Find products similar to viewed ones
+    const viewedProds = products.filter(prod => viewedProducts.includes(String(prod.id)));
+    return viewedProds.some(vp => vp.category === p.category || vp.collection === p.collection);
+  });
+  
+  return recommended.length > 0 ? recommended.slice(0, 5) : products.slice(0, 5);
+}
+
+// Make recommendations available globally
+window.__LOWA.getRecommendations = getRecommendations;

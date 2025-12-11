@@ -22,6 +22,7 @@ type User struct {
 	Nom          string    `json:"nom"`
 	Prenom       string    `json:"prenom"`
 	Sexe         string    `json:"sexe"`
+	Role         string    `json:"role"`
 	DateCreation time.Time `json:"date_creation"`
 }
 
@@ -73,12 +74,16 @@ func initDB() error {
 			nom TEXT NOT NULL,
 			prenom TEXT NOT NULL,
 			sexe TEXT,
+			role TEXT DEFAULT 'user',
 			date_creation DATETIME DEFAULT CURRENT_TIMESTAMP
 		)
 	`)
 	if err != nil {
 		return err
 	}
+
+	// Ensure 'role' column exists for older databases
+	db.Exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'")
 
 	// Create carts table
 	_, err = db.Exec(`
@@ -115,6 +120,33 @@ func initDB() error {
 			user_id INTEGER NOT NULL,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			expires_at DATETIME NOT NULL,
+			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+		)
+	`)
+	if err != nil {
+		return err
+	}
+
+	// Create user_preferences table
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS user_preferences (
+		user_id INTEGER PRIMARY KEY,
+		cookie_consent TEXT,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+	)`)
+	if err != nil {
+		return err
+	}
+
+	// Create user_activity table for tracking page visits and browsing history
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS user_activity (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			user_id INTEGER NOT NULL,
+			page TEXT,
+			viewed_products TEXT,
+			cart_value REAL,
+			activity_date DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 		)
 	`)
@@ -268,9 +300,9 @@ func handleGetUser(w http.ResponseWriter, r *http.Request) {
 
 	var user User
 	err = db.QueryRow(
-		"SELECT id, email, nom, prenom, sexe, date_creation FROM users WHERE id = ?",
+		"SELECT id, email, nom, prenom, sexe, role, date_creation FROM users WHERE id = ?",
 		userID,
-	).Scan(&user.ID, &user.Email, &user.Nom, &user.Prenom, &user.Sexe, &user.DateCreation)
+	).Scan(&user.ID, &user.Email, &user.Nom, &user.Prenom, &user.Sexe, &user.Role, &user.DateCreation)
 
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -434,7 +466,6 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"success": "true"})
 }
 
-// Save user preferences (e.g., cookie consent)
 func handleUserPreferences(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if r.Method != http.MethodPost {
@@ -488,6 +519,117 @@ func handleUserPreferences(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"success": "true"})
 }
 
+// Track user activity for recommendations
+func handleUserActivity(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Method not allowed"})
+		return
+	}
+
+	userID, err := getSessionUserID(r)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Not authenticated"})
+		return
+	}
+
+	var body struct {
+		Page           string   `json:"page"`
+		ViewedProducts []string `json:"viewed_products"`
+		CartValue      float64  `json:"cart_value"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
+		return
+	}
+
+	// Convert viewed products to JSON string
+	viewedJSON, _ := json.Marshal(body.ViewedProducts)
+
+	// Insert activity record
+	_, err = db.Exec(
+		`INSERT INTO user_activity (user_id, page, viewed_products, cart_value)
+		VALUES (?, ?, ?, ?)`,
+		userID, body.Page, string(viewedJSON), body.CartValue,
+	)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to track activity"})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"success": "true"})
+}
+
+// Get recommendations based on user activity
+func handleGetRecommendations(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Method not allowed"})
+		return
+	}
+
+	userID, err := getSessionUserID(r)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Not authenticated"})
+		return
+	}
+
+	// Fetch user's recent activity to find patterns
+	rows, err := db.Query(
+		`SELECT viewed_products FROM user_activity WHERE user_id = ? ORDER BY activity_date DESC LIMIT 10`,
+		userID,
+	)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to fetch recommendations"})
+		return
+	}
+	defer rows.Close()
+
+	// Simple recommendation: return recently viewed product IDs
+	type RecommendationResponse struct {
+		RecentlyViewed []string `json:"recently_viewed"`
+		Message        string   `json:"message"`
+	}
+
+	var recentlyViewed []string
+	for rows.Next() {
+		var productsJSON string
+		if err := rows.Scan(&productsJSON); err != nil {
+			continue
+		}
+		var products []string
+		json.Unmarshal([]byte(productsJSON), &products)
+		for _, p := range products {
+			// Avoid duplicates
+			found := false
+			for _, rv := range recentlyViewed {
+				if rv == p {
+					found = true
+					break
+				}
+			}
+			if !found {
+				recentlyViewed = append(recentlyViewed, p)
+			}
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(RecommendationResponse{
+		RecentlyViewed: recentlyViewed,
+		Message:        "Produits recommandés basés sur votre historique",
+	})
+}
+
 func main() {
 	dir := flag.String("dir", ".", "directory to serve")
 	addr := flag.String("addr", ":8080", "address to listen on")
@@ -525,6 +667,8 @@ func main() {
 	http.HandleFunc("/api/checkout", handleCheckout)
 	http.HandleFunc("/api/logout", handleLogout)
 	http.HandleFunc("/api/user-preferences", handleUserPreferences)
+	http.HandleFunc("/api/user-activity", handleUserActivity)
+	http.HandleFunc("/api/recommendations", handleGetRecommendations)
 
 	// Static files
 	fs := http.FileServer(http.Dir(*dir))
