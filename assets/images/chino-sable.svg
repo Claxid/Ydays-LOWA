@@ -1,0 +1,24 @@
+<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="600" fill="#f0f5f0"/>
+  <defs>
+    <linearGradient id="chinoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4b896;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b8a080;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Waistband -->
+  <ellipse cx="300" cy="85" rx="90" ry="22" fill="#9d8a70" stroke="#666" stroke-width="2"/>
+  <!-- Left leg -->
+  <path d="M 225 105 L 220 500 L 220 540 L 280 540 L 290 105 Z" fill="url(#chinoGrad)" stroke="#666" stroke-width="2"/>
+  <!-- Right leg -->
+  <path d="M 375 105 L 380 500 L 380 540 L 320 540 L 310 105 Z" fill="url(#chinoGrad)" stroke="#666" stroke-width="2"/>
+  <!-- Belt loops -->
+  <rect x="210" y="80" width="12" height="35" fill="#9d8a70" stroke="#666" stroke-width="1"/>
+  <rect x="378" y="80" width="12" height="35" fill="#9d8a70" stroke="#666" stroke-width="1"/>
+  <!-- Pockets -->
+  <path d="M 250 160 Q 255 180 250 200" fill="none" stroke="#666" stroke-width="1.5"/>
+  <path d="M 350 160 Q 345 180 350 200" fill="none" stroke="#666" stroke-width="1.5"/>
+  <!-- Cuff -->
+  <line x1="220" y1="530" x2="280" y2="535" stroke="#9d8a70" stroke-width="3" opacity="0.5"/>
+  <line x1="320" y1="535" x2="380" y2="530" stroke="#9d8a70" stroke-width="3" opacity="0.5"/>
+</svg>

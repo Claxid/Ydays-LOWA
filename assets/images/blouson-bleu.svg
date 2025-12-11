@@ -1,0 +1,26 @@
+<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="600" fill="#f0f5f0"/>
+  <defs>
+    <linearGradient id="blousonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a3a52;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0a1f33;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Jacket body left -->
+  <path d="M 130 80 L 210 110 L 200 460 Q 195 490 170 500 L 90 500 Q 75 490 80 460 L 85 110 Z" fill="url(#blousonGrad)" stroke="#333" stroke-width="2"/>
+  <!-- Jacket body right -->
+  <path d="M 470 80 L 390 110 L 400 460 Q 405 490 430 500 L 510 500 Q 525 490 520 460 L 515 110 Z" fill="url(#blousonGrad)" stroke="#333" stroke-width="2"/>
+  <!-- Sleeves -->
+  <path d="M 85 150 L 25 170 L 20 420 L 95 390 Z" fill="url(#blousonGrad)" stroke="#333" stroke-width="2"/>
+  <path d="M 515 150 L 575 170 L 580 420 L 505 390 Z" fill="url(#blousonGrad)" stroke="#333" stroke-width="2"/>
+  <!-- Collar -->
+  <polygon points="260,85 340,85 330,150 270,150" fill="url(#blousonGrad)" stroke="#333" stroke-width="2"/>
+  <!-- Zipper -->
+  <line x1="300" y1="120" x2="300" y2="400" stroke="#666" stroke-width="3"/>
+  <circle cx="300" cy="140" r="4" fill="#666"/>
+  <!-- Pockets -->
+  <line x1="140" y1="260" x2="160" y2="260" stroke="#333" stroke-width="1.5"/>
+  <line x1="140" y1="340" x2="160" y2="340" stroke="#333" stroke-width="1.5"/>
+  <line x1="440" y1="260" x2="460" y2="260" stroke="#333" stroke-width="1.5"/>
+  <line x1="440" y1="340" x2="460" y2="340" stroke="#333" stroke-width="1.5"/>
+</svg>

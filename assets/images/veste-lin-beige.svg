@@ -1,0 +1,25 @@
+<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="600" fill="#f0f5f0"/>
+  <defs>
+    <linearGradient id="vesteGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8d7b8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d4c4a8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Jacket body left -->
+  <path d="M 120 100 L 200 120 L 200 480 Q 200 510 180 520 L 100 520 Q 85 510 85 480 L 85 120 Z" fill="url(#vesteGrad)" stroke="#999" stroke-width="2"/>
+  <!-- Jacket body right -->
+  <path d="M 480 100 L 400 120 L 400 480 Q 400 510 420 520 L 500 520 Q 515 510 515 480 L 515 120 Z" fill="url(#vesteGrad)" stroke="#999" stroke-width="2"/>
+  <!-- Sleeves -->
+  <path d="M 100 160 L 40 180 L 35 420 L 110 400 Z" fill="url(#vesteGrad)" stroke="#999" stroke-width="2"/>
+  <path d="M 500 160 L 560 180 L 565 420 L 490 400 Z" fill="url(#vesteGrad)" stroke="#999" stroke-width="2"/>
+  <!-- Collar -->
+  <polygon points="280,110 320,110 310,160 290,160" fill="url(#vesteGrad)" stroke="#999" stroke-width="2"/>
+  <!-- Buttons -->
+  <circle cx="220" cy="180" r="8" fill="#999" stroke="#666" stroke-width="1"/>
+  <circle cx="220" cy="260" r="8" fill="#999" stroke="#666" stroke-width="1"/>
+  <circle cx="220" cy="340" r="8" fill="#999" stroke="#666" stroke-width="1"/>
+  <circle cx="380" cy="180" r="8" fill="#999" stroke="#666" stroke-width="1"/>
+  <circle cx="380" cy="260" r="8" fill="#999" stroke="#666" stroke-width="1"/>
+  <circle cx="380" cy="340" r="8" fill="#999" stroke="#666" stroke-width="1"/>
+</svg>

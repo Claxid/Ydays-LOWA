@@ -4,7 +4,7 @@
     "name": "T-shirt BIO - Naturel",
     "price": 29.00,
     "description": "T-shirt en coton biologique certifié. Coupe confortable, coloris naturels.",
-    "image": "https://via.placeholder.com/600x600?text=LOWA+T-shirt",
+    "image": "/assets/images/tshirt-naturel.svg",
     "category": "hommes",
     "subcategory": "t-shirts",
     "collection": "eco"
@@ -14,7 +14,7 @@
     "name": "Pull recyclé - Gris",
     "price": 79.00,
     "description": "Pull fabriqué à partir de fibres recyclées. Chaud et durable.",
-    "image": "https://via.placeholder.com/600x600?text=LOWA+Pull",
+    "image": "/assets/images/pull-gris.svg",
     "category": "hommes",
     "subcategory": "vestes",
     "collection": "recycle"
@@ -24,7 +24,7 @@
     "name": "Pantalon éco - Kaki",
     "price": 59.00,
     "description": "Pantalon en tissu certifié avec renforts minimalistes.",
-    "image": "https://via.placeholder.com/600x600?text=LOWA+Pantalon",
+    "image": "/assets/images/pantalon-kaki.svg",
     "category": "hommes",
     "subcategory": "pantalons",
     "collection": "eco"
@@ -34,7 +34,7 @@
     "name": "Veste en Lin - Beige",
     "price": 89.00,
     "description": "Veste légère en lin naturel, parfaite pour la mi-saison. Coupe ajustée.",
-    "image": "https://via.placeholder.com/600x600?text=LOWA+Veste+Lin",
+    "image": "/assets/images/veste-lin-beige.svg",
     "category": "femmes",
     "subcategory": "vestes",
     "collection": "classiques"
@@ -44,7 +44,7 @@
     "name": "Robe d'été - Blanc cassé",
     "price": 65.00,
     "description": "Robe fluide en coton bio, idéale pour l'été. Fabrication locale.",
-    "image": "https://via.placeholder.com/600x600?text=LOWA+Robe",
+    "image": "/assets/images/robe-ete.svg",
     "category": "femmes",
     "subcategory": "robes",
     "collection": "eco"
@@ -54,7 +54,7 @@
     "name": "Top en fibres recyclées - Rose",
     "price": 35.00,
     "description": "Top féminin fabriqué à partir de bouteilles plastiques recyclées.",
-    "image": "https://via.placeholder.com/600x600?text=LOWA+Top",
+    "image": "/assets/images/top-rose.svg",
     "category": "femmes",
     "subcategory": "tops",
     "collection": "recycle"
@@ -64,7 +64,7 @@
     "name": "Jupe midi - Marine",
     "price": 55.00,
     "description": "Jupe mi-longue en coton bio certifié GOTS. Coupe élégante.",
-    "image": "https://via.placeholder.com/600x600?text=LOWA+Jupe",
+    "image": "/assets/images/jupe-marine.svg",
     "category": "femmes",
     "subcategory": "robes",
     "collection": "classiques"
@@ -74,7 +74,7 @@
     "name": "Chemise lin - Blanc",
     "price": 49.00,
     "description": "Chemise intemporelle en lin français. Production éthique.",
-    "image": "https://via.placeholder.com/600x600?text=LOWA+Chemise",
+    "image": "/assets/images/chemise-lin.svg",
     "category": "hommes",
     "subcategory": "t-shirts",
     "collection": "classiques"
@@ -84,7 +84,7 @@
     "name": "Sac en toile recyclée - Noir",
     "price": 25.00,
     "description": "Sac cabas en toile recyclée, résistant et pratique au quotidien.",
-    "image": "https://via.placeholder.com/600x600?text=LOWA+Sac",
+    "image": "/assets/images/sac-recyc.svg",
     "category": "femmes",
     "subcategory": "accessoires",
     "collection": "recycle"
@@ -94,7 +94,7 @@
     "name": "Écharpe en laine bio - Camel",
     "price": 39.00,
     "description": "Écharpe douce en laine biologique. Teinture végétale.",
-    "image": "https://via.placeholder.com/600x600?text=LOWA+Echarpe",
+    "image": "/assets/images/echarpe.svg",
     "category": "femmes",
     "subcategory": "accessoires",
     "collection": "eco"
@@ -104,7 +104,7 @@
     "name": "Pantalon chino - Sable",
     "price": 69.00,
     "description": "Chino en coton bio, coupe moderne et confortable.",
-    "image": "https://via.placeholder.com/600x600?text=LOWA+Chino",
+    "image": "/assets/images/chino-sable.svg",
     "category": "hommes",
     "subcategory": "pantalons",
     "collection": "classiques"
@@ -114,7 +114,7 @@
     "name": "Blouson recyclé - Bleu nuit",
     "price": 95.00,
     "description": "Blouson fabriqué à partir de fibres recyclées. Design urbain.",
-    "image": "https://via.placeholder.com/600x600?text=LOWA+Blouson",
+    "image": "/assets/images/blouson-bleu.svg",
     "category": "hommes",
     "subcategory": "vestes",
     "collection": "recycle"

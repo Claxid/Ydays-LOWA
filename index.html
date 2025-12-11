@@ -32,7 +32,8 @@
         <main>
             <section class="hero">
                 <div class="container">
-                    <h1>LOWA — Mode éthique et durable</h1>
+                    <h1>🌿 LOWA</h1>
+                    <p style="font-size:1.2rem;margin-bottom:0.5rem"><strong>Mode éthique et durable</strong></p>
                     <p>Les invendus des marques responsables trouvent ici une seconde vie : des pièces déjà produites, triées et prêtes à être adoptées sans gaspillage.</p>
                 </div>
             </section>
@@ -81,13 +82,16 @@
             </section>
 
             <section id="about" class="container about">
-                <h2>À propos de LOWA</h2>
-                <p>LOWA est une place de marché dédiée à la seconde vie des invendus de marques engagées : nous sélectionnons des vêtements responsables déjà fabriqués, leur offrons un nouvel espace de vente et réduisons le gaspillage textile.</p>
+                <h2>🌿 À propos de LOWA</h2>
+                <p>LOWA est une place de marché dédiée à la <strong>seconde vie des invendus</strong> de marques engagées. Nous sélectionnons des vêtements responsables déjà fabriqués, leur offrons un nouvel espace de vente et réduisons le gaspillage textile.</p>
+                <p style="color:var(--accent);font-weight:600">✓ Marques éthiques  ✓ Mode durable  ✓ Impact positif</p>
             </section>
 
             <section id="contact" class="container contact">
-                <h2>Contact</h2>
-                <p>Si vous avez des questions : <a href="mailto:clement.gonzaga@ynov.com">clement.gonzaga@ynov.com</a></p>
+                <h2>📧 Contact</h2>
+                <p>Une question sur une commande ou nos produits ? Contactez-nous :</p>
+                <p><strong><a href="mailto:clement.gonzaga@ynov.com">clement.gonzaga@ynov.com</a></strong></p>
+                <p style="font-size:0.95rem;color:var(--muted)">Nous répondons généralement sous 24h.</p>
             </section>
         </main>
 
@@ -113,8 +117,171 @@
             </div>
         </div>
 
-        <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
-        <script src="/src/script/main.js" defer></script>
-        <script src="/src/script/dropdown.js" defer></script>
+        <script>
+            document.getElementById('year').textContent = new Date().getFullYear();
+
+            // Fetch and render products
+            async function loadProducts() {
+                try {
+                    const response = await fetch('/src/database/products.json');
+                    const products = await response.json();
+                    const grid = document.getElementById('products');
+                    
+                    grid.innerHTML = products.map(product => `
+                        <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${product.collection}">
+                            <div class="product-image-container">
+                                <img src="${product.image}" alt="${product.name}" loading="lazy" />
+                            </div>
+                            <h3>${product.name}</h3>
+                            <p>${product.description}</p>
+                            <div class="meta">
+                                <span class="product-price">${product.price.toFixed(2)} €</span>
+                                <button class="btn primary add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">Ajouter</button>
+                            </div>
+                        </article>
+                    `).join('');
+                    
+                    attachCartListeners();
+                } catch (error) {
+                    console.error('Erreur lors du chargement des produits:', error);
+                }
+            }
+            
+            loadProducts();
+            
+            // Cart management
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const cartButton = document.getElementById('cart-button');
+            const cartCount = document.getElementById('cart-count');
+            const cartModal = document.getElementById('cart-modal');
+            const closeCartBtn = document.getElementById('close-cart');
+            const cartItemsDiv = document.getElementById('cart-items');
+            const cartTotalSpan = document.getElementById('cart-total');
+            const clearCartBtn = document.getElementById('clear-cart');
+            const checkoutBtn = document.getElementById('checkout');
+            
+            function updateCartUI() {
+                cartCount.textContent = cart.length;
+                cartItemsDiv.innerHTML = cart.map((item, idx) => `
+                    <div class="cart-item">
+                        <img src="${item.image}" alt="${item.name}" />
+                        <div class="info">
+                            <h4>${item.name}</h4>
+                            <p>${item.price.toFixed(2)} €</p>
+                        </div>
+                        <button class="btn" onclick="window.removeFromCart(${idx})" style="padding: 0.4rem 0.6rem; font-size: 0.85rem;">×</button>
+                    </div>
+                `).join('');
+                const total = cart.reduce((sum, item) => sum + item.price, 0);
+                cartTotalSpan.textContent = total.toFixed(2);
+                localStorage.setItem('cart', JSON.stringify(cart));
+            }
+            
+            function attachCartListeners() {
+                document.querySelectorAll('.add-to-cart').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const productId = e.target.dataset.id;
+                        const product = document.querySelector(`[data-id="${productId}"]`);
+                        if (!product) return;
+                        const img = product.querySelector('img');
+                        cart.push({
+                            id: productId,
+                            name: e.target.dataset.name,
+                            price: parseFloat(e.target.dataset.price),
+                            image: img.src
+                        });
+                        updateCartUI();
+                        // Visual feedback
+                        e.target.textContent = '✓ Ajouté';
+                        setTimeout(() => { e.target.textContent = 'Ajouter'; }, 1500);
+                    });
+                });
+            }
+            
+            window.removeFromCart = function(idx) {
+                cart.splice(idx, 1);
+                updateCartUI();
+            };
+            
+            cartButton.addEventListener('click', () => {
+                cartModal.setAttribute('aria-hidden', 'false');
+            });
+            closeCartBtn.addEventListener('click', () => {
+                cartModal.setAttribute('aria-hidden', 'true');
+            });
+            cartModal.addEventListener('click', (e) => {
+                if (e.target === cartModal) {
+                    cartModal.setAttribute('aria-hidden', 'true');
+                }
+            });
+            clearCartBtn.addEventListener('click', () => {
+                cart = [];
+                updateCartUI();
+            });
+            checkoutBtn.addEventListener('click', () => {
+                if (cart.length === 0) {
+                    alert('Votre panier est vide');
+                    return;
+                }
+                alert(`Commande de ${cart.length} article(s) pour ${cartTotalSpan.textContent} €\nRedirection vers le paiement...`);
+                cart = [];
+                updateCartUI();
+                cartModal.setAttribute('aria-hidden', 'true');
+            });
+            
+            // Search functionality
+            const searchInput = document.getElementById('search');
+            
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                document.querySelectorAll('.product').forEach(product => {
+                    const name = product.querySelector('h3').textContent.toLowerCase();
+                    const desc = product.querySelector('p').textContent.toLowerCase();
+                    product.style.display = (name.includes(query) || desc.includes(query)) ? '' : 'none';
+                });
+            });
+            
+            // Dropdown functionality with accessibility
+            (function() {
+                function closeAllDropdowns() {
+                    document.querySelectorAll('.dropdown').forEach(d => {
+                        const btn = d.querySelector('.mainmenubtn');
+                        const child = d.querySelector('.dropdown-child');
+                        if (btn) btn.setAttribute('aria-expanded', 'false');
+                        if (child) child.setAttribute('aria-hidden', 'true');
+                        d.classList.remove('open');
+                    });
+                }
+
+                document.addEventListener('click', function(e) {
+                    const btn = e.target.closest('.mainmenubtn');
+                    if (btn && btn.closest('.dropdown')) {
+                        const wrap = btn.closest('.dropdown');
+                        const child = wrap.querySelector('.dropdown-child');
+                        const expanded = btn.getAttribute('aria-expanded') === 'true';
+                        if (expanded) {
+                            btn.setAttribute('aria-expanded', 'false');
+                            if (child) child.setAttribute('aria-hidden', 'true');
+                            wrap.classList.remove('open');
+                        } else {
+                            closeAllDropdowns();
+                            btn.setAttribute('aria-expanded', 'true');
+                            if (child) child.setAttribute('aria-hidden', 'false');
+                            wrap.classList.add('open');
+                        }
+                        e.stopPropagation();
+                        return;
+                    }
+                    if (!e.target.closest('.dropdown')) closeAllDropdowns();
+                });
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') closeAllDropdowns();
+                });
+            })();
+            
+            // Update cart on page load
+            updateCartUI();
+        </script>
     </body>
 </html>

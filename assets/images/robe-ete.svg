@@ -1,0 +1,22 @@
+<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="600" fill="#f0f5f0"/>
+  <defs>
+    <linearGradient id="robeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fffcf7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f5e8df;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Dress body -->
+  <path d="M 200 100 L 240 130 L 220 520 Q 215 545 195 545 L 105 545 Q 85 545 80 520 L 60 130 Z" fill="url(#robeGrad)" stroke="#ccc" stroke-width="2"/>
+  <path d="M 400 100 L 360 130 L 380 520 Q 385 545 405 545 L 495 545 Q 515 545 520 520 L 540 130 Z" fill="url(#robeGrad)" stroke="#ccc" stroke-width="2"/>
+  <!-- Straps -->
+  <line x1="240" y1="110" x2="260" y2="130" stroke="#d4c4a8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="360" y1="110" x2="340" y2="130" stroke="#d4c4a8" stroke-width="12" stroke-linecap="round"/>
+  <!-- Neckline -->
+  <ellipse cx="300" cy="100" rx="45" ry="35" fill="url(#robeGrad)" stroke="#ccc" stroke-width="2"/>
+  <!-- Waist detail -->
+  <ellipse cx="300" cy="240" rx="100" ry="15" fill="none" stroke="#d4c4a8" stroke-width="2" opacity="0.5"/>
+  <!-- Flow pattern -->
+  <path d="M 250 300 Q 240 400 235 520" fill="none" stroke="#d4c4a8" stroke-width="1" opacity="0.3"/>
+  <path d="M 350 300 Q 360 400 365 520" fill="none" stroke="#d4c4a8" stroke-width="1" opacity="0.3"/>
+</svg>
