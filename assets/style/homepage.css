@@ -672,6 +672,7 @@ a:hover{ color:var(--muted) }
   display:flex;
   gap:1rem;
   align-items:center;
+  position:relative;
 }
 
 .user-btn{
