@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,45 +7,207 @@
     <link rel="preload" as="style" href="/assets/style/homepage.min.css" />
     <link rel="stylesheet" href="/assets/style/homepage.min.css" />
     <style>
+      /* Theme Variables */
       :root {
-        --profile-bg: var(--pastel-bg, #eef7ef);
-        --profile-card: #fff;
-        --profile-border: var(--pastel-green);
-        --profile-accent: var(--accent);
+        /* Light Mode (default) */
+        --theme-bg: #f0f5f0;
+        --theme-surface: #fff;
+        --theme-text: #1a4d1a;
+        --theme-text-muted: #558055;
+        --theme-border: #c7e8c7;
+        --theme-accent: #6ba86b;
+        --theme-accent-light: rgba(107,168,107,0.1);
+        --theme-input-bg: #fff;
+        --theme-input-border: #c7e8c7;
+        --profile-bg: var(--theme-bg);
+        --profile-card: var(--theme-surface);
+        --profile-border: var(--theme-border);
+        --profile-accent: var(--theme-accent);
       }
+
+      /* Dark Mode */
+      html[data-theme="dark"] {
+        --theme-bg: #0d2e0d;
+        --theme-surface: #1a4d1a;
+        --theme-text: #e0ffe0;
+        --theme-text-muted: #a8d4a8;
+        --theme-border: #2d5a2d;
+        --theme-accent: #7ec97e;
+        --theme-accent-light: rgba(126,201,126,0.15);
+        --theme-input-bg: #2a5a2a;
+        --theme-input-border: #3d7a3d;
+      }
+
+      /* Temperate Mode */
+      html[data-theme="temperate"] {
+        --theme-bg: #faf8f3;
+        --theme-surface: #fff9f5;
+        --theme-text: #3d2817;
+        --theme-text-muted: #6b5344;
+        --theme-border: #e8dfd4;
+        --theme-accent: #a67b52;
+        --theme-accent-light: rgba(166,123,82,0.1);
+        --theme-input-bg: #fff9f5;
+        --theme-input-border: #e8dfd4;
+      }
+
+      /* Apply theme colors to main elements */
+      html[data-theme] body {
+        background: var(--theme-bg);
+        color: var(--theme-text);
+      }
+
+      html[data-theme] a {
+        color: var(--theme-accent);
+      }
+
+      html[data-theme] a:hover {
+        color: var(--theme-text-muted);
+      }
+
+      html[data-theme] .site-header {
+        background: var(--theme-surface);
+        border-bottom-color: var(--theme-border);
+      }
+
+      html[data-theme] .main-nav a,
+      html[data-theme] .main-nav button {
+        color: var(--theme-text-muted);
+      }
+
+      html[data-theme] .main-nav a:hover,
+      html[data-theme] .main-nav button:hover {
+        color: var(--theme-text);
+        background: var(--theme-accent-light);
+      }
+
+      html[data-theme] .btn {
+        background: var(--theme-accent);
+        color: var(--theme-surface);
+        border-color: var(--theme-accent);
+      }
+
+      html[data-theme] .btn:hover {
+        opacity: 0.9;
+      }
+
+      html[data-theme] input[type="text"],
+      html[data-theme] input[type="email"],
+      html[data-theme] input[type="password"],
+      html[data-theme] select {
+        background: var(--theme-input-bg);
+        color: var(--theme-text);
+        border-color: var(--theme-input-border);
+      }
+
+      html[data-theme] input[type="checkbox"],
+      html[data-theme] input[type="radio"] {
+        accent-color: var(--theme-accent);
+      }
+
+      html[data-theme] .card {
+        background: var(--theme-surface);
+        border-color: var(--theme-border);
+        color: var(--theme-text);
+      }
+
+      html[data-theme] .profile-hero {
+        background: linear-gradient(135deg, var(--theme-accent-light), transparent);
+        border-color: var(--theme-border);
+      }
+
+      html[data-theme] .avatar {
+        background: var(--theme-accent);
+        color: var(--theme-surface);
+      }
+
+      html[data-theme] .pill {
+        color: var(--theme-accent);
+        background: var(--theme-accent-light);
+        border-color: var(--theme-border);
+      }
+
+      html[data-theme] .history-item {
+        border-bottom-color: var(--theme-border);
+      }
+
+      html[data-theme] .theme-selector {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      html[data-theme] .theme-option {
+        padding: 0.5rem 1rem;
+        border: 2px solid var(--theme-border);
+        border-radius: 8px;
+        background: var(--theme-surface);
+        color: var(--theme-text);
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+
+      html[data-theme] .theme-option:hover {
+        border-color: var(--theme-accent);
+      }
+
+      html[data-theme] .theme-option.active {
+        background: var(--theme-accent);
+        color: var(--theme-surface);
+        border-color: var(--theme-accent);
+      }
+
+      html[data-theme] .form-group {
+        margin-bottom: 1rem;
+      }
+
+      html[data-theme] .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--theme-text);
+      }
+
+      html[data-theme] .form-group select,
+      html[data-theme] .form-group input {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--theme-input-border);
+        border-radius: 6px;
+        font-size: 0.95rem;
+      }
+
       .profile-wrapper {
         max-width: 1000px;
         margin: 0 auto;
         padding: 2rem 1rem;
       }
       .profile-hero {
-        background: linear-gradient(135deg, rgba(77,143,93,0.08), rgba(77,143,93,0.02));
-        border: 1px solid var(--profile-border);
+        box-shadow: var(--shadow-large);
         border-radius: 16px;
         padding: 1.5rem 2rem;
         display: flex;
         align-items: center;
         gap: 1rem;
-        box-shadow: var(--shadow-large);
       }
       .avatar {
         width: 64px; height: 64px;
         border-radius: 50%;
-        background: var(--profile-accent);
-        color: #fff;
         display: grid; place-items: center;
         font-weight: 700; font-size: 1.2rem;
         box-shadow: var(--shadow-medium);
       }
-      .card { background: var(--profile-card); border:1px solid var(--profile-border); border-radius:12px; padding:1rem 1.25rem; box-shadow: var(--shadow-medium); }
-      .card h3 { margin-top:0; color: var(--dark); }
+      .card { border:1px solid var(--profile-border); border-radius:12px; padding:1rem 1.25rem; box-shadow: var(--shadow-medium); }
+      .card h3 { margin-top:0; }
       .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
       .info-row { display:flex; gap: .5rem; margin:.2rem 0; }
-      .info-row strong { min-width: 120px; color: var(--dark); }
-      .history-item { padding:.6rem .4rem; border-bottom:1px solid #eee; display:flex; justify-content:space-between; }
-      .pill { display:inline-block; padding:.2rem .6rem; border:1px solid var(--profile-border); border-radius:999px; color: var(--accent); background:#f7fbf7; font-size:.85rem; }
+      .info-row strong { min-width: 120px; }
+      .history-item { padding:.6rem .4rem; display:flex; justify-content:space-between; }
+      .pill { display:inline-block; padding:.2rem .6rem; border:1px solid var(--profile-border); border-radius:999px; font-size:.85rem; }
       .actions { display:flex; gap:.6rem; align-items:center; }
-      .btn.primary { background: var(--accent); color:#fff; }
+      .btn.primary { }
       .section { margin-top:1.5rem; }
       .badge-admin{display:none;margin-left:0.5rem;padding:0.2rem 0.6rem;border-radius:12px;background:#1f2937;color:#fff;font-size:0.85rem;}
       .admin-actions{display:flex;flex-wrap:wrap;gap:0.6rem;margin-top:0.5rem;}
@@ -90,7 +252,7 @@
             Consentement aux cookies
           </label>
           <button id="save-prefs" class="btn primary" style="margin-top:1rem">Enregistrer</button>
-          <p id="prefs-status" style="margin-top:0.5rem;color:var(--muted)"></p>
+          <p id="prefs-status" style="margin-top:0.5rem;color:var(--theme-text-muted)"></p>
         </section>
       </div>
 
@@ -110,7 +272,17 @@
       </section>
 
       <section class="card section">
-        <h3>Préférences avancées</h3>
+        <h3>Préférences avancées & Thème</h3>
+        
+        <div class="form-group">
+          <label>Thème de l'interface</label>
+          <div class="theme-selector">
+            <button class="theme-option active" data-theme="light">☀️ Clair</button>
+            <button class="theme-option" data-theme="dark">🌙 Sombre</button>
+            <button class="theme-option" data-theme="temperate">🍂 Tempéré</button>
+          </div>
+        </div>
+
         <div class="form-group">
           <label for="pref-lang">Langue de l'interface</label>
           <select id="pref-lang">
@@ -118,16 +290,51 @@
             <option value="en">English</option>
           </select>
         </div>
+
         <label style="display:flex;gap:0.5rem;align-items:center;margin-top:0.5rem">
           <input type="checkbox" id="pref-notif" /> Notifications email promotions
         </label>
-        <p id="prefs-adv-status" style="margin-top:0.5rem;color:var(--muted)"></p>
+
+        <label style="display:flex;gap:0.5rem;align-items:center;margin-top:0.5rem">
+          <input type="checkbox" id="pref-animations" /> Animations et transitions
+        </label>
+
+        <p id="prefs-adv-status" style="margin-top:0.5rem;color:var(--theme-text-muted)"></p>
       </section>
     </main>
 
     <script>
       const API = window.API_BASE || '/api';
       let sessionToken = null;
+
+      // Theme Management
+      function initTheme() {
+        const savedTheme = localStorage.getItem('lowa_theme') || 'light';
+        setTheme(savedTheme);
+      }
+
+      function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('lowa_theme', theme);
+        
+        // Update active button
+        document.querySelectorAll('.theme-option').forEach(btn => {
+          if (btn.dataset.theme === theme) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.theme-option').forEach(btn => {
+          btn.addEventListener('click', () => {
+            setTheme(btn.dataset.theme);
+            saveAdvancedPrefs();
+          });
+        });
+      });
 
       function loadSession() {
         try {
@@ -174,7 +381,7 @@
         const items = await resp.json();
         if (!items.length) { document.getElementById('history').innerHTML = '<p>Pas d\'historique.</p>'; return; }
         document.getElementById('history').innerHTML = items.map(i => `
-          <div class="history-item" style="padding:0.5rem 0;border-bottom:1px solid #eee">
+          <div class="history-item" style="padding:0.5rem 0;border-bottom:1px solid var(--theme-border)">
             <div><strong>Achat du:</strong> ${new Date(i.date).toLocaleString()}</div>
             <div><strong>Total:</strong> ${i.total.toFixed(2)} €</div>
           </div>
@@ -192,16 +399,45 @@
       function loadAdvancedPrefs(){
         const lang = localStorage.getItem('lowa_pref_lang') || 'fr';
         const notif = localStorage.getItem('lowa_pref_notif') === 'true';
+        const animations = localStorage.getItem('lowa_pref_animations') !== 'false';
+        const theme = localStorage.getItem('lowa_theme') || 'light';
+        
         document.getElementById('pref-lang').value = lang;
         document.getElementById('pref-notif').checked = notif;
+        document.getElementById('pref-animations').checked = animations;
+        
+        // Set active theme button
+        document.querySelectorAll('.theme-option').forEach(btn => {
+          if (btn.dataset.theme === theme) {
+            btn.classList.add('active');
+          }
+        });
       }
 
       function saveAdvancedPrefs(){
         const lang = document.getElementById('pref-lang').value;
         const notif = document.getElementById('pref-notif').checked;
+        const animations = document.getElementById('pref-animations').checked;
+        const theme = document.documentElement.getAttribute('data-theme');
+        
         localStorage.setItem('lowa_pref_lang', lang);
         localStorage.setItem('lowa_pref_notif', notif);
+        localStorage.setItem('lowa_pref_animations', animations);
+        localStorage.setItem('lowa_theme', theme);
+        
+        // Apply animations preference
+        if (!animations) {
+          document.documentElement.style.setProperty('--transition-fast', '0s');
+          document.documentElement.style.setProperty('--transition-medium', '0s');
+        } else {
+          document.documentElement.style.removeProperty('--transition-fast');
+          document.documentElement.style.removeProperty('--transition-medium');
+        }
+        
         document.getElementById('prefs-adv-status').textContent = 'Préférences enregistrées localement';
+        setTimeout(() => {
+          document.getElementById('prefs-adv-status').textContent = '';
+        }, 3000);
       }
 
       async function savePrefs() {
@@ -213,6 +449,9 @@
         });
         if (!resp.ok) throw new Error('Save failed');
         document.getElementById('prefs-status').textContent = 'Préférences enregistrées';
+        setTimeout(() => {
+          document.getElementById('prefs-status').textContent = '';
+        }, 3000);
       }
 
       document.getElementById('save-prefs').addEventListener('click', async () => {
@@ -221,6 +460,7 @@
 
       document.getElementById('pref-lang').addEventListener('change', saveAdvancedPrefs);
       document.getElementById('pref-notif').addEventListener('change', saveAdvancedPrefs);
+      document.getElementById('pref-animations').addEventListener('change', saveAdvancedPrefs);
 
       document.getElementById('logout-btn').addEventListener('click', async () => {
         try { await fetch(API + '/logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
@@ -228,7 +468,14 @@
         window.location.href = '/';
       });
 
+      document.getElementById('logout-btn-hero').addEventListener('click', async () => {
+        try { await fetch(API + '/logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
+        localStorage.removeItem('lowa_session');
+        window.location.href = '/';
+      });
+
       (async function init() {
+        initTheme();
         loadSession();
         try {
           await fetchUser();

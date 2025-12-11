@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,6 +16,144 @@
         <link rel="preconnect" href="https://lowa-api.onrender.com" />
         <link rel="dns-prefetch" href="https://lowa-api.onrender.com" />
         <link rel="stylesheet" href="/assets/style/homepage.min.css" media="all" />
+        <style>
+            /* Theme Variables - Applied to index.html */
+            :root {
+                /* Light Mode (default) */
+                --theme-bg: #f0f5f0;
+                --theme-surface: #fff;
+                --theme-text: #1a4d1a;
+                --theme-text-muted: #558055;
+                --theme-border: #c7e8c7;
+                --theme-accent: #6ba86b;
+                --theme-accent-light: rgba(107,168,107,0.1);
+                --theme-input-bg: #fff;
+                --theme-input-border: #c7e8c7;
+            }
+
+            /* Dark Mode */
+            html[data-theme="dark"] {
+                --theme-bg: #0d2e0d;
+                --theme-surface: #1a4d1a;
+                --theme-text: #e0ffe0;
+                --theme-text-muted: #a8d4a8;
+                --theme-border: #2d5a2d;
+                --theme-accent: #7ec97e;
+                --theme-accent-light: rgba(126,201,126,0.15);
+                --theme-input-bg: #2a5a2a;
+                --theme-input-border: #3d7a3d;
+            }
+
+            /* Temperate Mode */
+            html[data-theme="temperate"] {
+                --theme-bg: #faf8f3;
+                --theme-surface: #fff9f5;
+                --theme-text: #3d2817;
+                --theme-text-muted: #6b5344;
+                --theme-border: #e8dfd4;
+                --theme-accent: #a67b52;
+                --theme-accent-light: rgba(166,123,82,0.1);
+                --theme-input-bg: #fff9f5;
+                --theme-input-border: #e8dfd4;
+            }
+
+            /* Apply theme to body and main elements */
+            html[data-theme] body {
+                background: var(--theme-bg);
+                color: var(--theme-text);
+            }
+
+            html[data-theme] a {
+                color: var(--theme-accent);
+            }
+
+            html[data-theme] .site-header {
+                background: var(--theme-surface);
+                border-bottom-color: var(--theme-border);
+            }
+
+            html[data-theme] .main-nav a,
+            html[data-theme] .main-nav button {
+                color: var(--theme-text-muted);
+            }
+
+            html[data-theme] .main-nav a:hover,
+            html[data-theme] .main-nav button:hover {
+                color: var(--theme-text);
+                background: var(--theme-accent-light);
+            }
+
+            html[data-theme] .btn {
+                background: var(--theme-accent);
+                color: var(--theme-surface);
+                border-color: var(--theme-accent);
+            }
+
+            html[data-theme] input[type="text"],
+            html[data-theme] input[type="email"],
+            html[data-theme] input[type="password"],
+            html[data-theme] input[type="search"],
+            html[data-theme] select {
+                background: var(--theme-input-bg);
+                color: var(--theme-text);
+                border-color: var(--theme-input-border);
+            }
+
+            html[data-theme] .modal-content {
+                background: var(--theme-surface);
+                color: var(--theme-text);
+            }
+
+            html[data-theme] .cookie-banner {
+                background: var(--theme-surface);
+                border-color: var(--theme-border);
+                color: var(--theme-text);
+            }
+
+            html[data-theme] .product {
+                background: var(--theme-surface);
+                border-color: var(--theme-border);
+                color: var(--theme-text);
+            }
+
+            html[data-theme] .empty-state {
+                border-color: var(--theme-border);
+                color: var(--theme-text-muted);
+            }
+
+            html[data-theme] .dropdown-content {
+                background: var(--theme-surface);
+                color: var(--theme-text);
+            }
+
+            html[data-theme] .dropdown-content a {
+                color: var(--theme-text-muted);
+            }
+
+            html[data-theme] .dropdown-content a:hover {
+                background: var(--theme-accent-light);
+                color: var(--theme-text);
+            }
+
+            /* Theme Toggle Button */
+            .theme-btn {
+                background: transparent;
+                border: none;
+                color: var(--theme-text);
+                font-size: 1.2rem;
+                cursor: pointer;
+                padding: 0.5rem;
+                border-radius: 6px;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+            }
+
+            .theme-btn:hover {
+                background: var(--theme-accent-light);
+                transform: scale(1.1);
+            }
+        </style>
     </head>
     <body>
         <!-- Cookie Consent Banner -->
@@ -133,6 +271,7 @@
                     <a href="#contact">Contact</a>
                 </nav>
                 <div class="header-actions">
+                    <button id="theme-toggle" class="theme-btn" aria-label="Changer de thème" title="Cliquez pour changer de thème">🌙</button>
                     <button id="user-menu-btn" class="user-btn" aria-label="Menu utilisateur" aria-expanded="false">
                         <span id="user-display">Connexion</span> 👤
                     </button>
@@ -546,6 +685,30 @@
                 });
             })();
             
+            // Theme Management System
+            function initTheme() {
+                const savedTheme = localStorage.getItem('lowa_theme') || 'light';
+                setTheme(savedTheme);
+            }
+
+            function setTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('lowa_theme', theme);
+                
+                // Apply animations preference
+                const animations = localStorage.getItem('lowa_pref_animations') !== 'false';
+                if (!animations) {
+                    document.documentElement.style.setProperty('--transition-fast', '0s');
+                    document.documentElement.style.setProperty('--transition-medium', '0s');
+                } else {
+                    document.documentElement.style.removeProperty('--transition-fast');
+                    document.documentElement.style.removeProperty('--transition-medium');
+                }
+            }
+
+            // Initialize theme on page load
+            initTheme();
+            
             // Authentication System
             const API_BASE = 'https://lowa-api.onrender.com/api';
             let currentUser = null;
@@ -643,6 +806,34 @@
             if (userInfoBtnEl) {
                 userInfoBtnEl.addEventListener('click', () => {
                     window.location.href = '/profile.html';
+                });
+            }
+
+            // Theme Toggle Button
+            const themeToggle = document.getElementById('theme-toggle');
+            if (themeToggle) {
+                // Set initial emoji based on saved theme
+                const updateThemeEmoji = () => {
+                    const theme = document.documentElement.getAttribute('data-theme');
+                    if (theme === 'dark') {
+                        themeToggle.textContent = '☀️';
+                    } else if (theme === 'temperate') {
+                        themeToggle.textContent = '🌙';
+                    } else {
+                        themeToggle.textContent = '🌙';
+                    }
+                };
+                updateThemeEmoji();
+
+                themeToggle.addEventListener('click', () => {
+                    const currentTheme = document.documentElement.getAttribute('data-theme');
+                    let nextTheme = 'light';
+                    if (currentTheme === 'light') nextTheme = 'dark';
+                    else if (currentTheme === 'dark') nextTheme = 'temperate';
+                    else nextTheme = 'light';
+                    
+                    setTheme(nextTheme);
+                    updateThemeEmoji();
                 });
             }
             
