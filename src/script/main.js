@@ -9,7 +9,7 @@ const cartTotalEl = document.getElementById('cart-total');
 const closeCartBtn = document.getElementById('close-cart');
 const clearCartBtn = document.getElementById('clear-cart');
 const checkoutBtn = document.getElementById('checkout');
-const resetFiltersBtn = document.getElementById('reset-filters');
+const resetFiltersBtn = document.getElementById('reset-filters-search');
 
 let products = [];
 let cart = JSON.parse(localStorage.getItem('lowa_cart') || '{}');
@@ -71,12 +71,11 @@ function applyFilter(q){
 function applyAllFilters(){
   let filtered = [...products];
   
-  // Filtre de recherche
+  // Filtre de recherche - ONLY by product name
   if(currentFilters.search){
     const s = currentFilters.search.trim().toLowerCase();
     filtered = filtered.filter(p => {
       return (p.name && p.name.toLowerCase().includes(s)) || 
-             (p.description && p.description.toLowerCase().includes(s)) || 
              String(p.id) === s;
     });
   }
