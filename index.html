@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
         <title>LOWA — Vêtements éthiques</title>
         <meta name="description" content="LOWA — Boutique de vêtements éthiques. Mode responsable, transparence des matériaux et production locale quand possible." />
         <meta property="og:title" content="LOWA — Mode éthique et durable" />
@@ -11,7 +12,10 @@
         <meta property="og:url" content="https://ydays-lowa.vercel.app/" />
         <meta property="og:image" content="https://ydays-lowa.vercel.app/assets/images/hero.jpg" />
         <link rel="canonical" href="https://ydays-lowa.vercel.app/" />
-        <link rel="stylesheet" href="/assets/style/homepage.css" />
+        <link rel="preload" as="style" href="/assets/style/homepage.css" />
+        <link rel="preconnect" href="https://lowa-api.onrender.com" />
+        <link rel="dns-prefetch" href="https://lowa-api.onrender.com" />
+        <link rel="stylesheet" href="/assets/style/homepage.css" media="all" />
     </head>
     <body>
         <!-- Cookie Consent Banner -->
@@ -260,7 +264,7 @@
                     productsGrid.innerHTML = products.map(product => `
                         <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${product.collection}">
                             <div class="product-image-container">
-                                <img src="${product.image}" alt="${product.name}" loading="lazy" />
+                                <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" />
                             </div>
                             <h3>${product.name}</h3>
                             <p>${product.description}</p>
@@ -297,7 +301,7 @@
                 cartCount.textContent = cart.length;
                 cartItemsDiv.innerHTML = cart.map((item, idx) => `
                     <div class="cart-item">
-                        <img src="${item.image}" alt="${item.name}" />
+                        <img src="${item.image}" alt="${item.name}" width="60" height="60" />
                         <div class="info">
                             <h4>${item.name}</h4>
                             <p>${item.price.toFixed(2)} €</p>

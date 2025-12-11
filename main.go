@@ -650,6 +650,25 @@ func main() {
 	}
 	defer db.Close()
 
+	// Middleware to add cache headers
+	cacheMiddleware := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Cache static assets for 30 days
+			if strings.HasPrefix(r.URL.Path, "/assets/") {
+				w.Header().Set("Cache-Control", "public, max-age=2592000, immutable")
+			}
+			// Cache HTML/JSON API responses for 1 hour
+			if strings.HasPrefix(r.URL.Path, "/api/") {
+				w.Header().Set("Cache-Control", "private, max-age=3600")
+			}
+			// Cache HTML pages for 1 hour
+			if strings.HasSuffix(r.URL.Path, ".html") || r.URL.Path == "/" {
+				w.Header().Set("Cache-Control", "public, max-age=3600")
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+
 	// API Routes
 	http.HandleFunc("/api/register", handleRegister)
 	http.HandleFunc("/api/login", handleLogin)
@@ -670,9 +689,9 @@ func main() {
 	http.HandleFunc("/api/user-activity", handleUserActivity)
 	http.HandleFunc("/api/recommendations", handleGetRecommendations)
 
-	// Static files
+	// Static files with cache middleware
 	fs := http.FileServer(http.Dir(*dir))
-	http.Handle("/", fs)
+	http.Handle("/", cacheMiddleware(fs))
 
 	log.Printf("🌿 Serving %s on HTTP %s\n", *dir, *addr)
 

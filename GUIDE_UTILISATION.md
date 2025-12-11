@@ -1,110 +1,9 @@
 # 🌿 LOWA - Guide d'utilisation
 
 ## 📋 Table des matières
-1. [Démarrage du serveur](#démarrage-du-serveur)
-2. [Accès à la base de données](#accès-à-la-base-de-données)
-3. [Fonctionnalités du site](#fonctionnalités-du-site)
-4. [Résolution de problèmes](#résolution-de-problèmes)
+1. [Fonctionnalités du site](#fonctionnalités-du-site)
+2. [Résolution de problèmes](#résolution-de-problèmes)
 
----
-
-## 🚀 Démarrage du serveur
-
-### Option 1 : Utiliser l'exécutable (Recommandé)
-```powershell
-cd "c:\Users\Clément\OneDrive\Bureau\Ydays\Ydays-LOWA"
-.\server.exe
-```
-
-### Option 2 : Compiler puis exécuter
-```powershell
-cd "c:\Users\Clément\OneDrive\Bureau\Ydays\Ydays-LOWA"
-go build -o server.exe main.go
-.\server.exe
-```
-
-Le serveur démarre sur : **http://localhost:8080/**
-
----
-
-## 💾 Accès à la base de données
-
-### Emplacement
-Votre base de données est dans le fichier : `data.json`
-
-**Chemin complet :**
-```
-c:\Users\Clément\OneDrive\Bureau\Ydays\Ydays-LOWA\data.json
-```
-
-### Structure de la base de données
-
-```json
-{
-  "users": {
-    "1": {
-      "id": 1,
-      "email": "user@example.com",
-      "nom": "Doe",
-      "prenom": "John",
-      "sexe": "H",
-      "date_creation": "2025-12-11T15:25:16.123456789+01:00"
-    }
-  },
-  "carts": {
-    "1": [
-      {
-        "product_id": 1,
-        "quantity": 2
-      }
-    ]
-  },
-  "history": {
-    "1": [
-      {
-        "id": 1,
-        "date": "2025-12-11T15:30:00.123456789+01:00",
-        "total": 58.00,
-        "items": [...]
-      }
-    ]
-  },
-  "sessions": {
-    "tok_1_1702301116123456789": 1
-  },
-  "next_id": 2
-}
-```
-
-### Comment consulter la base de données
-
-#### 1. **Avec VS Code**
-- Ouvrez le fichier `data.json` directement dans VS Code
-- Format JSON lisible automatiquement
-
-#### 2. **Avec Notepad++**
-- Ouvrez le fichier avec Notepad++
-- Plugin "JSON Viewer" pour une meilleure visualisation
-
-#### 3. **Avec PowerShell**
-```powershell
-Get-Content data.json | ConvertFrom-Json | ConvertTo-Json -Depth 10
-```
-
-#### 4. **Avec un navigateur web**
-Créez un endpoint pour visualiser les données (à ajouter dans `main.go`) :
-```go
-http.HandleFunc("/api/admin/data", func(w http.ResponseWriter, r *http.Request) {
-    w.Header().Set("Content-Type", "application/json")
-    dataMu.RLock()
-    json.NewEncoder(w).Encode(data)
-    dataMu.RUnlock()
-})
-```
-
-Puis accédez à : `http://localhost:8080/api/admin/data`
-
----
 
 ## 🎯 Fonctionnalités du site
 
@@ -280,7 +179,7 @@ Si vous avez des questions ou des problèmes :
 1. Consultez ce guide
 2. Vérifiez les logs du serveur dans le terminal
 3. Vérifiez la console du navigateur (F12)
-4. Vérifiez le fichier `data.json`
+
 
 ---
 
