@@ -97,24 +97,23 @@
                     <a href="#about">À propos</a>
                     <a href="#contact">Contact</a>
                 </nav>
-                <div class="header-actions">
+                <div class="header-actions" style="position:relative">
                     <button id="user-menu-btn" class="user-btn" aria-label="Menu utilisateur" aria-expanded="false">
                         <span id="user-display">Connexion</span> 👤
                     </button>
                     <button id="cart-button" class="cart-btn" aria-label="Ouvrir le panier">
                         Panier (<span id="cart-count">0</span>)
                     </button>
+                    <!-- User Menu Dropdown -->
+                    <div id="user-menu" class="user-menu" aria-hidden="true">
+                        <button id="open-login-btn" class="menu-item" style="display:none">Connexion</button>
+                        <button id="open-register-btn" class="menu-item" style="display:none">Inscription</button>
+                        <button id="user-info-btn" class="menu-item" style="display:none">Mon profil</button>
+                        <button id="logout-btn" class="menu-item" style="display:none">Déconnexion</button>
+                    </div>
                 </div>
             </div>
         </header>
-
-        <!-- User Menu Dropdown -->
-        <div id="user-menu" class="user-menu" aria-hidden="true">
-            <button id="open-login-btn" class="menu-item" style="display:none">Connexion</button>
-            <button id="open-register-btn" class="menu-item" style="display:none">Inscription</button>
-            <button id="user-info-btn" class="menu-item" style="display:none">Mon profil</button>
-            <button id="logout-btn" class="menu-item" style="display:none">Déconnexion</button>
-        </div>
 
         <main>
             <section class="hero">
