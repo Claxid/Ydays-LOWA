@@ -434,6 +434,60 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"success": "true"})
 }
 
+// Save user preferences (e.g., cookie consent)
+func handleUserPreferences(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Method not allowed"})
+		return
+	}
+
+	userID, err := getSessionUserID(r)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Not authenticated"})
+		return
+	}
+
+	var body struct {
+		CookieConsent string `json:"cookie_consent"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.CookieConsent == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
+		return
+	}
+
+	// Create table for preferences if not exists
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS user_preferences (
+		user_id INTEGER PRIMARY KEY,
+		cookie_consent TEXT,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+	)`)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to prepare table"})
+		return
+	}
+
+	// Upsert preference
+	_, err = db.Exec(`INSERT INTO user_preferences (user_id, cookie_consent, updated_at)
+		VALUES (?, ?, datetime('now'))
+		ON CONFLICT(user_id) DO UPDATE SET cookie_consent = excluded.cookie_consent, updated_at = excluded.updated_at`,
+		userID, body.CookieConsent,
+	)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to save preferences"})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"success": "true"})
+}
+
 func main() {
 	dir := flag.String("dir", ".", "directory to serve")
 	addr := flag.String("addr", ":8080", "address to listen on")
@@ -470,6 +524,7 @@ func main() {
 	http.HandleFunc("/api/purchase-history", handleGetPurchaseHistory)
 	http.HandleFunc("/api/checkout", handleCheckout)
 	http.HandleFunc("/api/logout", handleLogout)
+	http.HandleFunc("/api/user-preferences", handleUserPreferences)
 
 	// Static files
 	fs := http.FileServer(http.Dir(*dir))

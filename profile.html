@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profil — LOWA</title>
+    <link rel="stylesheet" href="/assets/style/homepage.css" />
+    <script src="/api-config.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="/">LOWA</a>
+        <nav class="main-nav">
+          <a href="/">Accueil</a>
+        </nav>
+        <div class="header-actions">
+          <button id="logout-btn" class="btn">Déconnexion</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container" style="padding:2rem 0">
+      <h1>Mon profil</h1>
+      <section>
+        <h2>Informations utilisateur</h2>
+        <div id="user-info" class="card"></div>
+      </section>
+
+      <section style="margin-top:2rem">
+        <h2>Historique d'achats</h2>
+        <div id="history" class="card"></div>
+      </section>
+
+      <section style="margin-top:2rem">
+        <h2>Préférences</h2>
+        <div class="card">
+          <label style="display:flex;gap:0.5rem;align-items:center">
+            <input type="checkbox" id="cookie-consent" />
+            Consentement aux cookies
+          </label>
+          <button id="save-prefs" class="btn primary" style="margin-top:1rem">Enregistrer</button>
+          <p id="prefs-status" style="margin-top:0.5rem;color:var(--muted)"></p>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const API = window.API_BASE || '/api';
+      let sessionToken = null;
+
+      function loadSession() {
+        try {
+          const stored = localStorage.getItem('lowa_session');
+          if (!stored) return;
+          const s = JSON.parse(stored);
+          sessionToken = s.token;
+        } catch {}
+      }
+
+      async function fetchUser() {
+        const resp = await fetch(API + '/user', { headers: { Authorization: sessionToken } });
+        if (!resp.ok) throw new Error('Not authenticated');
+        const user = await resp.json();
+        document.getElementById('user-info').innerHTML = `
+          <p><strong>Nom:</strong> ${user.prenom} ${user.nom}</p>
+          <p><strong>Email:</strong> ${user.email}</p>
+          <p><strong>Sexe:</strong> ${user.sexe || '-'}</p>
+          <p><strong>Créé le:</strong> ${new Date(user.date_creation).toLocaleString()}</p>
+        `;
+        return user;
+      }
+
+      async function fetchHistory() {
+        const resp = await fetch(API + '/purchase-history', { headers: { Authorization: sessionToken } });
+        if (!resp.ok) { document.getElementById('history').innerHTML = '<p>Pas d\'historique.</p>'; return; }
+        const items = await resp.json();
+        if (!items.length) { document.getElementById('history').innerHTML = '<p>Pas d\'historique.</p>'; return; }
+        document.getElementById('history').innerHTML = items.map(i => `
+          <div class="history-item" style="padding:0.5rem 0;border-bottom:1px solid #eee">
+            <div><strong>Achat du:</strong> ${new Date(i.date).toLocaleString()}</div>
+            <div><strong>Total:</strong> ${i.total.toFixed(2)} €</div>
+          </div>
+        `).join('');
+      }
+
+      async function loadPrefs() {
+        // Optionally could add GET /user-preferences; for now reflect local storage
+        const consent = localStorage.getItem('lowa_cookie_consent');
+        if (consent) {
+          try { const obj = JSON.parse(consent); document.getElementById('cookie-consent').checked = obj.status === 'accepted'; } catch {}
+        }
+      }
+
+      async function savePrefs() {
+        const status = document.getElementById('cookie-consent').checked ? 'accepted' : 'declined';
+        const resp = await fetch(API + '/user-preferences', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: sessionToken },
+          body: JSON.stringify({ cookie_consent: status })
+        });
+        if (!resp.ok) throw new Error('Save failed');
+        document.getElementById('prefs-status').textContent = 'Préférences enregistrées';
+      }
+
+      document.getElementById('save-prefs').addEventListener('click', async () => {
+        try { await savePrefs(); } catch (e) { alert('Erreur: ' + e.message); }
+      });
+
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        try { await fetch(API + '/logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
+        localStorage.removeItem('lowa_session');
+        window.location.href = '/';
+      });
+
+      (async function init() {
+        loadSession();
+        try {
+          await fetchUser();
+          await fetchHistory();
+          await loadPrefs();
+        } catch (e) {
+          alert('Veuillez vous connecter');
+          window.location.href = '/';
+        }
+      })();
+    </script>
+  </body>
+</html>

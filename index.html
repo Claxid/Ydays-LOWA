@@ -108,7 +108,8 @@
                     <div id="user-menu" class="user-menu" aria-hidden="true">
                         <button id="open-login-btn" class="menu-item" style="display:none">Connexion</button>
                         <button id="open-register-btn" class="menu-item" style="display:none">Inscription</button>
-                        <button id="user-info-btn" class="menu-item" style="display:none">Mon profil</button>
+                            <button id="user-info-btn" class="menu-item" style="display:none">Mon profil</button>
+                            <button id="user-info-btn" class="menu-item" style="display:none">Mon profil</button>
                         <button id="logout-btn" class="menu-item" style="display:none">Déconnexion</button>
                     </div>
                 </div>
@@ -585,6 +586,14 @@
                 e.preventDefault();
                 openModal('login-modal');
             });
+
+            // Profile navigation
+            const userInfoBtnEl = document.getElementById('user-info-btn');
+            if (userInfoBtnEl) {
+                userInfoBtnEl.addEventListener('click', () => {
+                    window.location.href = '/profile.html';
+                });
+            }
             
             // User menu toggle
             document.getElementById('user-menu-btn').addEventListener('click', (e) => {
