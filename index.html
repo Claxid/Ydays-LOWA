@@ -5,6 +5,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>LOWA — Vêtements éthiques</title>
         <meta name="description" content="LOWA — Boutique de vêtements éthiques. Mode responsable, transparence des matériaux et production locale quand possible." />
+        <meta property="og:title" content="LOWA — Mode éthique et durable" />
+        <meta property="og:description" content="Une sélection de vêtements responsables déjà produits, prêts à être adoptés sans gaspillage." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://ydays-lowa.vercel.app/" />
+        <meta property="og:image" content="https://ydays-lowa.vercel.app/assets/images/hero.jpg" />
+        <link rel="canonical" href="https://ydays-lowa.vercel.app/" />
         <link rel="stylesheet" href="/assets/style/homepage.css" />
     </head>
     <body>
@@ -85,6 +91,7 @@
         <header class="site-header">
             <div class="container header-inner">
                 <a class="brand" href="/index.html">🌿 LOWA</a>
+                <button class="burger" id="burger-btn" aria-label="Ouvrir le menu" aria-expanded="false">☰</button>
                 <nav class="main-nav" aria-label="Navigation principale">
                     <a href="/index.html" class="nav-accueil">Accueil</a>
                     <div class="dropdown">
@@ -165,6 +172,7 @@
                 </div>
 
                 <div id="products" class="products-grid" role="list"></div>
+                <div id="products-empty" class="products-empty" hidden>Aucun produit ne correspond à votre recherche.</div>
             </section>
 
             <section id="about" class="container about">
@@ -178,6 +186,13 @@
                 <p>Une question sur une commande ou nos produits ? Contactez-nous :</p>
                 <p><strong><a href="mailto:lowa.ynov@gmail.com">lowa.ynov@gmail.com</a></strong></p>
                 <p style="font-size:0.95rem;color:var(--muted)">Nous répondons généralement sous 24h.</p>
+            </section>
+
+            <section id="faq" class="container about">
+                <h2>❓ FAQ / Retours / Livraison</h2>
+                <p><strong>Livraison :</strong> expédiée sous 48h, options standard ou express.</p>
+                <p><strong>Retours :</strong> 14 jours pour changer d'avis, remboursement après réception.</p>
+                <p><strong>Qualité :</strong> pièces vérifiées, emballages recyclables, suivi fourni.</p>
             </section>
         </main>
 
@@ -206,14 +221,43 @@
         <script>
             document.getElementById('year').textContent = new Date().getFullYear();
 
+            const productsGrid = document.getElementById('products');
+            const emptyState = document.getElementById('products-empty');
+            const burgerBtn = document.getElementById('burger-btn');
+            const headerEl = document.querySelector('.site-header');
+
+            function showSkeleton(count = 6) {
+                const skeletonCard = `
+                    <article class="product skeleton" aria-hidden="true">
+                        <div class="product-image-container shimmer"></div>
+                        <div class="skeleton-line" style="width:70%"></div>
+                        <div class="skeleton-line" style="width:90%"></div>
+                        <div class="meta">
+                            <span class="skeleton-pill"></span>
+                            <span class="skeleton-btn"></span>
+                        </div>
+                    </article>`;
+                productsGrid.innerHTML = Array.from({ length: count }).map(() => skeletonCard).join('');
+            }
+
+            function updateEmptyState() {
+                const visible = Array.from(productsGrid.children).some(el => el.style.display !== 'none');
+                emptyState.hidden = visible;
+            }
+
+            // Burger toggle
+            burgerBtn?.addEventListener('click', () => {
+                const open = headerEl.classList.toggle('menu-open');
+                burgerBtn.setAttribute('aria-expanded', open);
+            });
+
             // Fetch and render products
             async function loadProducts() {
+                showSkeleton();
                 try {
                     const response = await fetch('/src/database/products.json');
                     const products = await response.json();
-                    const grid = document.getElementById('products');
-                    
-                    grid.innerHTML = products.map(product => `
+                    productsGrid.innerHTML = products.map(product => `
                         <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${product.collection}">
                             <div class="product-image-container">
                                 <img src="${product.image}" alt="${product.name}" loading="lazy" />
@@ -226,10 +270,13 @@
                             </div>
                         </article>
                     `).join('');
-                    
                     attachCartListeners();
+                    applyAllFilters();
+                    updateEmptyState();
                 } catch (error) {
                     console.error('Erreur lors du chargement des produits:', error);
+                    productsGrid.innerHTML = '<p>Erreur de chargement des produits.</p>';
+                    emptyState.hidden = true;
                 }
             }
             
@@ -351,11 +398,10 @@
                 document.querySelectorAll('.product').forEach(product => {
                     let show = true;
                     
-                    // Check search query
+                    // Recherche uniquement sur le nom
                     if (query) {
                         const name = product.querySelector('h3').textContent.toLowerCase();
-                        const desc = product.querySelector('p').textContent.toLowerCase();
-                        if (!name.includes(query) && !desc.includes(query)) {
+                        if (!name.includes(query)) {
                             show = false;
                         }
                     }
@@ -386,6 +432,7 @@
                 
                 // Update active button states
                 updateFilterButtonStates();
+                updateEmptyState();
             }
             
             function updateFilterButtonStates() {
@@ -441,10 +488,11 @@
                 }
             });
             
-            // Reset filters button
-            const resetBtn = document.getElementById('reset-filters');
+            // Reset filters button (top search bar)
+            const resetBtn = document.getElementById('reset-filters-search');
             if (resetBtn) {
-                resetBtn.addEventListener('click', () => {
+                resetBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
                     activeFilters = {
                         category: null,
                         subcategory: null,

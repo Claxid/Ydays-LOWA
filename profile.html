@@ -46,6 +46,9 @@
       .actions { display:flex; gap:.6rem; align-items:center; }
       .btn.primary { background: var(--accent); color:#fff; }
       .section { margin-top:1.5rem; }
+      .badge-admin{display:none;margin-left:0.5rem;padding:0.2rem 0.6rem;border-radius:12px;background:#1f2937;color:#fff;font-size:0.85rem;}
+      .admin-actions{display:flex;flex-wrap:wrap;gap:0.6rem;margin-top:0.5rem;}
+      .admin-actions .btn{flex:1;min-width:180px;text-align:center;}
     </style>
     <script src="/api-config.js"></script>
   </head>
@@ -66,7 +69,7 @@
       <div class="profile-hero">
         <div class="avatar" id="avatar">LG</div>
         <div>
-          <h1 style="margin:0">Mon profil</h1>
+          <h1 style="margin:0">Mon profil <span id="badge-role" class="badge-admin"></span></h1>
           <div class="pill" id="member-since">Membre depuis —</div>
         </div>
         <div class="actions" style="margin-left:auto">
@@ -93,6 +96,31 @@
       <section class="card section">
         <h3>Historique d'achats</h3>
         <div id="history"></div>
+      </section>
+
+      <section class="card section" id="admin-panel" style="display:none">
+        <h3>Administration</h3>
+        <p style="margin:0 0 0.5rem">Actions rapides pour les administrateurs/modérateurs.</p>
+        <div class="admin-actions">
+          <button class="btn" id="admin-products">Gérer les produits</button>
+          <button class="btn" id="admin-stock">Gérer les stocks</button>
+          <button class="btn" id="admin-roles">Gérer les rôles</button>
+        </div>
+      </section>
+
+      <section class="card section">
+        <h3>Préférences avancées</h3>
+        <div class="form-group">
+          <label for="pref-lang">Langue de l'interface</label>
+          <select id="pref-lang">
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+        <label style="display:flex;gap:0.5rem;align-items:center;margin-top:0.5rem">
+          <input type="checkbox" id="pref-notif" /> Notifications email promotions
+        </label>
+        <p id="prefs-adv-status" style="margin-top:0.5rem;color:var(--muted)"></p>
       </section>
     </main>
 
@@ -122,11 +150,18 @@
         const initials = (user.prenom?.[0] || 'L') + (user.nom?.[0] || 'G');
         document.getElementById('avatar').textContent = initials.toUpperCase();
         document.getElementById('member-since').textContent = 'Membre depuis — ' + new Date(user.date_creation).toLocaleDateString();
+        const badge = document.getElementById('badge-role');
+        if (user.role && (user.role.toLowerCase() === 'admin' || user.role.toLowerCase() === 'moderator')) {
+          badge.style.display = 'inline-block';
+          badge.textContent = user.role.toLowerCase() === 'admin' ? 'Admin' : 'Modérateur';
+          document.getElementById('admin-panel').style.display = 'block';
+        }
 
         document.getElementById('user-info').innerHTML = `
           <div class="info-row"><strong>Nom:</strong> <span>${user.prenom} ${user.nom}</span></div>
           <div class="info-row"><strong>Email:</strong> <span>${user.email}</span></div>
           <div class="info-row"><strong>Sexe:</strong> <span>${formatSexe(user.sexe)}</span></div>
+          <div class="info-row"><strong>Rôle:</strong> <span>${user.role || 'user'}</span></div>
           <div class="info-row"><strong>Créé le:</strong> <span>${new Date(user.date_creation).toLocaleString()}</span></div>
         `;
         return user;
@@ -153,6 +188,21 @@
         }
       }
 
+      function loadAdvancedPrefs(){
+        const lang = localStorage.getItem('lowa_pref_lang') || 'fr';
+        const notif = localStorage.getItem('lowa_pref_notif') === 'true';
+        document.getElementById('pref-lang').value = lang;
+        document.getElementById('pref-notif').checked = notif;
+      }
+
+      function saveAdvancedPrefs(){
+        const lang = document.getElementById('pref-lang').value;
+        const notif = document.getElementById('pref-notif').checked;
+        localStorage.setItem('lowa_pref_lang', lang);
+        localStorage.setItem('lowa_pref_notif', notif);
+        document.getElementById('prefs-adv-status').textContent = 'Préférences enregistrées localement';
+      }
+
       async function savePrefs() {
         const status = document.getElementById('cookie-consent').checked ? 'accepted' : 'declined';
         const resp = await fetch(API + '/user-preferences', {
@@ -168,6 +218,9 @@
         try { await savePrefs(); } catch (e) { alert('Erreur: ' + e.message); }
       });
 
+      document.getElementById('pref-lang').addEventListener('change', saveAdvancedPrefs);
+      document.getElementById('pref-notif').addEventListener('change', saveAdvancedPrefs);
+
       document.getElementById('logout-btn').addEventListener('click', async () => {
         try { await fetch(API + '/logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
         localStorage.removeItem('lowa_session');
@@ -180,6 +233,7 @@
           await fetchUser();
           await fetchHistory();
           await loadPrefs();
+          loadAdvancedPrefs();
         } catch (e) {
           alert('Veuillez vous connecter');
           window.location.href = '/';
