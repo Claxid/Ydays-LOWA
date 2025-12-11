@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -37,16 +38,16 @@ type PurchaseHistory struct {
 }
 
 type RegisterRequest struct {
-	Email  string `json:"email"`
-	Nom    string `json:"nom"`
-	Prenom string `json:"prenom"`
-	Sexe   string `json:"sexe"`
-	Pass   string `json:"password"`
+	Email    string `json:"email"`
+	Nom      string `json:"nom"`
+	Prenom   string `json:"prenom"`
+	Sexe     string `json:"sexe"`
+	Password string `json:"password"`
 }
 
 type LoginRequest struct {
-	Email string `json:"email"`
-	Pass  string `json:"password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 var db *sql.DB
@@ -180,13 +181,13 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Email == "" || req.Pass == "" || req.Nom == "" || req.Prenom == "" {
+	if req.Email == "" || req.Password == "" || req.Nom == "" || req.Prenom == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Missing required fields"})
 		return
 	}
 
-	passwordHash := hashPassword(req.Pass)
+	passwordHash := hashPassword(req.Password)
 	result, err := db.Exec(
 		"INSERT INTO users (email, password_hash, nom, prenom, sexe) VALUES (?, ?, ?, ?, ?)",
 		req.Email, passwordHash, req.Nom, req.Prenom, req.Sexe,
@@ -230,7 +231,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	passwordHash := hashPassword(req.Pass)
+	passwordHash := hashPassword(req.Password)
 	var user User
 	var storedHash string
 
@@ -437,6 +438,15 @@ func main() {
 	dir := flag.String("dir", ".", "directory to serve")
 	addr := flag.String("addr", ":8080", "address to listen on")
 	flag.Parse()
+
+	// If PORT env is set (Render/Fly/etc.), override addr
+	if portEnv := os.Getenv("PORT"); portEnv != "" {
+		if strings.HasPrefix(portEnv, ":") {
+			*addr = portEnv
+		} else {
+			*addr = ":" + portEnv
+		}
+	}
 
 	// Initialize database
 	if err := initDB(); err != nil {
