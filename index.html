@@ -8,6 +8,21 @@
         <link rel="stylesheet" href="/assets/style/homepage.css" />
     </head>
     <body>
+        <!-- Cookie Consent Banner -->
+        <div id="cookie-banner" class="cookie-banner" aria-label="Politique de cookies">
+            <div class="cookie-content">
+                <div class="cookie-text">
+                    <h3>🍪 Nous utilisons des cookies</h3>
+                    <p>Nous utilisons des cookies pour améliorer votre expérience, analyser le trafic et personnaliser le contenu. En continuant à naviguer, vous acceptez notre politique de cookies.</p>
+                </div>
+                <div class="cookie-actions">
+                    <button id="cookie-accept" class="btn primary">Accepter</button>
+                    <button id="cookie-decline" class="btn">Refuser</button>
+                    <a href="#" id="cookie-policy" class="cookie-link">Politique de cookies</a>
+                </div>
+            </div>
+        </div>
+
         <header class="site-header">
             <div class="container header-inner">
                 <a class="brand" href="#">LOWA</a>
@@ -392,8 +407,52 @@
                 });
             })();
             
+            // Cookie Management
+            function initCookieBanner() {
+                const banner = document.getElementById('cookie-banner');
+                const acceptBtn = document.getElementById('cookie-accept');
+                const declineBtn = document.getElementById('cookie-decline');
+                const policyLink = document.getElementById('cookie-policy');
+                const COOKIE_CONSENT_KEY = 'lowa_cookie_consent';
+                
+                // Check if user already made a choice
+                function checkExistingConsent() {
+                    const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
+                    if (!consent) {
+                        setTimeout(() => banner.classList.add('show'), 500);
+                    }
+                }
+                
+                // Accept cookies
+                acceptBtn.addEventListener('click', () => {
+                    localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+                    localStorage.setItem('lowa_cookie_date', new Date().toISOString());
+                    banner.classList.remove('show');
+                    // Load analytics or tracking scripts here if needed
+                    console.log('Cookies accepted');
+                });
+                
+                // Decline cookies
+                declineBtn.addEventListener('click', () => {
+                    localStorage.setItem(COOKIE_CONSENT_KEY, 'declined');
+                    banner.classList.remove('show');
+                    console.log('Cookies declined');
+                });
+                
+                // Policy link - can open a modal or page
+                policyLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    alert('Politique de cookies:\n\nNous utilisons des cookies pour:\n- Améliorer votre expérience utilisateur\n- Mémoriser votre panier\n- Analyser l\'usage du site\n\nLes cookies essentiels sont toujours activés.');
+                    // In future: open a full policy page/modal instead
+                });
+                
+                // Show banner on page load if no consent decision
+                checkExistingConsent();
+            }
+            
             // Update cart on page load
             updateCartUI();
+            initCookieBanner();
         </script>
     </body>
 </html>
