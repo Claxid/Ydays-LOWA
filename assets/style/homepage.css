@@ -474,6 +474,7 @@ a:hover{ color:var(--muted) }
   box-shadow:var(--shadow-large);
   max-height:90vh;
   overflow:auto;
+
   animation:slideIn var(--transition-medium);
 }
 
