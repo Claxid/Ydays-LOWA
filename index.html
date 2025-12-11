@@ -588,12 +588,18 @@
             
             // User menu toggle
             document.getElementById('user-menu-btn').addEventListener('click', (e) => {
-                const menu = document.getElementById('user-menu');
-                const isHidden = menu.getAttribute('aria-hidden') === 'true';
-                if (isHidden) {
-                    menu.setAttribute('aria-hidden', 'false');
+                // Si pas connecté, ouvrir la modal de login
+                if (!currentUser) {
+                    openModal('login-modal');
                 } else {
-                    menu.setAttribute('aria-hidden', 'true');
+                    // Si connecté, afficher le dropdown
+                    const menu = document.getElementById('user-menu');
+                    const isHidden = menu.getAttribute('aria-hidden') === 'true';
+                    if (isHidden) {
+                        menu.setAttribute('aria-hidden', 'false');
+                    } else {
+                        menu.setAttribute('aria-hidden', 'true');
+                    }
                 }
                 e.stopPropagation();
             });
