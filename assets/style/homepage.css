@@ -703,9 +703,11 @@ a:hover{ color:var(--muted) }
   box-shadow:var(--shadow-large);
   z-index:100;
   min-width:200px;
+  display:none;
 }
 
 .user-menu[aria-hidden="false"]{
+  display:block;
   animation:slideDown var(--transition-fast);
 }
 

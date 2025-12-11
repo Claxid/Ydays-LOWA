@@ -2,22 +2,22 @@ package main
 
 import (
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
+
+	_ "modernc.org/sqlite"
 )
 
 type User struct {
 	ID           int       `json:"id"`
 	Email        string    `json:"email"`
-	Password     string    `json:"-"`
 	Nom          string    `json:"nom"`
 	Prenom       string    `json:"prenom"`
 	Sexe         string    `json:"sexe"`
@@ -36,14 +36,6 @@ type PurchaseHistory struct {
 	Items []CartItem `json:"items"`
 }
 
-type UserData struct {
-	Users    map[int]*User             `json:"users"`
-	Carts    map[int][]CartItem        `json:"carts"`
-	History  map[int][]PurchaseHistory `json:"history"`
-	Sessions map[string]int            `json:"sessions"`
-	NextID   int                       `json:"next_id"`
-}
-
 type RegisterRequest struct {
 	Email  string `json:"email"`
 	Nom    string `json:"nom"`
@@ -57,38 +49,80 @@ type LoginRequest struct {
 	Pass  string `json:"password"`
 }
 
-var (
-	data     *UserData
-	dataMu   sync.RWMutex
-	dataFile = "data.json"
-)
+var db *sql.DB
 
-func initData() error {
-	data = &UserData{
-		Users:    make(map[int]*User),
-		Carts:    make(map[int][]CartItem),
-		History:  make(map[int][]PurchaseHistory),
-		Sessions: make(map[string]int),
-		NextID:   1,
-	}
-
-	// Try to load existing data
-	if content, err := ioutil.ReadFile(dataFile); err == nil {
-		json.Unmarshal(content, data)
-	}
-
-	return saveData()
-}
-
-func saveData() error {
-	dataMu.RLock()
-	defer dataMu.RUnlock()
-
-	content, err := json.MarshalIndent(data, "", "  ")
+func initDB() error {
+	var err error
+	db, err = sql.Open("sqlite", "./lowa.db")
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(dataFile, content, 0644)
+
+	// Test connection
+	if err = db.Ping(); err != nil {
+		return err
+	}
+
+	// Create users table
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS users (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			email TEXT UNIQUE NOT NULL,
+			password_hash TEXT NOT NULL,
+			nom TEXT NOT NULL,
+			prenom TEXT NOT NULL,
+			sexe TEXT,
+			date_creation DATETIME DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	if err != nil {
+		return err
+	}
+
+	// Create carts table
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS carts (
+			user_id INTEGER PRIMARY KEY,
+			items TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+		)
+	`)
+	if err != nil {
+		return err
+	}
+
+	// Create purchase_history table
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS purchase_history (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			user_id INTEGER NOT NULL,
+			purchase_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+			total REAL NOT NULL,
+			items TEXT,
+			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+		)
+	`)
+	if err != nil {
+		return err
+	}
+
+	// Create sessions table
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS sessions (
+			token TEXT PRIMARY KEY,
+			user_id INTEGER NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			expires_at DATETIME NOT NULL,
+			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+		)
+	`)
+	if err != nil {
+		return err
+	}
+
+	log.Println("✓ Database initialized successfully (lowa.db)")
+	return nil
 }
 
 func hashPassword(password string) string {
@@ -102,22 +136,31 @@ func getSessionUserID(r *http.Request) (int, error) {
 		return 0, fmt.Errorf("no session")
 	}
 
-	dataMu.RLock()
-	userID, exists := data.Sessions[token]
-	dataMu.RUnlock()
-
-	if !exists {
+	var userID int
+	var expiresAt time.Time
+	err := db.QueryRow("SELECT user_id, expires_at FROM sessions WHERE token = ?", token).Scan(&userID, &expiresAt)
+	if err != nil {
 		return 0, fmt.Errorf("invalid session")
 	}
+
+	if expiresAt.Before(time.Now()) {
+		db.Exec("DELETE FROM sessions WHERE token = ?", token)
+		return 0, fmt.Errorf("session expired")
+	}
+
 	return userID, nil
 }
 
 func createSession(userID int) string {
+	// Clean expired sessions
+	db.Exec("DELETE FROM sessions WHERE expires_at < datetime('now')")
+
 	token := fmt.Sprintf("tok_%d_%d", userID, time.Now().UnixNano())
-	dataMu.Lock()
-	data.Sessions[token] = userID
-	dataMu.Unlock()
-	saveData()
+	expiresAt := time.Now().Add(30 * 24 * time.Hour) // 30 days
+
+	db.Exec("INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)",
+		token, userID, expiresAt)
+
 	return token
 }
 
@@ -143,35 +186,26 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dataMu.Lock()
-	// Check if email exists
-	for _, u := range data.Users {
-		if u.Email == req.Email {
-			dataMu.Unlock()
-			w.WriteHeader(http.StatusConflict)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Email already exists"})
-			return
-		}
+	passwordHash := hashPassword(req.Pass)
+	result, err := db.Exec(
+		"INSERT INTO users (email, password_hash, nom, prenom, sexe) VALUES (?, ?, ?, ?, ?)",
+		req.Email, passwordHash, req.Nom, req.Prenom, req.Sexe,
+	)
+
+	if err != nil {
+		w.WriteHeader(http.StatusConflict)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Email already exists"})
+		return
 	}
 
-	userID := data.NextID
-	data.NextID++
-	user := &User{
-		ID:           userID,
-		Email:        req.Email,
-		Password:     hashPassword(req.Pass),
-		Nom:          req.Nom,
-		Prenom:       req.Prenom,
-		Sexe:         req.Sexe,
-		DateCreation: time.Now(),
-	}
-	data.Users[userID] = user
-	data.Carts[userID] = []CartItem{}
-	data.History[userID] = []PurchaseHistory{}
-	dataMu.Unlock()
+	userID, _ := result.LastInsertId()
 
-	saveData()
-	token := createSession(userID)
+	// Create empty cart for user
+	db.Exec("INSERT INTO carts (user_id, items) VALUES (?, ?)", userID, "[]")
+
+	token := createSession(int(userID))
+
+	log.Printf("New user registered: %s (ID: %d)", req.Email, userID)
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -197,23 +231,23 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	passwordHash := hashPassword(req.Pass)
-	dataMu.RLock()
-	var user *User
-	for _, u := range data.Users {
-		if u.Email == req.Email && u.Password == passwordHash {
-			user = u
-			break
-		}
-	}
-	dataMu.RUnlock()
+	var user User
+	var storedHash string
 
-	if user == nil {
+	err := db.QueryRow(
+		"SELECT id, email, nom, prenom, sexe, date_creation, password_hash FROM users WHERE email = ?",
+		req.Email,
+	).Scan(&user.ID, &user.Email, &user.Nom, &user.Prenom, &user.Sexe, &user.DateCreation, &storedHash)
+
+	if err != nil || storedHash != passwordHash {
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid credentials"})
 		return
 	}
 
 	token := createSession(user.ID)
+	log.Printf("User logged in: %s (ID: %d)", user.Email, user.ID)
+
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
@@ -231,11 +265,13 @@ func handleGetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dataMu.RLock()
-	user, exists := data.Users[userID]
-	dataMu.RUnlock()
+	var user User
+	err = db.QueryRow(
+		"SELECT id, email, nom, prenom, sexe, date_creation FROM users WHERE id = ?",
+		userID,
+	).Scan(&user.ID, &user.Email, &user.Nom, &user.Prenom, &user.Sexe, &user.DateCreation)
 
-	if !exists {
+	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(map[string]string{"error": "User not found"})
 		return
@@ -261,10 +297,17 @@ func handleUpdateCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dataMu.Lock()
-	data.Carts[userID] = items
-	dataMu.Unlock()
-	saveData()
+	itemsJSON, _ := json.Marshal(items)
+	_, err = db.Exec(
+		"INSERT OR REPLACE INTO carts (user_id, items, updated_at) VALUES (?, ?, datetime('now'))",
+		userID, string(itemsJSON),
+	)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to update cart"})
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"success": "true"})
@@ -279,13 +322,18 @@ func handleGetCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dataMu.RLock()
-	items := data.Carts[userID]
-	dataMu.RUnlock()
+	var itemsJSON string
+	err = db.QueryRow("SELECT items FROM carts WHERE user_id = ?", userID).Scan(&itemsJSON)
 
-	if items == nil {
-		items = []CartItem{}
+	if err != nil {
+		// No cart yet, return empty array
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode([]CartItem{})
+		return
 	}
+
+	var items []CartItem
+	json.Unmarshal([]byte(itemsJSON), &items)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(items)
@@ -300,9 +348,26 @@ func handleGetPurchaseHistory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dataMu.RLock()
-	history := data.History[userID]
-	dataMu.RUnlock()
+	rows, err := db.Query(
+		"SELECT id, purchase_date, total, items FROM purchase_history WHERE user_id = ? ORDER BY purchase_date DESC",
+		userID,
+	)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to fetch history"})
+		return
+	}
+	defer rows.Close()
+
+	var history []PurchaseHistory
+	for rows.Next() {
+		var p PurchaseHistory
+		var itemsJSON string
+		rows.Scan(&p.ID, &p.Date, &p.Total, &itemsJSON)
+		json.Unmarshal([]byte(itemsJSON), &p.Items)
+		history = append(history, p)
+	}
 
 	if history == nil {
 		history = []PurchaseHistory{}
@@ -325,37 +390,45 @@ func handleCheckout(w http.ResponseWriter, r *http.Request) {
 		Items []CartItem `json:"items"`
 		Total float64    `json:"total"`
 	}
+
 	if err := json.NewDecoder(r.Body).Decode(&checkoutData); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
 		return
 	}
 
-	dataMu.Lock()
-	purchase := PurchaseHistory{
-		ID:    len(data.History[userID]) + 1,
-		Date:  time.Now(),
-		Total: checkoutData.Total,
-		Items: checkoutData.Items,
+	itemsJSON, _ := json.Marshal(checkoutData.Items)
+	_, err = db.Exec(
+		"INSERT INTO purchase_history (user_id, total, items) VALUES (?, ?, ?)",
+		userID, checkoutData.Total, string(itemsJSON),
+	)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to process purchase"})
+		return
 	}
-	data.History[userID] = append(data.History[userID], purchase)
-	data.Carts[userID] = []CartItem{}
-	dataMu.Unlock()
-	saveData()
+
+	// Clear cart after checkout
+	db.Exec("UPDATE carts SET items = '[]', updated_at = datetime('now') WHERE user_id = ?", userID)
+
+	log.Printf("Purchase completed for user ID: %d (Total: %.2f EUR)", userID, checkoutData.Total)
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "message": "Purchase completed"})
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Purchase completed",
+	})
 }
 
 func handleLogout(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	token := r.Header.Get("Authorization")
+
 	if token != "" {
-		dataMu.Lock()
-		delete(data.Sessions, token)
-		dataMu.Unlock()
-		saveData()
+		db.Exec("DELETE FROM sessions WHERE token = ?", token)
 	}
+
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"success": "true"})
 }
@@ -365,10 +438,11 @@ func main() {
 	addr := flag.String("addr", ":8080", "address to listen on")
 	flag.Parse()
 
-	// Initialize data
-	if err := initData(); err != nil {
-		log.Fatal("Data initialization failed:", err)
+	// Initialize database
+	if err := initDB(); err != nil {
+		log.Fatal("❌ Database initialization failed:", err)
 	}
+	defer db.Close()
 
 	// API Routes
 	http.HandleFunc("/api/register", handleRegister)
@@ -391,19 +465,16 @@ func main() {
 	fs := http.FileServer(http.Dir(*dir))
 	http.Handle("/", fs)
 
-	log.Printf("Serving %s on HTTP %s\n", *dir, *addr)
+	log.Printf("🌿 Serving %s on HTTP %s\n", *dir, *addr)
 
-	// Build a localhost URL for convenience (use port from addr)
+	// Build a localhost URL for convenience
 	port := strings.TrimLeft(*addr, ":")
 	if port == "" {
 		port = "80"
 	}
 	url := fmt.Sprintf("http://localhost:%s/", port)
 
-	// OSC 8 hyperlink sequence (many terminals support it). Fallback to plain URL.
-	// Format: ESC ] 8 ;; <url> BEL <text> ESC ] 8 ;; BEL
-	osc := "\x1b]8;;%s\x07%s\x1b]8;;\x07"
-	fmt.Printf(osc+"\n", url, url)
+	fmt.Printf("\x1b]8;;%s\x07%s\x1b]8;;\x07\n", url, url)
 	fmt.Println(url)
 
 	if err := http.ListenAndServe(*addr, nil); err != nil {
