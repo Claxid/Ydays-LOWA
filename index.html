@@ -234,12 +234,112 @@
             
             searchInput.addEventListener('input', (e) => {
                 const query = e.target.value.toLowerCase();
-                document.querySelectorAll('.product').forEach(product => {
-                    const name = product.querySelector('h3').textContent.toLowerCase();
-                    const desc = product.querySelector('p').textContent.toLowerCase();
-                    product.style.display = (name.includes(query) || desc.includes(query)) ? '' : 'none';
-                });
+                applyAllFilters();
             });
+            
+            // Filter functionality
+            let activeFilters = {
+                category: null,
+                subcategory: null,
+                collection: null
+            };
+            
+            function applyAllFilters() {
+                const query = searchInput.value.toLowerCase();
+                document.querySelectorAll('.product').forEach(product => {
+                    let show = true;
+                    
+                    // Check search query
+                    if (query) {
+                        const name = product.querySelector('h3').textContent.toLowerCase();
+                        const desc = product.querySelector('p').textContent.toLowerCase();
+                        if (!name.includes(query) && !desc.includes(query)) {
+                            show = false;
+                        }
+                    }
+                    
+                    // Check category filter
+                    if (show && activeFilters.category) {
+                        if (product.dataset.category !== activeFilters.category) {
+                            show = false;
+                        }
+                    }
+                    
+                    // Check subcategory filter
+                    if (show && activeFilters.subcategory) {
+                        if (product.dataset.subcategory !== activeFilters.subcategory) {
+                            show = false;
+                        }
+                    }
+                    
+                    // Check collection filter
+                    if (show && activeFilters.collection) {
+                        if (product.dataset.collection !== activeFilters.collection) {
+                            show = false;
+                        }
+                    }
+                    
+                    product.style.display = show ? '' : 'none';
+                });
+            }
+            
+            // Add filter click listeners
+            document.addEventListener('click', function(e) {
+                // Check if click is on a filter link in dropdown
+                if (e.target.tagName === 'A' && e.target.dataset.filter) {
+                    e.preventDefault();
+                    const filterType = e.target.dataset.filter;
+                    const filterValue = e.target.dataset.value;
+                    
+                    // Update active filters
+                    activeFilters[filterType] = filterValue;
+                    
+                    // Visual feedback
+                    document.querySelectorAll(`[data-filter="${filterType}"]`).forEach(el => {
+                        el.classList.remove('active');
+                    });
+                    if (filterValue) {
+                        e.target.classList.add('active');
+                    }
+                    
+                    applyAllFilters();
+                    return;
+                }
+                
+                // Check if click is on a filter button
+                if (e.target.classList.contains('mainmenubtn') && e.target.dataset.filter) {
+                    const filterType = e.target.dataset.filter;
+                    const filterValue = e.target.dataset.value;
+                    
+                    // Toggle filter
+                    if (activeFilters[filterType] === filterValue) {
+                        activeFilters[filterType] = null;
+                        e.target.classList.remove('active');
+                    } else {
+                        activeFilters[filterType] = filterValue;
+                        e.target.classList.add('active');
+                    }
+                    
+                    applyAllFilters();
+                }
+            });
+            
+            // Reset filters button
+            const resetBtn = document.getElementById('reset-filters');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    activeFilters = {
+                        category: null,
+                        subcategory: null,
+                        collection: null
+                    };
+                    searchInput.value = '';
+                    document.querySelectorAll('[data-filter]').forEach(el => {
+                        el.classList.remove('active');
+                    });
+                    applyAllFilters();
+                });
+            }
             
             // Dropdown functionality with accessibility
             (function() {
