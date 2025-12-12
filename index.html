@@ -307,11 +307,15 @@
             <section class="container products-section" aria-labelledby="products-heading">
                 <h2 id="products-heading">Nos produits</h2>
 
-                <!-- Search bar -->
+                <!-- Search bar & View toggle -->
                 <div class="search-bar">
                     <label for="search" class="visually-hidden">Rechercher</label>
-                    <input id="search" type="search" placeholder="Rechercher un produit, ex. T-shirt " aria-label="Rechercher des produits" />
+                    <input id="search" type="search" placeholder="Rechercher un produit, ex. T-shirt" aria-label="Rechercher des produits" />
                     <button class="btn" id="reset-filters-search">Tout afficher</button>
+                    <div class="view-toggle" style="margin-left:auto;display:flex;gap:0.5rem">
+                        <button id="view-grid" class="btn active" aria-label="Vue grille" title="Vue grille">🔲</button>
+                        <button id="view-list" class="btn" aria-label="Vue liste" title="Vue liste">☰</button>
+                    </div>
                 </div>
 
                 <div id="products" class="products-grid" role="list"></div>
@@ -404,6 +408,7 @@
                         <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${product.collection}">
                             <div class="product-image-container">
                                 <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" />
+                                <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">❤️</button>
                             </div>
                             <h3>${product.name}</h3>
                             <p>${product.description}</p>
@@ -414,6 +419,7 @@
                         </article>
                     `).join('');
                     attachCartListeners();
+                    attachFavoriteListeners();
                     applyAllFilters();
                     updateEmptyState();
                 } catch (error) {
@@ -425,6 +431,37 @@
             
             loadProducts();
             
+            // Favorites management
+            let favorites = JSON.parse(localStorage.getItem('lowa_favorites')) || [];
+            
+            function isFavorite(productId) {
+                return favorites.includes(productId);
+            }
+            
+            function toggleFavorite(productId) {
+                const index = favorites.indexOf(productId);
+                if (index > -1) {
+                    favorites.splice(index, 1);
+                } else {
+                    favorites.push(productId);
+                }
+                localStorage.setItem('lowa_favorites', JSON.stringify(favorites));
+            }
+            
+            function attachFavoriteListeners() {
+                document.querySelectorAll('.fav-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const productId = e.target.dataset.id;
+                        toggleFavorite(productId);
+                        e.target.classList.toggle('active');
+                        // Visual feedback
+                        e.target.style.transform = 'scale(1.3)';
+                        setTimeout(() => { e.target.style.transform = ''; }, 200);
+                    });
+                });
+            }
+            
             // Cart management
             let cart = JSON.parse(localStorage.getItem('cart')) || [];
             const cartButton = document.getElementById('cart-button');
@@ -435,6 +472,32 @@
             const cartTotalSpan = document.getElementById('cart-total');
             const clearCartBtn = document.getElementById('clear-cart');
             const checkoutBtn = document.getElementById('checkout');
+            
+            // View toggle management
+            const viewGridBtn = document.getElementById('view-grid');
+            const viewListBtn = document.getElementById('view-list');
+            let currentView = localStorage.getItem('lowa_view_mode') || 'grid';
+            
+            function applyView(view) {
+                currentView = view;
+                localStorage.setItem('lowa_view_mode', view);
+                
+                if (view === 'list') {
+                    productsGrid.classList.add('list-view');
+                    viewListBtn.classList.add('active');
+                    viewGridBtn.classList.remove('active');
+                } else {
+                    productsGrid.classList.remove('list-view');
+                    viewGridBtn.classList.add('active');
+                    viewListBtn.classList.remove('active');
+                }
+            }
+            
+            viewGridBtn.addEventListener('click', () => applyView('grid'));
+            viewListBtn.addEventListener('click', () => applyView('list'));
+            
+            // Apply saved view on load
+            applyView(currentView);
             
             function updateCartUI() {
                 cartCount.textContent = cart.length;

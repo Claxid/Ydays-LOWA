@@ -230,7 +230,10 @@
 
     <main class="profile-wrapper">
       <div class="profile-hero">
-        <div class="avatar" id="avatar">LG</div>
+        <div class="avatar" id="avatar" style="position:relative;cursor:pointer" title="Cliquer pour changer l'avatar">
+          <span id="avatar-text">LG</span>
+          <input type="file" id="avatar-upload" accept="image/*" style="display:none" />
+        </div>
         <div>
           <h1 style="margin:0">Mon profil <span id="badge-role" class="badge-admin"></span></h1>
           <div class="pill" id="member-since">Membre depuis —</div>
@@ -244,6 +247,7 @@
         <section class="card">
           <h3>Informations utilisateur</h3>
           <div id="user-info"></div>
+          <button id="change-avatar-btn" class="btn" style="margin-top:1rem">📷 Changer l'avatar</button>
         </section>
         <section class="card">
           <h3>🎨 Personnalisation de l'interface</h3>
@@ -255,6 +259,7 @@
               <button class="theme-option active" data-theme="light">☀️ Clair</button>
               <button class="theme-option" data-theme="dark">🌙 Sombre</button>
               <button class="theme-option" data-theme="temperate">🍂 Tempéré</button>
+              <button class="theme-option" data-theme="auto">🌓 Auto</button>
             </div>
           </div>
 
@@ -330,14 +335,53 @@
       const API = window.API_BASE || '/api';
       let sessionToken = null;
 
-      // Theme Management
-      function initTheme() {
-        const savedTheme = localStorage.getItem('lowa_theme') || 'light';
-        setTheme(savedTheme);
+      // Avatar Management
+      function loadAvatar() {
+        const savedAvatar = localStorage.getItem('lowa_avatar');
+        if (savedAvatar) {
+          const avatarEl = document.getElementById('avatar');
+          avatarEl.style.backgroundImage = `url(${savedAvatar})`;
+          avatarEl.style.backgroundSize = 'cover';
+          avatarEl.style.backgroundPosition = 'center';
+          document.getElementById('avatar-text').style.display = 'none';
+        }
       }
 
-      function setTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
+      document.getElementById('change-avatar-btn').addEventListener('click', () => {
+        document.getElementById('avatar-upload').click();
+      });
+
+      document.getElementById('avatar').addEventListener('click', () => {
+        document.getElementById('avatar-upload').click();
+      });
+
+      document.getElementById('avatar-upload').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const avatarData = event.target.result;
+            localStorage.setItem('lowa_avatar', avatarData);
+            loadAvatar();
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Theme Management with Auto mode
+      function initTheme() {
+        const savedTheme = localStorage.getItem('lowa_theme') || 'light';
+        applyTheme(savedTheme);
+      }
+
+      function applyTheme(theme) {
+        if (theme === 'auto') {
+          const hour = new Date().getHours();
+          const actualTheme = (hour >= 20 || hour < 7) ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', actualTheme);
+        } else {
+          document.documentElement.setAttribute('data-theme', theme);
+        }
         localStorage.setItem('lowa_theme', theme);
         
         // Update active button
@@ -350,6 +394,10 @@
         });
       }
 
+      function setTheme(theme) {
+        applyTheme(theme);
+      }
+
       document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.theme-option').forEach(btn => {
           btn.addEventListener('click', () => {
@@ -357,6 +405,7 @@
             saveAdvancedPrefs();
           });
         });
+        loadAvatar();
       });
 
       function loadSession() {
