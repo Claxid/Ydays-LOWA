@@ -419,7 +419,10 @@
           if (!stored) return;
           const s = JSON.parse(stored);
           sessionToken = s.token;
-        } catch {}
+          console.log('Session chargée:', { token: !!sessionToken, user: !!s.user });
+        } catch (e) {
+          console.warn('Erreur lors du chargement de la session:', e);
+        }
       }
 
       function formatSexe(val) {
@@ -429,32 +432,49 @@
       }
 
       async function fetchUser() {
-        // Try API first; fall back to stored session if backend unreachable
+        // Prioritize localStorage; try API as secondary
         let user = null;
         let usedFallback = false;
-        if (!sessionToken) {
-          throw new Error('no-session');
-        }
+        
+        // First, try to get user from stored session
         try {
-          const resp = await fetch(API + '/user', { headers: { Authorization: sessionToken } });
-          if (!resp.ok) {
-            const text = await resp.text();
-            throw new Error(`API ${resp.status} ${resp.statusText} ${text}`);
+          const stored = JSON.parse(localStorage.getItem('lowa_session') || '{}');
+          if (stored.user) {
+            user = stored.user;
+            usedFallback = true;
+            console.log('Utilisateur chargé depuis localStorage');
           }
-          user = await resp.json();
         } catch (e) {
+          console.warn('Erreur lors du parsing de lowa_session:', e);
+        }
+        
+        // If we have sessionToken, try API to get fresh data
+        if (sessionToken && !usedFallback) {
           try {
-            const stored = JSON.parse(localStorage.getItem('lowa_session') || '{}');
-            if (stored.user) {
-              user = stored.user;
-              usedFallback = true;
+            console.log('Tentative API avec token...');
+            const resp = await fetch(API + '/user', { headers: { Authorization: sessionToken } });
+            if (!resp.ok) {
+              const text = await resp.text();
+              console.warn(`API erreur ${resp.status}: ${text}`);
+              throw new Error(`API ${resp.status} ${resp.statusText}`);
             }
-          } catch {}
-          if (!user) throw e;
+            user = await resp.json();
+            usedFallback = false;
+            console.log('Utilisateur chargé depuis API');
+          } catch (apiErr) {
+            console.warn('Erreur API, utilisation du fallback localStorage:', apiErr);
+            if (!user) throw apiErr;
+          }
+        }
+        
+        if (!user) {
+          throw new Error('Aucune donnée utilisateur disponible');
         }
         const initials = (user.prenom?.[0] || 'L') + (user.nom?.[0] || 'G');
         document.getElementById('avatar').textContent = initials.toUpperCase();
-        document.getElementById('member-since').textContent = 'Membre depuis — ' + new Date(user.date_creation).toLocaleDateString();
+        if (user.date_creation) {
+          document.getElementById('member-since').textContent = 'Membre depuis — ' + new Date(user.date_creation).toLocaleDateString();
+        }
         const badge = document.getElementById('badge-role');
         if (user.role && (user.role.toLowerCase() === 'admin' || user.role.toLowerCase() === 'moderator')) {
           badge.style.display = 'inline-block';
@@ -462,16 +482,15 @@
           document.getElementById('admin-panel').style.display = 'block';
         }
 
-        document.getElementById('user-info').innerHTML = `
-          <div class="info-row"><strong>Nom:</strong> <span>${user.prenom} ${user.nom}</span></div>
-          <div class="info-row"><strong>Email:</strong> <span>${user.email}</span></div>
+        const userHTML = `
+          <div class="info-row"><strong>Nom:</strong> <span>${user.prenom || 'N/A'} ${user.nom || 'N/A'}</span></div>
+          <div class="info-row"><strong>Email:</strong> <span>${user.email || 'N/A'}</span></div>
           <div class="info-row"><strong>Sexe:</strong> <span>${formatSexe(user.sexe)}</span></div>
           <div class="info-row"><strong>Rôle:</strong> <span>${user.role || 'user'}</span></div>
-          <div class="info-row"><strong>Créé le:</strong> <span>${new Date(user.date_creation).toLocaleString()}</span></div>
+          <div class="info-row"><strong>Créé le:</strong> <span>${user.date_creation ? new Date(user.date_creation).toLocaleString() : 'N/A'}</span></div>
+          ${usedFallback ? '<div class="info-row" style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem;">(Données depuis votre session locale)</div>' : ''}
         `;
-        if (usedFallback) {
-          document.getElementById('user-info').insertAdjacentHTML('beforeend', '<div class="info-row" style="color: var(--muted);">(Affiché depuis la session locale)</div>');
-        }
+        document.getElementById('user-info').innerHTML = userHTML;
         return user;
       }
 
@@ -615,16 +634,19 @@
         initTheme();
         loadSession();
         try {
+          console.log('Initialisation du profil...');
           await fetchUser();
           await fetchHistory();
           await loadPrefs();
           loadAdvancedPrefs();
+          console.log('Profil chargé avec succès');
         } catch (e) {
-          console.warn('Profil - récupération utilisateur échouée', e);
-          const msg = (e && e.message === 'no-session')
-            ? 'Aucune session locale trouvée. Connectez-vous depuis la page d\'accueil.'
-            : 'Impossible de récupérer vos informations. Vérifiez votre connexion ou réessayez après vous être reconnecté.';
-          document.getElementById('user-info').innerHTML = `<div class="info-row"><strong>Connexion requise</strong> <span>${msg}</span></div>`;
+          console.error('Profil - récupération utilisateur échouée:', e);
+          let msg = 'Aucune session trouvée. Connectez-vous depuis la page d\'accueil.';
+          if (e && e.message && e.message.includes('API')) {
+            msg = 'Impossible de récupérer vos informations du serveur. Vérifiez votre connexion.';
+          }
+          document.getElementById('user-info').innerHTML = `<div class="info-row"><strong>⚠️ Connexion requise</strong> <span>${msg}</span></div>`;
         }
       })();
     </script>
