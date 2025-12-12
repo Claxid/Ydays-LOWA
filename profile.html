@@ -373,11 +373,7 @@
         
         // Update active button
         document.querySelectorAll('.theme-option').forEach(btn => {
-          if (btn.dataset.theme === theme) {
-            btn.classList.add('active');
-          } else {
-            btn.classList.remove('active');
-          }
+          btn.classList.toggle('active', btn.dataset.theme === theme);
         });
       }
 
@@ -392,11 +388,12 @@
         // Allow use even inside the menu; only skip when typing in inputs/textareas/selects
         if (['input','textarea','select'].includes(tag)) return;
         const order = ['light', 'dark', 'temperate', 'auto'];
-        const currentPref = localStorage.getItem('lowa_theme') || 'light';
+        const currentPref = order.includes(localStorage.getItem('lowa_theme')) ? localStorage.getItem('lowa_theme') : 'light';
         const idx = order.indexOf(currentPref);
         const next = order[(idx + 1) % order.length];
         setTheme(next);
         saveAdvancedPrefs();
+        e.preventDefault();
       });
 
       document.addEventListener('DOMContentLoaded', () => {
@@ -616,8 +613,7 @@
           await loadPrefs();
           loadAdvancedPrefs();
         } catch (e) {
-          alert('Veuillez vous connecter');
-          window.location.href = '/';
+          document.getElementById('user-info').innerHTML = '<div class="info-row"><strong>Connexion requise</strong> <span>Merci de vous connecter depuis la page d\'accueil.</span></div>';
         }
       })();
     </script>
