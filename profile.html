@@ -418,9 +418,19 @@
       }
 
       async function fetchUser() {
-        const resp = await fetch(API + '/user', { headers: { Authorization: sessionToken } });
-        if (!resp.ok) throw new Error('Not authenticated');
-        const user = await resp.json();
+        // Try API first; fall back to stored session if backend unreachable
+        let user = null;
+        try {
+          const resp = await fetch(API + '/user', { headers: { Authorization: sessionToken } });
+          if (!resp.ok) throw new Error('Not authenticated');
+          user = await resp.json();
+        } catch (e) {
+          try {
+            const stored = JSON.parse(localStorage.getItem('lowa_session') || '{}');
+            if (stored.user) user = stored.user;
+          } catch {}
+          if (!user) throw e;
+        }
         const initials = (user.prenom?.[0] || 'L') + (user.nom?.[0] || 'G');
         document.getElementById('avatar').textContent = initials.toUpperCase();
         document.getElementById('member-since').textContent = 'Membre depuis — ' + new Date(user.date_creation).toLocaleDateString();
