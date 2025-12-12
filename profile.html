@@ -432,9 +432,15 @@
         // Try API first; fall back to stored session if backend unreachable
         let user = null;
         let usedFallback = false;
+        if (!sessionToken) {
+          throw new Error('no-session');
+        }
         try {
           const resp = await fetch(API + '/user', { headers: { Authorization: sessionToken } });
-          if (!resp.ok) throw new Error('Not authenticated');
+          if (!resp.ok) {
+            const text = await resp.text();
+            throw new Error(`API ${resp.status} ${resp.statusText} ${text}`);
+          }
           user = await resp.json();
         } catch (e) {
           try {
@@ -470,6 +476,7 @@
       }
 
       async function fetchHistory() {
+        if (!sessionToken) { document.getElementById('history').innerHTML = '<p>Pas d\'historique.</p>'; return; }
         const resp = await fetch(API + '/purchase-history', { headers: { Authorization: sessionToken } });
         if (!resp.ok) { document.getElementById('history').innerHTML = '<p>Pas d\'historique.</p>'; return; }
         const items = await resp.json();
@@ -613,7 +620,11 @@
           await loadPrefs();
           loadAdvancedPrefs();
         } catch (e) {
-          document.getElementById('user-info').innerHTML = '<div class="info-row"><strong>Connexion requise</strong> <span>Merci de vous connecter depuis la page d\'accueil.</span></div>';
+          console.warn('Profil - récupération utilisateur échouée', e);
+          const msg = (e && e.message === 'no-session')
+            ? 'Aucune session locale trouvée. Connectez-vous depuis la page d\'accueil.'
+            : 'Impossible de récupérer vos informations. Vérifiez votre connexion ou réessayez après vous être reconnecté.';
+          document.getElementById('user-info').innerHTML = `<div class="info-row"><strong>Connexion requise</strong> <span>${msg}</span></div>`;
         }
       })();
     </script>
