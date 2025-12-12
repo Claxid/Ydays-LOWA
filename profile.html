@@ -385,6 +385,18 @@
         applyTheme(theme);
       }
 
+      // Keyboard shortcut: press "u" to cycle theme
+      document.addEventListener('keydown', (e) => {
+        if (e.key && e.key.toLowerCase() === 'u') {
+          const order = ['light', 'dark', 'temperate', 'auto'];
+          const current = localStorage.getItem('lowa_theme') || 'light';
+          const idx = order.indexOf(current);
+          const next = order[(idx + 1) % order.length];
+          setTheme(next);
+          saveAdvancedPrefs();
+        }
+      });
+
       document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.theme-option').forEach(btn => {
           btn.addEventListener('click', () => {
@@ -420,6 +432,7 @@
       async function fetchUser() {
         // Try API first; fall back to stored session if backend unreachable
         let user = null;
+        let usedFallback = false;
         try {
           const resp = await fetch(API + '/user', { headers: { Authorization: sessionToken } });
           if (!resp.ok) throw new Error('Not authenticated');
@@ -427,7 +440,10 @@
         } catch (e) {
           try {
             const stored = JSON.parse(localStorage.getItem('lowa_session') || '{}');
-            if (stored.user) user = stored.user;
+            if (stored.user) {
+              user = stored.user;
+              usedFallback = true;
+            }
           } catch {}
           if (!user) throw e;
         }
@@ -448,6 +464,9 @@
           <div class="info-row"><strong>Rôle:</strong> <span>${user.role || 'user'}</span></div>
           <div class="info-row"><strong>Créé le:</strong> <span>${new Date(user.date_creation).toLocaleString()}</span></div>
         `;
+        if (usedFallback) {
+          document.getElementById('user-info').insertAdjacentHTML('beforeend', '<div class="info-row" style="color: var(--muted);">(Affiché depuis la session locale)</div>');
+        }
         return user;
       }
 
