@@ -197,6 +197,25 @@ func createSession(userID int) string {
 	return token
 }
 
+// Add CORS headers to response
+func setCORSHeaders(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+}
+
+// Wrap handlers to inject CORS headers and handle preflight
+func withCORS(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		setCORSHeaders(w)
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next(w, r)
+	}
+}
+
 // API Endpoints
 func handleRegister(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -669,11 +688,11 @@ func main() {
 		})
 	}
 
-	// API Routes
-	http.HandleFunc("/api/register", handleRegister)
-	http.HandleFunc("/api/login", handleLogin)
-	http.HandleFunc("/api/user", handleGetUser)
-	http.HandleFunc("/api/cart", func(w http.ResponseWriter, r *http.Request) {
+	// API Routes with CORS
+	http.HandleFunc("/api/register", withCORS(handleRegister))
+	http.HandleFunc("/api/login", withCORS(handleLogin))
+	http.HandleFunc("/api/user", withCORS(handleGetUser))
+	http.HandleFunc("/api/cart", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			handleGetCart(w, r)
 		} else if r.Method == http.MethodPost {
@@ -681,13 +700,13 @@ func main() {
 		} else {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
-	})
-	http.HandleFunc("/api/purchase-history", handleGetPurchaseHistory)
-	http.HandleFunc("/api/checkout", handleCheckout)
-	http.HandleFunc("/api/logout", handleLogout)
-	http.HandleFunc("/api/user-preferences", handleUserPreferences)
-	http.HandleFunc("/api/user-activity", handleUserActivity)
-	http.HandleFunc("/api/recommendations", handleGetRecommendations)
+	}))
+	http.HandleFunc("/api/purchase-history", withCORS(handleGetPurchaseHistory))
+	http.HandleFunc("/api/checkout", withCORS(handleCheckout))
+	http.HandleFunc("/api/logout", withCORS(handleLogout))
+	http.HandleFunc("/api/user-preferences", withCORS(handleUserPreferences))
+	http.HandleFunc("/api/user-activity", withCORS(handleUserActivity))
+	http.HandleFunc("/api/recommendations", withCORS(handleGetRecommendations))
 
 	// Static files with cache middleware
 	fs := http.FileServer(http.Dir(*dir))
