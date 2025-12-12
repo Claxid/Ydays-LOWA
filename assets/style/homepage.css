@@ -20,37 +20,37 @@
   --spacing-scale: 1;
 }
 
-/* THEME LIGHT (défaut) - Vert clair frais */
+/* THEME LIGHT (défaut) - Palette beige/violet/kaki nuances douces */
 [data-theme="light"]{
-  --bg:#f0f5f0;
-  --accent:#6ba86b;
-  --dark:#1a4d1a;
-  --muted:#558055;
-  --pastel-green:#c7e8c7;
-  --pale-green:#e8f5e8;
-  --soft-green:#d9e8d9;
+  --bg:#E2D8D1;         /* beige doux fond principal */
+  --accent:#c570da;     /* violet riche */
+  --dark:#4c423c;       /* marron foncé pour le texte */
+  --muted:#8a7c73;      /* texte secondaire atténué */
+  --pastel-green:#c9d3a3; /* kaki clair pour bordures/fonds légers */
+  --pale-green:#f2ece7;   /* fond carte très clair */
+  --soft-green:#dcd4cb;   /* surface douce intermédiaire */
 }
 
-/* THEME CREPUSCULE - Orange/Violet coucher de soleil */
+/* THEME CREPUSCULE - Même palette, nuances assombries (violet/ocre) */
 [data-theme="dark"]{
-  --bg:#2a1f3d;
-  --accent:#e89b4f;
-  --dark:#f0e4d4;
-  --muted:#d9a86f;
-  --pastel-green:#4a3a5a;
-  --pale-green:#3a2f4a;
-  --soft-green:#453550;
+  --bg:#2f2730;         /* fond sombre violine */
+  --accent:#a45ac7;     /* violet assombri */
+  --dark:#E2D8D1;       /* texte beige clair pour contraste */
+  --muted:#b296aa;      /* texte secondaire */
+  --pastel-green:#44394a; /* surfaces foncées */
+  --pale-green:#3a3038;   /* fond cartes sombre */
+  --soft-green:#40363f;   /* surface intermédiaire */
 }
 
-/* THEME TEMPERATE - Boisé marron clair */
+/* THEME TEMPERATE - Palette boisée (beige/ocre/kaki) */
 [data-theme="temperate"]{
-  --bg:#f5ebe0;
-  --accent:#8b6f47;
-  --dark:#3d2817;
-  --muted:#6b5344;
-  --pastel-green:#d4c4b0;
-  --pale-green:#ebe0d0;
-  --soft-green:#ddd0c0;
+  --bg:#e8dfd6;         /* beige boisé */
+  --accent:#B37A57;     /* ocre chaud */
+  --dark:#4c423c;       /* texte principal */
+  --muted:#8c705c;      /* texte secondaire */
+  --pastel-green:#b9c493; /* kaki doux pour bordures */
+  --pale-green:#ebe2d8;   /* fond cartes clair */
+  --soft-green:#d8cbbf;   /* surface douce */
 }
 
 *{box-sizing:border-box}
