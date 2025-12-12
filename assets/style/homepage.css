@@ -5,7 +5,7 @@
   --dark:#4c423c;       /* marron foncé texte */
   --muted:#8a7c73;      /* texte secondaire */
   --bg:#E2D8D1;         /* fond beige doux */
-  --container:1100px;
+  --container:1400px;
   --kaki:#98a869;       /* kaki de la charte, utilisé pour certains accents doux */
   --pastel-pink:#d4ead4;
   --pastel-green:#c9d3a3; /* kaki clair pour bordures/fonds légers */
@@ -401,9 +401,9 @@ a:hover{ color:var(--muted) }
 /* Grid */
 .products-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
-  gap:2rem;
-  margin-bottom:2rem;
+  grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+  gap:1.8rem;
+  margin-bottom:2.5rem;
 }
 
 /* List view */
