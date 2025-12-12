@@ -635,11 +635,11 @@ a:hover{ color:var(--muted) }
 .about, .contact{
   background:var(--pale-green);
   padding:2.5rem;
-  margin:2rem 0;
+  margin:2rem auto;
   border-radius:12px;
   border:1px solid var(--soft-green);
   color:var(--dark);
-}
+  max-width:800px;
   box-shadow:var(--shadow-soft);
   transition:all var(--transition-medium);
 }
