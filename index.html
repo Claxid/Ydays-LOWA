@@ -291,6 +291,34 @@
         </header>
 
         <main>
+            <!-- Hero / Presentation Section (fullscreen) -->
+            <section class="hero-presentation">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1 class="hero-title">🌿 LOWA</h1>
+                        <p class="hero-subtitle">Mode éthique et durable</p>
+                        <p class="hero-description">
+                            Les invendus des marques responsables trouvent ici une seconde vie : 
+                            des pièces déjà produites, triées et prêtes à être adoptées sans gaspillage.
+                        </p>
+                        <div class="hero-features">
+                            <span class="feature">✓ Marques éthiques</span>
+                            <span class="feature">✓ Mode durable</span>
+                            <span class="feature">✓ Impact positif</span>
+                        </div>
+                        <button class="btn primary hero-cta" id="scroll-to-products" aria-label="Voir les produits">
+                            Découvrir les produits ↓
+                        </button>
+                    </div>
+                    <div class="hero-visual">
+                        <div class="hero-image-placeholder">
+                            <p style="font-size:4rem;margin:0">👗</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="scroll-hint">Scroll pour voir plus ↓</div>
+            </section>
+
             <section class="hero">
                 <div class="container">
                     <h1>🌿 LOWA</h1>
@@ -719,6 +747,13 @@
                     if (e.key === 'Escape') closeAllDropdowns();
                 });
             })();
+
+            // Scroll to products button (hero CTA)
+            document.getElementById('scroll-to-products').addEventListener('click', () => {
+                document.getElementById('products-heading').scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
 
             // Scroll to top button
             const scrollToTopBtn = document.getElementById('scroll-to-top');
