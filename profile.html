@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Profil — LOWA</title>
-    <link rel="preload" as="style" href="/assets/style/homepage.min.css" />
-    <link rel="stylesheet" href="/assets/style/homepage.min.css" />
+    <link rel="preload" as="style" href="/assets/style/homepage.css" />
+    <link rel="stylesheet" href="/assets/style/homepage.css" />
     <style>
       /* Profile specific styles - themes are in homepage.css */
         --theme-input-border: #e8dfd4;
@@ -392,7 +392,14 @@
             saveAdvancedPrefs();
           });
         });
+        
+        // Add listeners for font size and spacing
+        document.getElementById('pref-font-size').addEventListener('change', saveAdvancedPrefs);
+        document.getElementById('pref-spacing').addEventListener('change', saveAdvancedPrefs);
+        document.getElementById('pref-animations').addEventListener('change', saveAdvancedPrefs);
+        
         loadAvatar();
+        initTheme();
       });
 
       function loadSession() {

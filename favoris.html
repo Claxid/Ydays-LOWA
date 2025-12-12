@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes Favoris — LOWA</title>
-    <link rel="stylesheet" href="/assets/style/homepage.min.css">
+    <link rel="stylesheet" href="/assets/style/homepage.css">
 </head>
 <body>
     <header class="site-header">
@@ -132,7 +132,15 @@
             favoritesEmpty.style.display = 'none';
             favoritesGrid.style.display = 'grid';
 
-            const favoriteProducts = allProducts.filter(p => favorites.includes(p.id));
+            // Convert favorites to strings for comparison
+            const favoritesStr = favorites.map(f => String(f));
+            const favoriteProducts = allProducts.filter(p => favoritesStr.includes(String(p.id)));
+            
+            if (favoriteProducts.length === 0) {
+                favoritesEmpty.style.display = 'block';
+                favoritesGrid.style.display = 'none';
+                return;
+            }
             
             favoritesGrid.innerHTML = favoriteProducts.map(product => `
                 <article class="product" data-id="${product.id}">
