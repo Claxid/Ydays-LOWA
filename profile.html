@@ -239,7 +239,7 @@
           <div class="pill" id="member-since">Membre depuis —</div>
         </div>
         <div class="actions" style="margin-left:auto">
-          <button id="logout-btn-hero" class="btn">Déconnexion</button>
+          <a href="/favoris.html" class="btn" style="text-decoration:none">❤️ Mes favoris</a>
         </div>
       </div>
 
@@ -247,7 +247,6 @@
         <section class="card">
           <h3>Informations utilisateur</h3>
           <div id="user-info"></div>
-          <button id="change-avatar-btn" class="btn" style="margin-top:1rem">📷 Changer l'avatar</button>
         </section>
         <section class="card">
           <h3>🎨 Personnalisation de l'interface</h3>
@@ -346,10 +345,6 @@
           document.getElementById('avatar-text').style.display = 'none';
         }
       }
-
-      document.getElementById('change-avatar-btn').addEventListener('click', () => {
-        document.getElementById('avatar-upload').click();
-      });
 
       document.getElementById('avatar').addEventListener('click', () => {
         document.getElementById('avatar-upload').click();
