@@ -476,18 +476,22 @@ a:hover{ color:var(--muted) }
   content:attr(data-collection);
   position:absolute;
   top:1rem;
-  right:1rem;
-  background:var(--pastel-green);
-  color:var(--dark);
-  padding:0.3rem 0.7rem;
-  border-radius:20px;
+  left:1rem;
+  background:var(--accent);
+  color:var(--pale-green);
+  padding:0.4rem 0.8rem;
+  border-radius:6px;
   font-size:0.75rem;
-  font-weight:600;
+  font-weight:700;
   opacity:0;
-  transition:opacity var(--transition-fast);
+  transform:translateX(-100px);
+  transition:all var(--transition-medium);
 }
 
-.product:hover::after{ opacity:1 }
+.product:hover::after{ 
+  opacity:1;
+  transform:translateX(0);
+}
 
 /* Product image container */
 .product-image-container{

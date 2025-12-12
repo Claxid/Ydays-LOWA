@@ -142,8 +142,14 @@
                 return;
             }
             
-            favoritesGrid.innerHTML = favoriteProducts.map(product => `
-                <article class="product" data-id="${product.id}">
+            favoritesGrid.innerHTML = favoriteProducts.map(product => {
+                const collectionLabels = {
+                    'eco': '🌱 Éco',
+                    'recycle': '♻️ Recyclé',
+                    'classiques': '✨ Classique'
+                };
+                return `
+                <article class="product" data-id="${product.id}" data-collection="${collectionLabels[product.collection] || product.collection}">
                     <div class="product-image-container">
                         <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" />
                         <button class="fav-btn active" data-id="${product.id}" aria-label="Retirer des favoris" title="Retirer des favoris">❤️</button>
@@ -154,8 +160,8 @@
                         <span class="product-price">${product.price.toFixed(2)} €</span>
                         <button class="btn primary add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">Ajouter</button>
                     </div>
-                </article>
-            `).join('');
+                </article>`;
+            }).join('');
 
             attachFavoriteListeners();
             attachCartListeners();

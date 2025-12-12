@@ -430,8 +430,14 @@
                 try {
                     const response = await fetch('/src/database/products.json');
                     const products = await response.json();
-                    productsGrid.innerHTML = products.map(product => `
-                        <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${product.collection}">
+                    productsGrid.innerHTML = products.map(product => {
+                        const collectionLabels = {
+                            'eco': '🌱 Éco',
+                            'recycle': '♻️ Recyclé',
+                            'classiques': '✨ Classique'
+                        };
+                        return `
+                        <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${collectionLabels[product.collection] || product.collection}">
                             <div class="product-image-container">
                                 <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" />
                                 <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">❤️</button>
@@ -442,8 +448,8 @@
                                 <span class="product-price">${product.price.toFixed(2)} €</span>
                                 <button class="btn primary add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">Ajouter</button>
                             </div>
-                        </article>
-                    `).join('');
+                        </article>`;
+                    }).join('');
                     attachCartListeners();
                     attachFavoriteListeners();
                     applyAllFilters();
