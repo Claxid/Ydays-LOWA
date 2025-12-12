@@ -31,26 +31,26 @@
   --soft-green:#d9e8d9;
 }
 
-/* THEME DARK - Vert foncé doux (pas trop sombre) */
+/* THEME DARK - Bleu foncé léger */
 [data-theme="dark"]{
-  --bg:#2a3d2a;
-  --accent:#8bc98b;
-  --dark:#e0f0e0;
-  --muted:#a8d5a8;
-  --pastel-green:#3d5a3d;
-  --pale-green:#344834;
-  --soft-green:#3a4f3a;
+  --bg:#1a2838;
+  --accent:#6b9bc9;
+  --dark:#d4e4f0;
+  --muted:#8bb5d9;
+  --pastel-green:#2d4a5a;
+  --pale-green:#253544;
+  --soft-green:#2a3f52;
 }
 
-/* THEME TEMPERATE - Vert sauge tempéré */
+/* THEME TEMPERATE - Boisé marron clair */
 [data-theme="temperate"]{
-  --bg:#e8f0e8;
-  --accent:#5a9a5a;
-  --dark:#2d4a2d;
-  --muted:#6b8e6b;
-  --pastel-green:#d0e4d0;
-  --pale-green:#dceadc;
-  --soft-green:#c8dcc8;
+  --bg:#f5ebe0;
+  --accent:#8b6f47;
+  --dark:#3d2817;
+  --muted:#6b5344;
+  --pastel-green:#d4c4b0;
+  --pale-green:#ebe0d0;
+  --soft-green:#ddd0c0;
 }
 
 *{box-sizing:border-box}
