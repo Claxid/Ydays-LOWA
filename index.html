@@ -439,7 +439,7 @@
             async function loadProducts() {
                 showSkeleton();
                 try {
-                    const response = await fetch('/src/database/products.json');
+                    const response = await fetch('/src/database/products.json?v=2');
                     const products = await response.json();
                     productsGrid.innerHTML = products.map(product => {
                         const collectionLabels = {
