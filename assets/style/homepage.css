@@ -1,18 +1,19 @@
 /* Styles de base pour LOWA — minimal, responsive */
 :root{
-  --accent:#6ba86b;
-  --dark:#1a4d1a;
-  --muted:#558055;
-  --bg:#f0f5f0;
+  /* Palette de base (mêmes valeurs que le thème clair) */
+  --accent:#c570da;     /* violet riche */
+  --dark:#4c423c;       /* marron foncé texte */
+  --muted:#8a7c73;      /* texte secondaire */
+  --bg:#E2D8D1;         /* fond beige doux */
   --container:1100px;
-  --kaki:#7ab87a;
+  --kaki:#98a869;       /* kaki de la charte, utilisé pour certains accents doux */
   --pastel-pink:#d4ead4;
-  --pastel-green:#c7e8c7;
-  --pale-green:#e8f5e8;
-  --soft-green:#d9e8d9;
-  --shadow-soft: 0 2px 8px rgba(20,60,20,.08);
-  --shadow-medium: 0 4px 16px rgba(20,60,20,.12);
-  --shadow-large: 0 12px 40px rgba(20,60,20,.12);
+  --pastel-green:#c9d3a3; /* kaki clair pour bordures/fonds légers */
+  --pale-green:#f2ece7;   /* fond carte très clair */
+  --soft-green:#dcd4cb;   /* surface douce intermédiaire */
+  --shadow-soft: 0 2px 8px rgba(76,66,60,.08);
+  --shadow-medium: 0 4px 16px rgba(76,66,60,.12);
+  --shadow-large: 0 12px 40px rgba(76,66,60,.14);
   --dropdown-shift: 40px;
   --transition-fast: 0.15s ease;
   --transition-medium: 0.3s ease;
