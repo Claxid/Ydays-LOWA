@@ -385,16 +385,18 @@
         applyTheme(theme);
       }
 
-      // Keyboard shortcut: press "u" to cycle theme
+      // Keyboard shortcut: press "u" to cycle theme (works anywhere, loops back to clair)
       document.addEventListener('keydown', (e) => {
-        if (e.key && e.key.toLowerCase() === 'u') {
-          const order = ['light', 'dark', 'temperate', 'auto'];
-          const current = localStorage.getItem('lowa_theme') || 'light';
-          const idx = order.indexOf(current);
-          const next = order[(idx + 1) % order.length];
-          setTheme(next);
-          saveAdvancedPrefs();
-        }
+        if (!e.key || e.key.toLowerCase() !== 'u') return;
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+        // Allow use even inside the menu; only skip when typing in inputs/textareas/selects
+        if (['input','textarea','select'].includes(tag)) return;
+        const order = ['light', 'dark', 'temperate', 'auto'];
+        const currentPref = localStorage.getItem('lowa_theme') || 'light';
+        const idx = order.indexOf(currentPref);
+        const next = order[(idx + 1) % order.length];
+        setTheme(next);
+        saveAdvancedPrefs();
       });
 
       document.addEventListener('DOMContentLoaded', () => {
