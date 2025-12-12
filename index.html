@@ -344,6 +344,7 @@
             <div class="container">
                 <p>&copy; <span id="year"></span> LOWA — Tous droits réservés.</p>
             </div>
+            <button id="scroll-to-top" class="scroll-to-top" aria-label="Remonter au début" title="Remonter en haut de la page">↑</button>
         </footer>
 
         <!-- Cart modal -->
@@ -718,6 +719,24 @@
                     if (e.key === 'Escape') closeAllDropdowns();
                 });
             })();
+
+            // Scroll to top button
+            const scrollToTopBtn = document.getElementById('scroll-to-top');
+            
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) {
+                    scrollToTopBtn.classList.add('show');
+                } else {
+                    scrollToTopBtn.classList.remove('show');
+                }
+            });
+            
+            scrollToTopBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
             
             // Theme Management System
             function initTheme() {

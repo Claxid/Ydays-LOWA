@@ -504,6 +504,46 @@ a:hover{ color:var(--muted) }
 
 .site-footer p{ margin:0;text-align:center }
 
+.site-footer {
+  position: relative;
+}
+
+/* Scroll to top button */
+.scroll-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: var(--pale-green);
+  color: var(--accent);
+  font-size: 1.4rem;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-medium), visibility var(--transition-medium), transform var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 0;
+  box-shadow: var(--shadow-medium);
+}
+
+.scroll-to-top:hover {
+  background: var(--accent);
+  color: var(--pale-green);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-large);
+}
+
+.scroll-to-top.show {
+  opacity: 1;
+  visibility: visible;
+}
+
 /* Utility classes */
 .visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap;border:0;padding:0;margin:-1px}
 
