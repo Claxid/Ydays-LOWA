@@ -17,8 +17,29 @@
   --dropdown-shift: 40px;
   --transition-fast: 0.15s ease;
   --transition-medium: 0.3s ease;
+  --transition-slow: 0.5s ease;
   --font-scale: 100%;
   --spacing-scale: 1;
+}
+
+/* Animation keyframes */
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ripple {
+  to { transform: scale(4); opacity: 0; }
 }
 
 /* THEME LIGHT (défaut) - Palette beige/violet/kaki nuances douces */
@@ -507,6 +528,13 @@ a:hover{ color:var(--muted) }
   position:relative;
 }
 
+.product-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Favorite button */
 .fav-btn{
   position:absolute;
@@ -555,7 +583,7 @@ a:hover{ color:var(--muted) }
   transition:transform var(--transition-medium);
 }
 
-.product:hover img{ transform:scale(1.05) }
+.product:hover img{ transform:scale(1.08) }
 
 /* Product info */
 .product h3{
@@ -595,7 +623,7 @@ a:hover{ color:var(--muted) }
   padding:0.7rem 1rem;
   border-radius:8px;
   cursor:pointer;
-  transition:all var(--transition-fast);
+  transition:all var(--transition-medium);
   font-weight:600;
   font-size:0.95rem;
   text-decoration:none;
@@ -605,13 +633,32 @@ a:hover{ color:var(--muted) }
   pointer-events:auto;
   position:relative;
   z-index:1;
+  overflow:hidden;
+  box-shadow:var(--shadow-soft);
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(197, 112, 218, 0.4);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.btn:active::before {
+  animation: ripple 0.6s ease-out;
 }
 
 .btn:hover{
   border-color:var(--accent);
   color:var(--accent);
-  transform:translateY(-2px);
-  box-shadow:0 4px 12px rgba(197,112,218,.18);
+  transform:translateY(-3px);
+  box-shadow:0 8px 20px rgba(197,112,218,.25);
 }
 
 .btn.primary{
@@ -623,12 +670,13 @@ a:hover{ color:var(--muted) }
 .btn.primary:hover{
   background:var(--muted);
   border-color:var(--muted);
-  box-shadow:0 6px 16px rgba(179,122,87,.22);
+  box-shadow:0 10px 24px rgba(179,122,87,.3);
+  transform:translateY(-4px);
 }
 
 .btn.primary:active{
-  transform:translateY(0);
-  box-shadow:0 2px 8px rgba(197,112,218,.2);
+  transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(197,112,218,.25);
 }
 
 .btn.active{
