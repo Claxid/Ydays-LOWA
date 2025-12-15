@@ -1246,13 +1246,16 @@ a:hover{ color:var(--muted) }
   align-items:center;
   justify-content:center;
   opacity:0;
+  visibility:hidden;
   pointer-events:none;
-  transition:opacity var(--transition-medium);
+  transition:opacity var(--transition-medium), visibility 0s linear var(--transition-medium);
 }
 
 .modal[aria-hidden="false"]{
   opacity:1;
+  visibility:visible;
   pointer-events:auto;
+  transition:opacity var(--transition-medium);
 }
 
 .modal-overlay{
