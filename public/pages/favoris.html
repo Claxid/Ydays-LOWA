@@ -113,7 +113,7 @@
         // Load products and filter favorites
         async function loadFavorites() {
             try {
-                const response = await fetch('/backend/data/products.json');
+                const response = await fetch('/public/data/products.json');
                 allProducts = await response.json();
                 renderFavorites();
             } catch (error) {
