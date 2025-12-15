@@ -650,7 +650,6 @@ func handleGetRecommendations(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	dir := flag.String("dir", ".", "directory to serve")
 	addr := flag.String("addr", ":8080", "address to listen on")
 	flag.Parse()
 
