@@ -435,12 +435,27 @@
                 burgerBtn.setAttribute('aria-expanded', open);
             });
 
-            // Fetch and render products
+            // Fetch and render products with smart caching
             async function loadProducts() {
                 showSkeleton();
                 try {
-                    const response = await fetch('/src/database/products.json?v=2');
-                    const products = await response.json();
+                    // Check cache with 1-hour validity
+                    const cached = localStorage.getItem('lowa_products_cache');
+                    const cacheTime = localStorage.getItem('lowa_products_cache_time');
+                    const oneHour = 60 * 60 * 1000;
+                    
+                    let products;
+                    if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < oneHour) {
+                        console.log('📦 Chargement depuis le cache');
+                        products = JSON.parse(cached);
+                    } else {
+                        console.log('🌐 Chargement depuis le réseau');
+                        const response = await fetch('/src/database/products.json?v=2');
+                        products = await response.json();
+                        localStorage.setItem('lowa_products_cache', JSON.stringify(products));
+                        localStorage.setItem('lowa_products_cache_time', Date.now().toString());
+                    }
+                    
                     productsGrid.innerHTML = products.map(product => {
                         const collectionLabels = {
                             'eco': '🌱 Éco',
@@ -995,8 +1010,12 @@
                 e.preventDefault();
                 const email = document.getElementById('login-email').value;
                 const password = document.getElementById('login-password').value;
+                const submitBtn = e.target.querySelector('button[type="submit"]');
                 
                 try {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '⏳ Connexion...';
+                    
                     const response = await fetch(API_BASE + '/login', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
@@ -1008,8 +1027,12 @@
                     saveSession(data.token, data.user);
                     closeAllModals();
                     document.getElementById('login-form').reset();
+                    submitBtn.textContent = 'Se connecter';
                 } catch (err) {
                     alert('Erreur de connexion: ' + err.message);
+                    submitBtn.textContent = 'Se connecter';
+                } finally {
+                    submitBtn.disabled = false;
                 }
             });
             
@@ -1021,8 +1044,12 @@
                 const prenom = document.getElementById('register-prenom').value;
                 const sexe = document.getElementById('register-sexe').value;
                 const password = document.getElementById('register-password').value;
+                const submitBtn = e.target.querySelector('button[type="submit"]');
                 
                 try {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '⏳ Inscription...';
+                    
                     const response = await fetch(API_BASE + '/register', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
@@ -1034,8 +1061,12 @@
                     saveSession(data.token, {id: data.user_id, email, nom, prenom, sexe});
                     closeAllModals();
                     document.getElementById('register-form').reset();
+                    submitBtn.textContent = 'S\'inscrire';
                 } catch (err) {
                     alert('Erreur d\'inscription: ' + err.message);
+                    submitBtn.textContent = 'S\'inscrire';
+                } finally {
+                    submitBtn.disabled = false;
                 }
             });
             
