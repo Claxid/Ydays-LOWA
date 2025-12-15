@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes Favoris — LOWA</title>
-    <link rel="stylesheet" href="/assets/style/homepage.css">
+    <link rel="stylesheet" href="/public/css/homepage.css">
 </head>
 <body>
     <header class="site-header">
@@ -113,7 +113,7 @@
         // Load products and filter favorites
         async function loadFavorites() {
             try {
-                const response = await fetch('/src/database/products.json');
+                const response = await fetch('/backend/data/products.json');
                 allProducts = await response.json();
                 renderFavorites();
             } catch (error) {

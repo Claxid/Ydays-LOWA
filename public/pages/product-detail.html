@@ -8,8 +8,8 @@
     <meta name="description" content="Découvrez tous les détails du produit LOWA : matériaux, dimensions, avis clients." />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://ydays-lowa.vercel.app/product-detail.html" />
-    <link rel="preload" as="style" href="/assets/style/homepage.css" />
-    <link rel="stylesheet" href="/assets/style/homepage.css" media="all" />
+    <link rel="preload" as="style" href="/public/css/homepage.css" />
+    <link rel="stylesheet" href="/public/css/homepage.css" media="all" />
     <style>
         .product-detail-container {
             display: grid;
@@ -392,7 +392,7 @@
         // Load product data
         async function loadProductDetail() {
             try {
-                const response = await fetch('/src/database/products.json');
+                const response = await fetch('/backend/data/products.json');
                 const products = await response.json();
                 const product = products.find(p => String(p.id) === String(productId));
 

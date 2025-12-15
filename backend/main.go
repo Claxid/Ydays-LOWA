@@ -708,11 +708,12 @@ func main() {
 	http.HandleFunc("/api/user-activity", withCORS(handleUserActivity))
 	http.HandleFunc("/api/recommendations", withCORS(handleGetRecommendations))
 
-	// Static files with cache middleware
-	fs := http.FileServer(http.Dir(*dir))
+	// Static files from parent directory with cache middleware
+	// Serve root directory which contains public/, index.html, etc.
+	fs := http.FileServer(http.Dir(".."))
 	http.Handle("/", cacheMiddleware(fs))
 
-	log.Printf("🌿 Serving %s on HTTP %s\n", *dir, *addr)
+	log.Printf("🌿 Serving parent directory (..) on HTTP %s\n", *addr)
 
 	// Build a localhost URL for convenience
 	port := strings.TrimLeft(*addr, ":")
