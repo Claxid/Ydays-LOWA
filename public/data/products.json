@@ -9,6 +9,7 @@
     "subcategory": "t-shirts",
     "collection": "eco"
   },
+ 
   {
     "id": 2,
     "name": "Pull recyclé - Gris",
@@ -19,6 +20,7 @@
     "subcategory": "vestes",
     "collection": "recycle"
   },
+  
   {
     "id": 3,
     "name": "Pantalon éco - Kaki",
@@ -29,6 +31,7 @@
     "subcategory": "pantalons",
     "collection": "eco"
   },
+  
   {
     "id": 4,
     "name": "Veste en Lin - Beige",
@@ -39,6 +42,7 @@
     "subcategory": "vestes",
     "collection": "classiques"
   },
+  
   {
     "id": 5,
     "name": "Robe d'été - Blanc cassé",
@@ -49,6 +53,7 @@
     "subcategory": "robes",
     "collection": "eco"
   },
+  
   {
     "id": 6,
     "name": "Top en fibres recyclées - Rose",
@@ -59,6 +64,7 @@
     "subcategory": "tops",
     "collection": "recycle"
   },
+ 
   {
     "id": 7,
     "name": "Jupe midi - Marine",
@@ -69,6 +75,7 @@
     "subcategory": "robes",
     "collection": "classiques"
   },
+  
   {
     "id": 8,
     "name": "Chemise lin - Blanc",
@@ -79,6 +86,7 @@
     "subcategory": "t-shirts",
     "collection": "classiques"
   },
+  
   {
     "id": 9,
     "name": "Sac en toile recyclée - Noir",
@@ -89,6 +97,7 @@
     "subcategory": "accessoires",
     "collection": "recycle"
   },
+  
   {
     "id": 10,
     "name": "Écharpe en laine bio - Camel",
@@ -99,6 +108,7 @@
     "subcategory": "accessoires",
     "collection": "eco"
   },
+ 
   {
     "id": 11,
     "name": "Pantalon chino - Sable",
@@ -109,6 +119,7 @@
     "subcategory": "pantalons",
     "collection": "classiques"
   },
+  
   {
     "id": 12,
     "name": "Blouson recyclé - Bleu nuit",
@@ -119,6 +130,7 @@
     "subcategory": "vestes",
     "collection": "recycle"
   },
+ 
   {
     "id": 13,
     "name": "Sweat organique - Écru",
@@ -129,6 +141,7 @@
     "subcategory": "t-shirts",
     "collection": "eco"
   },
+  
   {
     "id": 14,
     "name": "Parka imperméable recyclée",
@@ -139,6 +152,7 @@
     "subcategory": "vestes",
     "collection": "recycle"
   },
+  
   {
     "id": 15,
     "name": "Cardigan laine bio - Olive",
@@ -149,6 +163,7 @@
     "subcategory": "vestes",
     "collection": "classiques"
   },
+  
   {
     "id": 16,
     "name": "Short en coton bio - Sable",
@@ -159,6 +174,7 @@
     "subcategory": "pantalons",
     "collection": "eco"
   },
+  
   {
     "id": 17,
     "name": "Robe cache-cœur - Terracotta",
@@ -169,6 +185,7 @@
     "subcategory": "robes",
     "collection": "classiques"
   },
+  
   {
     "id": 18,
     "name": "Doudoune légère recyclée",

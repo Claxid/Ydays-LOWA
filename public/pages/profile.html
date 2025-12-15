@@ -160,6 +160,14 @@
         display: grid; place-items: center;
         font-weight: 700; font-size: 1.2rem;
         box-shadow: var(--shadow-medium);
+        overflow: hidden;
+        background-size: cover;
+        background-position: center;
+      }
+      .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
       }
       .card { 
         border:1px solid var(--pastel-green); 
@@ -245,7 +253,7 @@
             <label style="font-weight:bold;display:block;margin-bottom:0.5rem">Thème visuel</label>
             <div class="theme-selector">
               <button class="theme-option active" data-theme="light">☀️ Clair</button>
-              <button class="theme-option" data-theme="dark">🌆 Crépuscule</button>
+              <button class="theme-option" data-theme="dark">🌙 Crépuscule</button>
               <button class="theme-option" data-theme="temperate">🍂 Tempéré</button>
               <button class="theme-option" data-theme="auto">🌓 Auto</button>
             </div>
@@ -467,8 +475,23 @@
         if (!user) {
           throw new Error('Aucune donnée utilisateur disponible');
         }
-        const initials = (user.prenom?.[0] || 'L') + (user.nom?.[0] || 'G');
-        document.getElementById('avatar').textContent = initials.toUpperCase();
+        
+        // Update avatar: show image if PDP exists, otherwise show initials
+        const avatarContainer = document.getElementById('avatar');
+        const avatarText = document.getElementById('avatar-text');
+        
+        if (user.pdp) {
+          // User has a profile picture
+          avatarContainer.style.backgroundImage = `url(${user.pdp})`;
+          avatarText.style.display = 'none';
+        } else {
+          // Show initials
+          const initials = (user.prenom?.[0] || 'L') + (user.nom?.[0] || 'G');
+          avatarText.textContent = initials.toUpperCase();
+          avatarText.style.display = 'block';
+          avatarContainer.style.backgroundImage = 'none';
+        }
+        
         if (user.date_creation) {
           document.getElementById('member-since').textContent = 'Membre depuis — ' + new Date(user.date_creation).toLocaleDateString();
         }
@@ -619,6 +642,69 @@
         try { await fetch(API + '/logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
         localStorage.removeItem('lowa_session');
         window.location.href = '/';
+      });
+
+      // Avatar upload handler
+      document.getElementById('avatar').addEventListener('click', () => {
+        document.getElementById('avatar-upload').click();
+      });
+
+      document.getElementById('avatar-upload').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          alert('Veuillez sélectionner une image valide');
+          return;
+        }
+
+        // Validate file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+          alert('L\'image est trop grande (max 2MB)');
+          return;
+        }
+
+        // Convert to base64
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          const base64 = event.target.result;
+          
+          try {
+            // Update profile picture via API
+            const resp = await fetch(API + '/user', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: sessionToken
+              },
+              body: JSON.stringify({ pdp: base64 })
+            });
+
+            if (!resp.ok) {
+              throw new Error('Échec de la mise à jour');
+            }
+
+            const updatedUser = await resp.json();
+            
+            // Update UI
+            const avatarContainer = document.getElementById('avatar');
+            const avatarText = document.getElementById('avatar-text');
+            avatarContainer.style.backgroundImage = `url(${base64})`;
+            avatarText.style.display = 'none';
+
+            // Update session storage
+            const session = JSON.parse(localStorage.getItem('lowa_session') || '{}');
+            session.user = updatedUser;
+            localStorage.setItem('lowa_session', JSON.stringify(session));
+
+            console.log('Photo de profil mise à jour avec succès');
+          } catch (err) {
+            console.error('Erreur lors de la mise à jour:', err);
+            alert('Erreur lors de la mise à jour de la photo de profil');
+          }
+        };
+        reader.readAsDataURL(file);
       });
 
       document.getElementById('logout-btn-hero').addEventListener('click', async () => {

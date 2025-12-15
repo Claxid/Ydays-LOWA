@@ -23,6 +23,7 @@ type User struct {
 	Prenom       string    `json:"prenom"`
 	Sexe         string    `json:"sexe"`
 	Role         string    `json:"role"`
+	PDP          string    `json:"pdp"`
 	DateCreation time.Time `json:"date_creation"`
 }
 
@@ -84,6 +85,9 @@ func initDB() error {
 
 	// Ensure 'role' column exists for older databases
 	db.Exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'")
+
+	// Ensure 'pdp' column exists for profile pictures
+	db.Exec("ALTER TABLE users ADD COLUMN pdp TEXT")
 
 	// Create carts table
 	_, err = db.Exec(`
@@ -319,13 +323,57 @@ func handleGetUser(w http.ResponseWriter, r *http.Request) {
 
 	var user User
 	err = db.QueryRow(
-		"SELECT id, email, nom, prenom, sexe, role, date_creation FROM users WHERE id = ?",
+		"SELECT id, email, nom, prenom, sexe, role, pdp, date_creation FROM users WHERE id = ?",
 		userID,
-	).Scan(&user.ID, &user.Email, &user.Nom, &user.Prenom, &user.Sexe, &user.Role, &user.DateCreation)
+	).Scan(&user.ID, &user.Email, &user.Nom, &user.Prenom, &user.Sexe, &user.Role, &user.PDP, &user.DateCreation)
 
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(map[string]string{"error": "User not found"})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
+}
+
+func handleUpdateUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	userID, err := getSessionUserID(r)
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Not authenticated"})
+		return
+	}
+
+	var updateData struct {
+		PDP string `json:"pdp"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&updateData); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
+		return
+	}
+
+	// Update user profile picture
+	_, err = db.Exec("UPDATE users SET pdp = ? WHERE id = ?", updateData.PDP, userID)
+	if err != nil {
+		log.Printf("Error updating user PDP: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to update profile"})
+		return
+	}
+
+	// Return updated user
+	var user User
+	err = db.QueryRow(
+		"SELECT id, email, nom, prenom, sexe, role, pdp, date_creation FROM users WHERE id = ?",
+		userID,
+	).Scan(&user.ID, &user.Email, &user.Nom, &user.Prenom, &user.Sexe, &user.Role, &user.PDP, &user.DateCreation)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to fetch updated user"})
 		return
 	}
 
@@ -690,7 +738,15 @@ func main() {
 	// API Routes with CORS
 	http.HandleFunc("/api/register", withCORS(handleRegister))
 	http.HandleFunc("/api/login", withCORS(handleLogin))
-	http.HandleFunc("/api/user", withCORS(handleGetUser))
+	http.HandleFunc("/api/user", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleGetUser(w, r)
+		} else if r.Method == http.MethodPut || r.Method == http.MethodPatch {
+			handleUpdateUser(w, r)
+		} else {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}))
 	http.HandleFunc("/api/cart", withCORS(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			handleGetCart(w, r)
