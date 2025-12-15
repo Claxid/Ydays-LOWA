@@ -4,7 +4,7 @@
     "name": "T-shirt BIO - Naturel",
     "price": 29.00,
     "description": "T-shirt en coton biologique certifi├®. Coupe confortable, coloris naturels.",
-    "image": "/assets/images/tshirt-naturel.svg",
+    "image": "/public/images/tshirt-naturel.svg",
     "category": "hommes",
     "subcategory": "t-shirts",
     "collection": "eco"
@@ -14,7 +14,7 @@
     "name": "Pull recycl├® - Gris",
     "price": 79.00,
     "description": "Pull fabriqu├® ├á partir de fibres recycl├®es. Chaud et durable.",
-    "image": "/assets/images/pull-gris.svg",
+    "image": "/public/images/pull-gris.svg",
     "category": "hommes",
     "subcategory": "vestes",
     "collection": "recycle"
@@ -24,7 +24,7 @@
     "name": "Pantalon ├®co - Kaki",
     "price": 59.00,
     "description": "Pantalon en tissu certifi├® avec renforts minimalistes.",
-    "image": "/assets/images/pantalon-kaki.svg",
+    "image": "/public/images/pantalon-kaki.svg",
     "category": "hommes",
     "subcategory": "pantalons",
     "collection": "eco"
@@ -34,7 +34,7 @@
     "name": "Veste en Lin - Beige",
     "price": 89.00,
     "description": "Veste l├®g├¿re en lin naturel, parfaite pour la mi-saison. Coupe ajust├®e.",
-    "image": "/assets/images/veste-lin-beige.svg",
+    "image": "/public/images/veste-lin-beige.svg",
     "category": "femmes",
     "subcategory": "vestes",
     "collection": "classiques"
@@ -44,7 +44,7 @@
     "name": "Robe d'├®t├® - Blanc cass├®",
     "price": 65.00,
     "description": "Robe fluide en coton bio, id├®ale pour l'├®t├®. Fabrication locale.",
-    "image": "/assets/images/robe-ete.svg",
+    "image": "/public/images/robe-ete.svg",
     "category": "femmes",
     "subcategory": "robes",
     "collection": "eco"
@@ -54,7 +54,7 @@
     "name": "Top en fibres recycl├®es - Rose",
     "price": 35.00,
     "description": "Top f├®minin fabriqu├® ├á partir de bouteilles plastiques recycl├®es.",
-    "image": "/assets/images/top-rose.svg",
+    "image": "/public/images/top-rose.svg",
     "category": "femmes",
     "subcategory": "tops",
     "collection": "recycle"
@@ -64,7 +64,7 @@
     "name": "Jupe midi - Marine",
     "price": 55.00,
     "description": "Jupe mi-longue en coton bio certifi├® GOTS. Coupe ├®l├®gante.",
-    "image": "/assets/images/jupe-marine.svg",
+    "image": "/public/images/jupe-marine.svg",
     "category": "femmes",
     "subcategory": "robes",
     "collection": "classiques"
@@ -74,7 +74,7 @@
     "name": "Chemise lin - Blanc",
     "price": 49.00,
     "description": "Chemise intemporelle en lin fran├ºais. Production ├®thique.",
-    "image": "/assets/images/chemise-lin.svg",
+    "image": "/public/images/chemise-lin.svg",
     "category": "hommes",
     "subcategory": "t-shirts",
     "collection": "classiques"
@@ -84,7 +84,7 @@
     "name": "Sac en toile recycl├®e - Noir",
     "price": 25.00,
     "description": "Sac cabas en toile recycl├®e, r├®sistant et pratique au quotidien.",
-    "image": "/assets/images/sac-recyc.svg",
+    "image": "/public/images/sac-recyc.svg",
     "category": "femmes",
     "subcategory": "accessoires",
     "collection": "recycle"
@@ -94,7 +94,7 @@
     "name": "├ëcharpe en laine bio - Camel",
     "price": 39.00,
     "description": "├ëcharpe douce en laine biologique. Teinture v├®g├®tale.",
-    "image": "/assets/images/echarpe.svg",
+    "image": "/public/images/echarpe.svg",
     "category": "femmes",
     "subcategory": "accessoires",
     "collection": "eco"
@@ -104,7 +104,7 @@
     "name": "Pantalon chino - Sable",
     "price": 69.00,
     "description": "Chino en coton bio, coupe moderne et confortable.",
-    "image": "/assets/images/chino-sable.svg",
+    "image": "/public/images/chino-sable.svg",
     "category": "hommes",
     "subcategory": "pantalons",
     "collection": "classiques"
@@ -114,7 +114,7 @@
     "name": "Blouson recycl├® - Bleu nuit",
     "price": 95.00,
     "description": "Blouson fabriqu├® ├á partir de fibres recycl├®es. Design urbain.",
-    "image": "/assets/images/blouson-bleu.svg",
+    "image": "/public/images/blouson-bleu.svg",
     "category": "hommes",
     "subcategory": "vestes",
     "collection": "recycle"
@@ -124,7 +124,7 @@
     "name": "Sweat organique - ├ëcru",
     "price": 59.00,
     "description": "Sweat doux en coton organique, int├®rieur gratt├®, coupe unisexe.",
-    "image": "/assets/images/pull-gris.svg",
+    "image": "/public/images/pull-gris.svg",
     "category": "hommes",
     "subcategory": "t-shirts",
     "collection": "eco"
@@ -134,7 +134,7 @@
     "name": "Parka imperm├®able recycl├®e",
     "price": 129.00,
     "description": "Parka longue, membrane recycl├®e, coutures ├®tanch├®es, capuche ajustable.",
-    "image": "/assets/images/blouson-bleu.svg",
+    "image": "/public/images/blouson-bleu.svg",
     "category": "femmes",
     "subcategory": "vestes",
     "collection": "recycle"
@@ -144,7 +144,7 @@
     "name": "Cardigan laine bio - Olive",
     "price": 72.00,
     "description": "Cardigan en laine biologique, maille perl├®e, boutons en corozo.",
-    "image": "/assets/images/veste-lin-beige.svg",
+    "image": "/public/images/veste-lin-beige.svg",
     "category": "femmes",
     "subcategory": "vestes",
     "collection": "classiques"
@@ -154,7 +154,7 @@
     "name": "Short en coton bio - Sable",
     "price": 39.00,
     "description": "Short l├®ger en serg├® de coton bio, taille ajustable, poches lat├®rales.",
-    "image": "/assets/images/chino-sable.svg",
+    "image": "/public/images/chino-sable.svg",
     "category": "hommes",
     "subcategory": "pantalons",
     "collection": "eco"
@@ -164,7 +164,7 @@
     "name": "Robe cache-c┼ôur - Terracotta",
     "price": 79.00,
     "description": "Robe cache-c┼ôur en viscose EcoVero, ceinture ├á nouer, manches 3/4.",
-    "image": "/assets/images/robe-ete.svg",
+    "image": "/public/images/robe-ete.svg",
     "category": "femmes",
     "subcategory": "robes",
     "collection": "classiques"
@@ -174,9 +174,10 @@
     "name": "Doudoune l├®g├¿re recycl├®e",
     "price": 139.00,
     "description": "Doudoune compressible en fibres recycl├®es, chaleur 4 saisons.",
-    "image": "/assets/images/blouson-bleu.svg",
+    "image": "/public/images/blouson-bleu.svg",
     "category": "hommes",
     "subcategory": "vestes",
     "collection": "recycle"
   }
 ]
+
