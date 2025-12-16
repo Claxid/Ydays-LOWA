@@ -445,15 +445,6 @@
             const emptyState = document.getElementById('products-empty');
             const burgerBtn = document.getElementById('burger-btn');
             const headerEl = document.querySelector('.site-header');
-            
-            // Global variables for products and filtering
-            let products = [];
-            let filteredProducts = [];
-            let currentPage = 1;
-            let sortOrder = 'default';
-            let maxPrice = 200;
-            const PRODUCTS_PER_PAGE = 12;
-            let activeFilters = {};
 
             function showSkeleton(count = 6) {
                 const skeletonCard = `
@@ -485,7 +476,7 @@
                 showSkeleton();
                 try {
                     // Check cache with 1-hour validity and version check
-                    const CACHE_VERSION = 'v6'; // Increment when products.json path changes
+                    const CACHE_VERSION = 'v5'; // Increment when products.json path changes
                     const cached = localStorage.getItem('lowa_products_cache');
                     const cacheTime = localStorage.getItem('lowa_products_cache_time');
                     const cacheVersion = localStorage.getItem('lowa_products_cache_version');
@@ -493,12 +484,18 @@
                     
                     console.log('Cache info:', { cacheVersion, CACHE_VERSION, hasCache: !!cached });
                     
+                    let products;
+                    let filteredProducts = [];
+                    let currentPage = 1;
+                    let sortOrder = 'default';
+                    const PRODUCTS_PER_PAGE = 12;
+                    
                     if (cached && cacheTime && cacheVersion === CACHE_VERSION && (Date.now() - parseInt(cacheTime)) < oneHour) {
                         console.log('📦 Chargement depuis le cache');
                         products = JSON.parse(cached);
                     } else {
                         console.log('🌐 Chargement depuis le réseau');
-                        const response = await fetch('/public/data/products.json?v=6');
+                        const response = await fetch('/public/data/products.json?v=5');
                         if (!response.ok) {
                             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                         }
