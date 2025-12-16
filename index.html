@@ -497,7 +497,7 @@
                         products = JSON.parse(cached);
                     } else {
                         console.log('🌐 Chargement depuis le réseau');
-                        const response = await fetch('/data/products.json?v=5');
+                        const response = await fetch('/public/data/products.json?v=5');
                         if (!response.ok) {
                             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                         }
