@@ -445,6 +445,12 @@
             const emptyState = document.getElementById('products-empty');
             const burgerBtn = document.getElementById('burger-btn');
             const headerEl = document.querySelector('.site-header');
+            
+            // Variables globales pour les produits
+            let products;
+            let filteredProducts = [];
+            let currentPage = 1;
+            let sortOrder = 'default';
 
             function showSkeleton(count = 6) {
                 const skeletonCard = `
@@ -484,10 +490,6 @@
                     
                     console.log('Cache info:', { cacheVersion, CACHE_VERSION, hasCache: !!cached });
                     
-                    let products;
-                    let filteredProducts = [];
-                    let currentPage = 1;
-                    let sortOrder = 'default';
                     const PRODUCTS_PER_PAGE = 12;
                     
                     if (cached && cacheTime && cacheVersion === CACHE_VERSION && (Date.now() - parseInt(cacheTime)) < oneHour) {
