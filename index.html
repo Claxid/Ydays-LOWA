@@ -366,9 +366,22 @@
                                 <option value="name-desc">Nom (Z-A)</option>
                             </select>
                         </div>
-                        <div class="results-counter">
-                            <span id="results-count">0</span> produit(s)
+                        
+                        <div class="price-filter">
+                            <label for="price-range">Prix max : </label>
+                            <input id="price-range" type="range" min="0" max="200" step="5" value="200" aria-label="Filtrer par prix maximum" />
+                            <span id="price-display">200 €</span>
                         </div>
+                        
+                        <div class="results-counter">
+                            <span id="results-count">0</span> / <span id="total-count">0</span> produit(s)
+                        </div>
+                    </div>
+                    
+                    <!-- Active filters display -->
+                    <div id="active-filters" class="active-filters-display" hidden>
+                        <strong>Filtres appliqués :</strong>
+                        <div id="filter-badges" class="filter-badges"></div>
                     </div>
                 </div>
 
@@ -638,6 +651,82 @@
             
             // Filter functionality
             let activeFilters = {};
+            let maxPrice = 200;
+            
+            // Load filters from localStorage on init
+            function loadFiltersFromStorage() {
+                const stored = localStorage.getItem('lowa_filters');
+                if (stored) {
+                    try {
+                        const saved = JSON.parse(stored);
+                        activeFilters = saved.filters || {};
+                        maxPrice = saved.maxPrice || 200;
+                        // Update UI
+                        document.getElementById('price-range').value = maxPrice;
+                        document.getElementById('price-display').textContent = maxPrice + ' €';
+                        document.getElementById('search').value = activeFilters.search || '';
+                        document.getElementById('sort-select').value = saved.sortOrder || 'default';
+                        sortOrder = saved.sortOrder || 'default';
+                    } catch (e) {
+                        console.warn('Erreur chargement filtres:', e);
+                    }
+                }
+            }
+            
+            // Save filters to localStorage
+            function saveFiltersToStorage() {
+                const toSave = {
+                    filters: activeFilters,
+                    maxPrice: maxPrice,
+                    sortOrder: sortOrder
+                };
+                localStorage.setItem('lowa_filters', JSON.stringify(toSave));
+            }
+            
+            function updateActiveFiltersBadges() {
+                const container = document.getElementById('filter-badges');
+                const displayDiv = document.getElementById('active-filters');
+                const badges = [];
+                
+                if (activeFilters.category) {
+                    badges.push(`<span class="filter-badge">Catégorie: ${activeFilters.category} <button data-clear="category">×</button></span>`);
+                }
+                if (activeFilters.subcategory) {
+                    badges.push(`<span class="filter-badge">Sous-catégorie: ${activeFilters.subcategory} <button data-clear="subcategory">×</button></span>`);
+                }
+                if (activeFilters.collection) {
+                    badges.push(`<span class="filter-badge">Collection: ${activeFilters.collection} <button data-clear="collection">×</button></span>`);
+                }
+                if (maxPrice < 200) {
+                    badges.push(`<span class="filter-badge">Prix: ≤${maxPrice}€ <button data-clear="price">×</button></span>`);
+                }
+                if (activeFilters.search) {
+                    badges.push(`<span class="filter-badge">Recherche: "${activeFilters.search}" <button data-clear="search">×</button></span>`);
+                }
+                
+                if (badges.length > 0) {
+                    container.innerHTML = badges.join('');
+                    displayDiv.hidden = false;
+                    
+                    // Add click handlers
+                    container.querySelectorAll('button').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const clearType = e.target.dataset.clear;
+                            if (clearType === 'price') {
+                                maxPrice = 200;
+                                document.getElementById('price-range').value = 200;
+                                document.getElementById('price-display').textContent = '200 €';
+                            } else {
+                                delete activeFilters[clearType];
+                            }
+                            saveFiltersToStorage();
+                            sortAndDisplayProducts();
+                        });
+                    });
+                } else {
+                    displayDiv.hidden = true;
+                }
+            }
             
             function applyFilters() {
                 filteredProducts = products.filter(product => {
@@ -664,10 +753,16 @@
                         return false;
                     }
                     
+                    // Apply price filter
+                    if (parseFloat(product.price) > maxPrice) {
+                        return false;
+                    }
+                    
                     return true;
                 });
                 
                 updateFilterButtonStates();
+                updateActiveFiltersBadges();
             }
             
             function applyAllFilters() {
@@ -724,6 +819,7 @@
                         activeFilters[filterType] = filterValue;
                     }
                     
+                    saveFiltersToStorage();
                     sortAndDisplayProducts();
                     return;
                 }
@@ -810,10 +906,12 @@
                 
                 const productsGrid = document.getElementById('products');
                 const resultsCount = document.getElementById('results-count');
+                const totalCount = document.getElementById('total-count');
                 const paginationContainer = document.getElementById('pagination-container');
                 
-                // Update results count
-                resultsCount.textContent = filteredProducts.length;
+                // Update results count with pagination info
+                resultsCount.textContent = Math.min(currentPage * PRODUCTS_PER_PAGE, filteredProducts.length);
+                totalCount.textContent = filteredProducts.length;
                 
                 // Append products for current page (not replace)
                 const html = paginated.map(product => {
@@ -857,6 +955,7 @@
             // Sort select handler
             document.getElementById('sort-select').addEventListener('change', (e) => {
                 sortOrder = e.target.value;
+                saveFiltersToStorage();
                 sortAndDisplayProducts();
             });
             
@@ -872,6 +971,7 @@
             document.getElementById('search').addEventListener('input', (e) => {
                 const query = e.target.value.toLowerCase();
                 activeFilters.search = query;
+                saveFiltersToStorage();
                 sortAndDisplayProducts();
             });
             
@@ -879,12 +979,28 @@
             document.getElementById('reset-filters-search').addEventListener('click', () => {
                 activeFilters = {};
                 sortOrder = 'default';
+                maxPrice = 200;
                 document.getElementById('search').value = '';
                 document.getElementById('sort-select').value = 'default';
+                document.getElementById('price-range').value = '200';
+                document.getElementById('price-display').textContent = '200 €';
+                localStorage.removeItem('lowa_filters');
+
                 sortAndDisplayProducts();
             });
 
             // Scroll to products button (hero CTA)
+            // Load saved filters on page load
+            loadFiltersFromStorage();
+            
+            // Price range slider handler
+            document.getElementById('price-range').addEventListener('input', (e) => {
+                maxPrice = parseInt(e.target.value);
+                document.getElementById('price-display').textContent = maxPrice + ' €';
+                saveFiltersToStorage();
+                sortAndDisplayProducts();
+            });
+            
             document.getElementById('scroll-to-products').addEventListener('click', () => {
                 document.getElementById('products-heading').scrollIntoView({
                     behavior: 'smooth'

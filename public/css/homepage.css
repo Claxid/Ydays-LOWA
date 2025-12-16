@@ -1468,6 +1468,118 @@ form .btn{
   font-size: 1rem;
 }
 
+/* Price filter styling */
+.price-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.price-filter label {
+  font-weight: 600;
+  color: var(--dark);
+  white-space: nowrap;
+}
+
+.price-filter input[type="range"] {
+  width: 120px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--soft-green);
+  outline: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.price-filter input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all var(--transition-fast);
+}
+
+.price-filter input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 12px rgba(197, 112, 218, 0.4);
+}
+
+.price-filter input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all var(--transition-fast);
+}
+
+.price-filter input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 12px rgba(197, 112, 218, 0.4);
+}
+
+#price-display {
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 50px;
+  text-align: right;
+}
+
+/* Active filters display */
+.active-filters-display {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: rgba(197, 112, 218, 0.08);
+  border-radius: 8px;
+  border-left: 4px solid var(--accent);
+}
+
+.active-filters-display strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--dark);
+}
+
+.filter-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: var(--accent);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.filter-badge button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: all var(--transition-fast);
+}
+
+.filter-badge button:hover {
+  transform: scale(1.3);
+}
+
 @media (max-width:600px){
   .modal-content{
     padding:1.5rem;
