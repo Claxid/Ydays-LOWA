@@ -482,7 +482,7 @@
                 showSkeleton();
                 try {
                     // Check cache with 1-hour validity and version check
-                    const CACHE_VERSION = 'v6'; // Increment when products.json path changes
+                    const CACHE_VERSION = 'v7'; // Increment when products.json path changes
                     const cached = localStorage.getItem('lowa_products_cache');
                     const cacheTime = localStorage.getItem('lowa_products_cache_time');
                     const cacheVersion = localStorage.getItem('lowa_products_cache_version');
@@ -498,15 +498,16 @@
                     } else {
                         console.log('🌐 Chargement depuis le réseau');
 
-                        let response;
-                        let lastError;
+                        let response = null;
+                        let lastError = null;
 
                         // Try root /data first (served by backend or static root)
                         try {
-                            response = await fetch('/data/products.json?v=5');
-                            if (!response.ok) {
-                                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                            const res = await fetch('/data/products.json?v=7');
+                            if (!res.ok) {
+                                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
                             }
+                            response = res;
                         } catch (err) {
                             console.warn('⚠️ /data/products.json inaccessible, fallback /public/data', err);
                             lastError = err;
@@ -514,9 +515,16 @@
 
                         // Fallback to /public/data for static hosting (e.g., Vercel)
                         if (!response) {
-                            response = await fetch('/public/data/products.json?v=5');
-                            if (!response.ok) {
-                                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                            try {
+                                const res = await fetch('/public/data/products.json?v=7');
+                                if (!res.ok) {
+                                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                                }
+                                response = res;
+                            } catch (err) {
+                                console.error('❌ Impossible de charger products.json', err);
+                                // Preserve initial error for context if available
+                                throw lastError || err;
                             }
                         }
 
