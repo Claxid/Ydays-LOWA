@@ -347,15 +347,38 @@
             <section class="container products-section" aria-labelledby="products-heading">
                 <h2 id="products-heading">Nos produits</h2>
 
-                <!-- Search bar & View toggle -->
-                <div class="search-bar">
-                    <label for="search" class="visually-hidden">Rechercher</label>
-                    <input id="search" type="search" placeholder="Rechercher un produit, ex. T-shirt" aria-label="Rechercher des produits" />
-                    <button class="btn" id="reset-filters-search">Tout afficher</button>
+                <!-- Search bar & View toggle & Sorting -->
+                <div class="search-and-controls">
+                    <div class="search-bar">
+                        <label for="search" class="visually-hidden">Rechercher</label>
+                        <input id="search" type="search" placeholder="Rechercher un produit, ex. T-shirt" aria-label="Rechercher des produits" />
+                        <button class="btn" id="reset-filters-search">Tout afficher</button>
+                    </div>
+                    
+                    <div class="products-controls">
+                        <div class="sort-control">
+                            <label for="sort-select">Trier par :</label>
+                            <select id="sort-select" aria-label="Trier les produits">
+                                <option value="default">Par défaut</option>
+                                <option value="price-asc">Prix croissant</option>
+                                <option value="price-desc">Prix décroissant</option>
+                                <option value="name-asc">Nom (A-Z)</option>
+                                <option value="name-desc">Nom (Z-A)</option>
+                            </select>
+                        </div>
+                        <div class="results-counter">
+                            <span id="results-count">0</span> produit(s)
+                        </div>
+                    </div>
                 </div>
 
                 <div id="products" class="products-grid" role="list"></div>
                 <div id="products-empty" class="products-empty" hidden>Aucun produit ne correspond à votre recherche.</div>
+                
+                <!-- Pagination -->
+                <div id="pagination-container" class="pagination-container" hidden>
+                    <button id="load-more-btn" class="btn primary">Charger plus</button>
+                </div>
             </section>
 
             <section id="about" class="container about">
@@ -449,6 +472,11 @@
                     console.log('Cache info:', { cacheVersion, CACHE_VERSION, hasCache: !!cached });
                     
                     let products;
+                    let filteredProducts = [];
+                    let currentPage = 1;
+                    let sortOrder = 'default';
+                    const PRODUCTS_PER_PAGE = 12;
+                    
                     if (cached && cacheTime && cacheVersion === CACHE_VERSION && (Date.now() - parseInt(cacheTime)) < oneHour) {
                         console.log('📦 Chargement depuis le cache');
                         products = JSON.parse(cached);
@@ -465,30 +493,10 @@
                         localStorage.setItem('lowa_products_cache_version', CACHE_VERSION);
                     }
                     
-                    productsGrid.innerHTML = products.map(product => {
-                        const collectionLabels = {
-                            'eco': '🌱 Éco',
-                            'recycle': '♻️ Recyclé',
-                            'classiques': '✨ Classique'
-                        };
-                        return `
-                        <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${collectionLabels[product.collection] || product.collection}">
-                            <div class="product-image-container">
-                                <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" />
-                                <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">❤️</button>
-                            </div>
-                            <h3>${product.name}</h3>
-                            <p>${product.description}</p>
-                            <div class="meta">
-                                <span class="product-price">${product.price.toFixed(2)} €</span>
-                                <button class="btn primary add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">Ajouter</button>
-                            </div>
-                        </article>`;
-                    }).join('');
-                    attachCartListeners();
-                    attachFavoriteListeners();
+                    // Initialize filtered products and display
+                    filteredProducts = [...products];
+                    displayProductsPage();
                     applyAllFilters();
-                    updateEmptyState();
                 } catch (error) {
                     console.error('Erreur lors du chargement des produits:', error);
                     productsGrid.innerHTML = '<p>Erreur de chargement des produits.</p>';
@@ -625,61 +633,47 @@
                 cartModal.setAttribute('aria-hidden', 'true');
             });
             
-            // Search functionality
-            const searchInput = document.getElementById('search');
-            
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase();
-                applyAllFilters();
-            });
+            // Search functionality - OLD VERSION (REPLACED BY NEW PAGINATION SYSTEM)
+            // searchInput.addEventListener('input', (e) => { ... });
             
             // Filter functionality
-            let activeFilters = {
-                category: null,
-                subcategory: null,
-                collection: null
-            };
+            let activeFilters = {};
             
-            function applyAllFilters() {
-                const query = searchInput.value.toLowerCase();
-                document.querySelectorAll('.product').forEach(product => {
-                    let show = true;
-                    
-                    // Recherche uniquement sur le nom
-                    if (query) {
-                        const name = product.querySelector('h3').textContent.toLowerCase();
-                        if (!name.includes(query)) {
-                            show = false;
+            function applyFilters() {
+                filteredProducts = products.filter(product => {
+                    // Apply search filter
+                    if (activeFilters.search) {
+                        if (!product.name.toLowerCase().includes(activeFilters.search) &&
+                            !product.description.toLowerCase().includes(activeFilters.search)) {
+                            return false;
                         }
                     }
                     
-                    // Check category filter
-                    if (show && activeFilters.category) {
-                        if (product.dataset.category !== activeFilters.category) {
-                            show = false;
-                        }
+                    // Apply category filter
+                    if (activeFilters.category && product.category !== activeFilters.category) {
+                        return false;
                     }
                     
-                    // Check subcategory filter
-                    if (show && activeFilters.subcategory) {
-                        if (product.dataset.subcategory !== activeFilters.subcategory) {
-                            show = false;
-                        }
+                    // Apply subcategory filter
+                    if (activeFilters.subcategory && product.subcategory !== activeFilters.subcategory) {
+                        return false;
                     }
                     
-                    // Check collection filter
-                    if (show && activeFilters.collection) {
-                        if (product.dataset.collection !== activeFilters.collection) {
-                            show = false;
-                        }
+                    // Apply collection filter
+                    if (activeFilters.collection && !product.collection.includes(activeFilters.collection)) {
+                        return false;
                     }
                     
-                    product.style.display = show ? '' : 'none';
+                    return true;
                 });
                 
-                // Update active button states
                 updateFilterButtonStates();
-                updateEmptyState();
+            }
+            
+            function applyAllFilters() {
+                // Call for compatibility
+                applyFilters();
+                sortAndDisplayProducts();
             }
             
             function updateFilterButtonStates() {
@@ -725,12 +719,12 @@
                     
                     // Toggle or set filter
                     if (activeFilters[filterType] === filterValue) {
-                        activeFilters[filterType] = null;
+                        delete activeFilters[filterType];
                     } else {
                         activeFilters[filterType] = filterValue;
                     }
                     
-                    applyAllFilters();
+                    sortAndDisplayProducts();
                     return;
                 }
             });
@@ -740,13 +734,11 @@
             if (resetBtn) {
                 resetBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    activeFilters = {
-                        category: null,
-                        subcategory: null,
-                        collection: null
-                    };
-                    searchInput.value = '';
-                    applyAllFilters();
+                    activeFilters = {};
+                    sortOrder = 'default';
+                    document.getElementById('search').value = '';
+                    document.getElementById('sort-select').value = 'default';
+                    sortAndDisplayProducts();
                 });
             }
             
@@ -788,6 +780,109 @@
                     if (e.key === 'Escape') closeAllDropdowns();
                 });
             })();
+
+            // Sort and display functions
+            function sortAndDisplayProducts() {
+                // Apply filters first
+                applyFilters();
+                
+                // Apply sorting
+                const sorted = [...filteredProducts];
+                if (sortOrder === 'price-asc') {
+                    sorted.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+                } else if (sortOrder === 'price-desc') {
+                    sorted.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+                } else if (sortOrder === 'name-asc') {
+                    sorted.sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+                } else if (sortOrder === 'name-desc') {
+                    sorted.sort((a, b) => b.name.localeCompare(a.name, 'fr'));
+                }
+                
+                filteredProducts = sorted;
+                currentPage = 1;
+                displayProductsPage();
+            }
+            
+            function displayProductsPage() {
+                const start = (currentPage - 1) * PRODUCTS_PER_PAGE;
+                const end = start + PRODUCTS_PER_PAGE;
+                const paginated = filteredProducts.slice(start, end);
+                
+                const productsGrid = document.getElementById('products');
+                const resultsCount = document.getElementById('results-count');
+                const paginationContainer = document.getElementById('pagination-container');
+                
+                // Update results count
+                resultsCount.textContent = filteredProducts.length;
+                
+                // Append products for current page (not replace)
+                const html = paginated.map(product => {
+                    const collectionLabels = {
+                        'eco': '🌱 Éco',
+                        'recycle': '♻️ Recyclé',
+                        'classiques': '✨ Classique'
+                    };
+                    return `
+                    <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${collectionLabels[product.collection] || product.collection}">
+                        <div class="product-image-container">
+                            <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" />
+                            <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">❤️</button>
+                        </div>
+                        <h3>${product.name}</h3>
+                        <p>${product.description}</p>
+                        <div class="meta">
+                            <span class="product-price">${product.price.toFixed(2)} €</span>
+                            <button class="btn primary add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">Ajouter</button>
+                        </div>
+                    </article>`;
+                }).join('');
+                
+                if (currentPage === 1) {
+                    productsGrid.innerHTML = html;
+                } else {
+                    productsGrid.innerHTML += html;
+                }
+                
+                // Show/hide pagination button
+                const hasMore = (currentPage * PRODUCTS_PER_PAGE) < filteredProducts.length;
+                paginationContainer.hidden = !hasMore || filteredProducts.length === 0;
+                
+                // Update empty state
+                document.getElementById('products-empty').hidden = filteredProducts.length > 0;
+                
+                attachAddToCartListeners();
+                attachFavoriteListeners();
+            }
+            
+            // Sort select handler
+            document.getElementById('sort-select').addEventListener('change', (e) => {
+                sortOrder = e.target.value;
+                sortAndDisplayProducts();
+            });
+            
+            // Load more button
+            document.getElementById('load-more-btn').addEventListener('click', () => {
+                currentPage++;
+                displayProductsPage();
+                // Scroll to products smoothly
+                document.querySelector('.product:last-child')?.scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            // Search functionality
+            document.getElementById('search').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                activeFilters.search = query;
+                sortAndDisplayProducts();
+            });
+            
+            // Reset filters
+            document.getElementById('reset-filters-search').addEventListener('click', () => {
+                activeFilters = {};
+                sortOrder = 'default';
+                document.getElementById('search').value = '';
+                document.getElementById('sort-select').value = 'default';
+                sortAndDisplayProducts();
+            });
 
             // Scroll to products button (hero CTA)
             document.getElementById('scroll-to-products').addEventListener('click', () => {

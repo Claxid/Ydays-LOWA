@@ -1369,6 +1369,105 @@ form .btn{
   text-decoration:none;
 }
 
+/* Search and controls styling */
+.search-and-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.search-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--pastel-green);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--pale-green);
+  color: var(--dark);
+}
+
+.search-bar input::placeholder {
+  color: var(--muted);
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(197, 112, 218, 0.1);
+}
+
+.products-controls {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.sort-control {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sort-control label {
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.sort-control select {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--pastel-green);
+  border-radius: 6px;
+  background: var(--pale-green);
+  color: var(--dark);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sort-control select:hover {
+  border-color: var(--accent);
+}
+
+.sort-control select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(197, 112, 218, 0.1);
+}
+
+.results-counter {
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.results-counter #results-count {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* Pagination */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 3rem 0;
+  flex-wrap: wrap;
+}
+
+#load-more-btn {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+}
+
 @media (max-width:600px){
   .modal-content{
     padding:1.5rem;
@@ -1379,5 +1478,24 @@ form .btn{
     right:0.5rem;
     top:60px;
   }
+
+  .search-and-controls {
+    gap: 0.75rem;
+  }
+
+  .products-controls {
+    gap: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .search-bar {
+    flex-direction: column;
+  }
+
+  .search-bar input {
+    width: 100%;
+  }
+
 }
 
