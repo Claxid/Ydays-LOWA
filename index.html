@@ -23,10 +23,10 @@
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="LOWA" />
         <link rel="canonical" href="https://ydays-lowa.vercel.app/" />
-        <link rel="preload" as="style" href="/css/homepage.css" />
+        <link rel="preload" as="style" href="/public/css/homepage.css" />
         <link rel="preconnect" href="https://lowa-api.onrender.com" />
         <link rel="dns-prefetch" href="https://lowa-api.onrender.com" />
-        <link rel="stylesheet" href="/css/homepage.css" media="all" />
+        <link rel="stylesheet" href="/public/css/homepage.css" media="all" />
         <style>
             /* Theme Variables - Applied to index.html */
             :root {
@@ -282,7 +282,7 @@
                     <a href="#contact">Contact</a>
                 </nav>
                 <div class="header-actions">
-                    <a href="/pages/favoris.html" class="btn" style="text-decoration:none;padding:0.5rem 0.75rem;font-size:0.9rem" title="Mes favoris">❤️</a>
+                    <a href="/public/pages/favoris.html" class="btn" style="text-decoration:none;padding:0.5rem 0.75rem;font-size:0.9rem" title="Mes favoris">❤️</a>
                     <button id="theme-toggle" class="theme-btn" aria-label="Changer de thème" title="Cliquez pour changer de thème">🌙</button>
                     <button id="user-menu-btn" class="user-btn" aria-label="Menu utilisateur" aria-expanded="false">
                         <span id="user-display">Connexion</span> 👤
@@ -495,7 +495,7 @@
                         products = JSON.parse(cached);
                     } else {
                         console.log('🌐 Chargement depuis le réseau');
-                        const response = await fetch('/data/products.json?v=5');
+                        const response = await fetch('/public/data/products.json?v=5');
                         if (!response.ok) {
                             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                         }
@@ -1169,7 +1169,7 @@
             const userInfoBtnEl = document.getElementById('user-info-btn');
             if (userInfoBtnEl) {
                 userInfoBtnEl.addEventListener('click', () => {
-                    window.location.href = '/pages/profile.html';
+                    window.location.href = '/public/pages/profile.html';
                 });
             }
 
