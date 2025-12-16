@@ -482,7 +482,7 @@
                 showSkeleton();
                 try {
                     // Check cache with 1-hour validity and version check
-                    const CACHE_VERSION = 'v7'; // Increment when products.json path changes
+                    const CACHE_VERSION = 'v8'; // Increment when products.json path changes
                     const cached = localStorage.getItem('lowa_products_cache');
                     const cacheTime = localStorage.getItem('lowa_products_cache_time');
                     const cacheVersion = localStorage.getItem('lowa_products_cache_version');
@@ -498,34 +498,36 @@
                     } else {
                         console.log('🌐 Chargement depuis le réseau');
 
+                        const paths = [
+                            '/data/products.json?v=8',           // static root (backend serves "..")
+                            './data/products.json?v=8',          // relative (useful on subpath hosting)
+                            '/public/data/products.json?v=8',    // Vercel static public/
+                            './public/data/products.json?v=8',   // relative public/
+                            'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json'
+                        ];
+
                         let response = null;
-                        let lastError = null;
+                        const attempts = [];
 
-                        // Try root /data first (served by backend or static root)
-                        try {
-                            const res = await fetch('/data/products.json?v=7');
-                            if (!res.ok) {
-                                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-                            }
-                            response = res;
-                        } catch (err) {
-                            console.warn('⚠️ /data/products.json inaccessible, fallback /public/data', err);
-                            lastError = err;
-                        }
-
-                        // Fallback to /public/data for static hosting (e.g., Vercel)
-                        if (!response) {
+                        for (const url of paths) {
                             try {
-                                const res = await fetch('/public/data/products.json?v=7');
+                                const res = await fetch(url, { cache: 'no-cache' });
+                                attempts.push({ url, status: res.status });
                                 if (!res.ok) {
                                     throw new Error(`HTTP ${res.status}: ${res.statusText}`);
                                 }
                                 response = res;
+                                console.log(`✅ products.json chargé depuis ${url}`);
+                                break;
                             } catch (err) {
-                                console.error('❌ Impossible de charger products.json', err);
-                                // Preserve initial error for context if available
-                                throw lastError || err;
+                                attempts.push({ url, error: err.message });
+                                console.warn(`⚠️ Échec chargement ${url}:`, err);
                             }
+                        }
+
+                        if (!response) {
+                            console.error('❌ Impossible de charger products.json', attempts);
+                            throw new Error('Aucune source products.json disponible');
                         }
 
                         products = await response.json();
