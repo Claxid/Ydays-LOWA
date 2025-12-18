@@ -765,39 +765,8 @@
             }
             
             function applyFilters() {
-                filteredProducts = products.filter(product => {
-                    // Apply search filter
-                    if (activeFilters.search) {
-                        if (!product.name.toLowerCase().includes(activeFilters.search) &&
-                            !product.description.toLowerCase().includes(activeFilters.search)) {
-                            return false;
-                        }
-                    }
-                    
-                    // Apply category filter
-                    if (activeFilters.category && product.category !== activeFilters.category) {
-                        return false;
-                    }
-                    
-                    // Apply subcategory filter
-                    if (activeFilters.subcategory && product.subcategory !== activeFilters.subcategory) {
-                        return false;
-                    }
-                    
-                    // Apply collection filter
-                    if (activeFilters.collection && !product.collection.includes(activeFilters.collection)) {
-                        return false;
-                    }
-                    
-                    // Apply price filter
-                    if (parseFloat(product.price) > maxPrice) {
-                        return false;
-                    }
-                    
-                    return true;
-                });
-                
-                updateFilterButtonStates();
+                // Temporarily bypass all filters - show all products
+                filteredProducts = [...products];
                 updateActiveFiltersBadges();
             }
             
@@ -807,40 +776,13 @@
             }
             
             function updateFilterButtonStates() {
-                // Update category buttons
-                document.querySelectorAll('button.mainmenubtn[data-filter="category"]').forEach(btn => {
-                    if (btn.dataset.value === activeFilters.category) {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                });
-                
-                // Update collection buttons
-                document.querySelectorAll('button.mainmenubtn[data-filter="collection"]').forEach(btn => {
-                    if (btn.dataset.value === activeFilters.collection) {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                });
-                
-                // Update dropdown links
-                document.querySelectorAll('.dropdown-child a[data-filter]').forEach(link => {
-                    if (link.dataset.filter === 'subcategory' && link.dataset.value === activeFilters.subcategory) {
-                        link.classList.add('active');
-                    } else if (link.dataset.filter === 'collection' && link.dataset.value === activeFilters.collection) {
-                        link.classList.add('active');
-                    } else if (link.dataset.filter === 'category' && link.dataset.value === activeFilters.category) {
-                        link.classList.add('active');
-                    } else {
-                        link.classList.remove('active');
-                    }
-                });
+                // Temporarily disabled - showing all products
             }
             
             // Add filter click listeners - ONLY for dropdown links
             document.addEventListener('click', function(e) {
+                // Temporarily disabled - showing all products
+                return;
                 // Only handle clicks on links inside dropdowns
                 if (e.target.tagName === 'A' && e.target.closest('.dropdown-child') && e.target.dataset.filter) {
                     e.preventDefault();
@@ -864,12 +806,13 @@
             const resetBtn = document.getElementById('reset-filters-search');
             if (resetBtn) {
                 resetBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    activeFilters = {};
-                    sortOrder = 'default';
-                    document.getElementById('search').value = '';
-                    document.getElementById('sort-select').value = 'default';
-                    sortAndDisplayProducts();
+                    // Temporarily disabled - showing all products
+                    // e.preventDefault();
+                    // activeFilters = {};
+                    // sortOrder = 'default';
+                    // document.getElementById('search').value = '';
+                    // document.getElementById('sort-select').value = 'default';
+                    // sortAndDisplayProducts();
                 });
             }
             
@@ -989,9 +932,10 @@
             
             // Sort select handler
             document.getElementById('sort-select').addEventListener('change', (e) => {
-                sortOrder = e.target.value;
-                saveFiltersToStorage();
-                sortAndDisplayProducts();
+                // Temporarily disabled - showing all products
+                // sortOrder = e.target.value;
+                // saveFiltersToStorage();
+                // sortAndDisplayProducts();
             });
             
             // Load more button
@@ -1004,10 +948,11 @@
             
             // Search functionality
             document.getElementById('search').addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase();
-                activeFilters.search = query;
-                saveFiltersToStorage();
-                sortAndDisplayProducts();
+                // Temporarily disabled - showing all products
+                // const query = e.target.value.toLowerCase();
+                // activeFilters.search = query;
+                // saveFiltersToStorage();
+                // sortAndDisplayProducts();
             });
             
             // Reset filters
@@ -1025,15 +970,16 @@
             });
 
             // Scroll to products button (hero CTA)
-            // Load saved filters on page load
-            loadFiltersFromStorage();
+            // Temporarily disable loading saved filters - showing all products
+            // loadFiltersFromStorage();
             
             // Price range slider handler
             document.getElementById('price-range').addEventListener('input', (e) => {
-                maxPrice = parseInt(e.target.value);
-                document.getElementById('price-display').textContent = maxPrice + ' €';
-                saveFiltersToStorage();
-                sortAndDisplayProducts();
+                // Temporarily disabled - showing all products
+                // maxPrice = parseInt(e.target.value);
+                // document.getElementById('price-display').textContent = maxPrice + ' €';
+                // saveFiltersToStorage();
+                // sortAndDisplayProducts();
             });
             
             document.getElementById('scroll-to-products').addEventListener('click', () => {
