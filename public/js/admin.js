@@ -2,6 +2,13 @@
 const API_BASE_URL = 'https://lowa-api.onrender.com/api';
 
 document.addEventListener('DOMContentLoaded', () => {
+        function invalidateProductsCache() {
+            try {
+                localStorage.removeItem('lowa_products_cache_time');
+                // Optionally also clear the data so next visit fetches fresh
+                localStorage.removeItem('lowa_products_cache');
+            } catch {}
+        }
     const loginForm = document.getElementById('login-form');
     const loginContainer = document.getElementById('login-container');
     const dashboardContainer = document.getElementById('dashboard-container');
@@ -238,6 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (response.ok) {
                 productModal.style.display = 'none';
+                invalidateProductsCache();
                 loadDashboardData();
                 alert(productId ? '✅ Produit modifié avec succès' : '✅ Produit ajouté avec succès');
             } else {
@@ -281,6 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (response.ok) {
                 alert('✅ Produit supprimé avec succès');
+                invalidateProductsCache();
                 loadDashboardData();
             } else {
                 const error = await response.json();

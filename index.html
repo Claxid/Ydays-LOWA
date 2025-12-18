@@ -300,6 +300,7 @@
                 </div>
             </div>
         </header>
+        <div class="header-spacer" aria-hidden="true"></div>
 
         <main>
             <!-- Hero / Presentation Section (fullscreen) -->
@@ -517,106 +518,83 @@
             }
 
             // Fetch and render products with smart caching
+            function mergeProducts(baseList, extraList) {
+                const seen = new Set();
+                const result = [];
+                const key = (p) => (p.id != null ? `id:${p.id}` : `name:${(p.name||'').toLowerCase()}`);
+                for (const p of baseList || []) {
+                    const k = key(p);
+                    if (!seen.has(k)) { seen.add(k); result.push(p); }
+                }
+                for (const p of extraList || []) {
+                    const k = key(p);
+                    if (!seen.has(k)) { seen.add(k); result.push(p); }
+                }
+                return result;
+            }
+
             async function loadProducts() {
-                // Fail-safe: if nothing rendered after 4.5s, force fallback render
-                renderCompleted = false;
-                if (renderFailSafe) clearTimeout(renderFailSafe);
-                renderFailSafe = setTimeout(() => {
-                    if (!renderCompleted) {
-                        console.warn('⏱️ Fail-safe: rendu fallback produits');
-                        products = FALLBACK_PRODUCTS;
-                        renderAllProducts();
-                    }
-                }, 4500);
+                const CACHE_VERSION = 'v14';
+                const oneHour = 60 * 60 * 1000;
+                const cached = localStorage.getItem('lowa_products_cache');
+                const cacheTime = localStorage.getItem('lowa_products_cache_time');
+                const cacheVersion = localStorage.getItem('lowa_products_cache_version');
 
-                showSkeleton();
-                let cachedProducts = null;
-                let succeeded = false;
+                const hasFreshCache = cached && cacheTime && cacheVersion === CACHE_VERSION && (Date.now() - parseInt(cacheTime)) < oneHour;
+
+                // 1) If we have cache, render immediately (no skeleton delay)
+                if (hasFreshCache) {
+                    try { products = JSON.parse(cached); } catch { products = FALLBACK_PRODUCTS; }
+                    filteredProducts = [...products];
+                    renderAllProducts();
+                } else {
+                    showSkeleton();
+                }
+
+                // 2) Revalidate in background (API first with short timeout)
                 try {
-                    // Check cache with 1-hour validity and version check
-                    const CACHE_VERSION = 'v14'; // Increment when products.json path changes
-                    const cached = localStorage.getItem('lowa_products_cache');
-                    const cacheTime = localStorage.getItem('lowa_products_cache_time');
-                    const cacheVersion = localStorage.getItem('lowa_products_cache_version');
-                    const oneHour = 60 * 60 * 1000;
-                    
-                    console.log('Cache info:', { cacheVersion, CACHE_VERSION, hasCache: !!cached });
-                    
-                    if (cached && cacheTime && cacheVersion === CACHE_VERSION && (Date.now() - parseInt(cacheTime)) < oneHour) {
-                        console.log('📦 Chargement depuis le cache');
-                        cachedProducts = JSON.parse(cached);
-                        products = cachedProducts;
-                    } else {
-                        console.log('🌐 Chargement depuis le réseau');
-
-                        const paths = [
-                            'https://lowa-api.onrender.com/api/products', // API en priorité
-                            '/data/products.json?v=14',                   // chemin public direct (Vercel/static)
-                            './data/products.json?v=14',                  // relative
-                            '/public/data/products.json?v=14',            // fallback si /public est exposé
-                            './public/data/products.json?v=14',
-                            'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json'
-                        ];
-
-                        let response = null;
-                        const attempts = [];
-
-                        for (const url of paths) {
-                            try {
-                                const timeoutMs = url.includes('onrender') ? 3000 : 2000;
-                                const res = await fetchWithTimeout(url, timeoutMs);
-                                attempts.push({ url, status: res.status });
-                                if (!res.ok) {
-                                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-                                }
-                                response = res;
-                                console.log(`✅ Produits chargés depuis ${url}`);
-                                break;
-                            } catch (err) {
-                                attempts.push({ url, error: err.message });
-                                console.warn(`⚠️ Échec chargement ${url}:`, err);
-                            }
-                        }
-
-                        if (!response) {
-                            console.error('❌ Impossible de charger les produits', attempts);
-                            console.warn('➡️ Utilisation du fallback local (produits embarqués)');
-                            products = FALLBACK_PRODUCTS;
-                        } else {
-                            products = await response.json();
-                        }
-                        if (!Array.isArray(products)) {
-                            console.warn('⚠️ Réponse inattendue, fallback local utilisé');
-                            products = FALLBACK_PRODUCTS;
-                        }
-
-                        console.log('✅ Produits chargés:', products.length);
+                    const apiRes = await fetchWithTimeout('https://lowa-api.onrender.com/api/products', 2500);
+                    if (!apiRes.ok) throw new Error('API HTTP ' + apiRes.status);
+                    const fresh = await apiRes.json();
+                    if (Array.isArray(fresh) && fresh.length) {
+                        const baseForMerge = hasFreshCache ? products : FALLBACK_PRODUCTS;
+                        products = mergeProducts(baseForMerge, fresh);
                         localStorage.setItem('lowa_products_cache', JSON.stringify(products));
                         localStorage.setItem('lowa_products_cache_time', Date.now().toString());
                         localStorage.setItem('lowa_products_cache_version', CACHE_VERSION);
+                        if (!hasFreshCache) {
+                            filteredProducts = [...products];
+                            renderAllProducts();
+                            return;
+                        } else {
+                            if (products.length > (filteredProducts?.length || 0)) {
+                                filteredProducts = [...products];
+                                renderAllProducts();
+                            }
+                            return;
+                        }
                     }
-                    
-                    // Initialize filtered products and display - NO FILTERS
-                    console.log('✅ Produits chargés:', products.length);
-                    filteredProducts = [...products];
-                    
-                    // Direct display without any filtering
-                    renderAllProducts();
-                    succeeded = true;
-                } catch (error) {
-                    console.error('❌ Erreur chargement:', error);
-                    if (succeeded) {
-                        console.warn('⚠️ Erreur après rendu, on conserve la dernière liste chargée');
-                        return;
+                    throw new Error('API payload invalid');
+                } catch (e) {
+                    // 3) Static fallback only if nothing shown yet
+                    if (!hasFreshCache) {
+                        try {
+                            const staticRes = await fetchWithTimeout('/public/data/products.json?v=14', 1200);
+                            if (staticRes.ok) {
+                                const fallbackList = await staticRes.json();
+                                if (Array.isArray(fallbackList) && fallbackList.length) {
+                                    products = mergeProducts(FALLBACK_PRODUCTS, fallbackList);
+                                    filteredProducts = [...products];
+                                    renderAllProducts();
+                                    return;
+                                }
+                            }
+                        } catch {}
+                        // Final hard fallback
+                        products = [...FALLBACK_PRODUCTS];
+                        filteredProducts = [...products];
+                        renderAllProducts();
                     }
-                    if (cachedProducts) {
-                        console.warn('➡️ Utilisation du cache local (API indisponible)');
-                        products = cachedProducts;
-                    } else {
-                        console.warn('➡️ Affichage du fallback local');
-                        products = FALLBACK_PRODUCTS;
-                    }
-                    renderAllProducts();
                 }
             }
             

@@ -112,6 +112,9 @@ a:hover{ color:var(--muted) }
   z-index:100;
   transition:box-shadow var(--transition-fast);
 }
+/* Reserve space when header is fixed (Noël theme) to avoid CLS */
+.header-spacer{ height:0 }
+[data-theme="noel"] .header-spacer{ height:72px }
 .site-header:hover{ box-shadow:var(--shadow-medium) }
 .header-inner{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 0;gap:2rem}
 .brand{
