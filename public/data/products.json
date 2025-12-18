@@ -4,7 +4,7 @@
     "name": "T-shirt BIO - Naturel",
     "price": 29.0,
     "description": "T-shirt en coton biologique certifié. Coupe confortable, coloris naturels.",
-    "image": "/images/tshirt-naturel.svg",
+    "image": "/public/images/tshirt-naturel.svg",
     "category": "hommes",
     "subcategory": "t-shirts",
     "collection": "eco"
@@ -14,7 +14,7 @@
     "name": "Pull recyclé - Gris",
     "price": 79.0,
     "description": "Pull fabriqué à partir de fibres recyclées. Chaud et durable.",
-    "image": "/images/pull-gris.svg",
+    "image": "/public/images/pull-gris.svg",
     "category": "hommes",
     "subcategory": "vestes",
     "collection": "recycle"
@@ -24,7 +24,7 @@
     "name": "Pantalon éco - Kaki",
     "price": 59.0,
     "description": "Pantalon en tissu certifié avec renforts minimalistes.",
-    "image": "/images/pantalon-kaki.svg",
+    "image": "/public/images/pantalon-kaki.svg",
     "category": "hommes",
     "subcategory": "pantalons",
     "collection": "eco"
@@ -34,7 +34,7 @@
     "name": "Veste en Lin - Beige",
     "price": 89.0,
     "description": "Veste légère en lin naturel, parfaite pour la mi-saison. Coupe ajustée.",
-    "image": "/images/veste-lin-beige.svg",
+    "image": "/public/images/veste-lin-beige.svg",
     "category": "femmes",
     "subcategory": "vestes",
     "collection": "classiques"
@@ -44,7 +44,7 @@
     "name": "Robe d'été - Blanc cassé",
     "price": 65.0,
     "description": "Robe fluide en coton bio, idéale pour l'été. Fabrication locale.",
-    "image": "/images/robe-ete.svg",
+    "image": "/public/images/robe-ete.svg",
     "category": "femmes",
     "subcategory": "robes",
     "collection": "eco"
@@ -54,7 +54,7 @@
     "name": "Top en fibres recyclées - Rose",
     "price": 35.0,
     "description": "Top féminin fabriqué à partir de bouteilles plastiques recyclées.",
-    "image": "/images/top-rose.svg",
+    "image": "/public/images/top-rose.svg",
     "category": "femmes",
     "subcategory": "tops",
     "collection": "recycle"
@@ -64,7 +64,7 @@
     "name": "Jupe midi - Marine",
     "price": 55.0,
     "description": "Jupe mi-longue en coton bio certifié GOTS. Coupe élégante.",
-    "image": "/images/jupe-marine.svg",
+    "image": "/public/images/jupe-marine.svg",
     "category": "femmes",
     "subcategory": "robes",
     "collection": "classiques"
@@ -74,7 +74,7 @@
     "name": "Chemise lin - Blanc",
     "price": 49.0,
     "description": "Chemise intemporelle en lin français. Production éthique.",
-    "image": "/images/chemise-lin.svg",
+    "image": "/public/images/chemise-lin.svg",
     "category": "hommes",
     "subcategory": "t-shirts",
     "collection": "classiques"
@@ -84,7 +84,7 @@
     "name": "Sac en toile recyclée - Noir",
     "price": 25.0,
     "description": "Sac cabas en toile recyclée, résistant et pratique au quotidien.",
-    "image": "/images/sac-recyc.svg",
+    "image": "/public/images/sac-recyc.svg",
     "category": "femmes",
     "subcategory": "accessoires",
     "collection": "recycle"
@@ -94,7 +94,7 @@
     "name": "Écharpe en laine bio - Camel",
     "price": 39.0,
     "description": "Écharpe douce en laine biologique. Teinture végétale.",
-    "image": "/images/echarpe.svg",
+    "image": "/public/images/echarpe.svg",
     "category": "femmes",
     "subcategory": "accessoires",
     "collection": "eco"
@@ -104,7 +104,7 @@
     "name": "Pantalon chino - Sable",
     "price": 69.0,
     "description": "Chino en coton bio, coupe moderne et confortable.",
-    "image": "/images/chino-sable.svg",
+    "image": "/public/images/chino-sable.svg",
     "category": "hommes",
     "subcategory": "pantalons",
     "collection": "classiques"
@@ -114,7 +114,7 @@
     "name": "Blouson recyclé - Bleu nuit",
     "price": 95.0,
     "description": "Blouson fabriqué à partir de fibres recyclées. Design urbain.",
-    "image": "/images/blouson-bleu.svg",
+    "image": "/public/images/blouson-bleu.svg",
     "category": "hommes",
     "subcategory": "vestes",
     "collection": "recycle"
@@ -124,7 +124,7 @@
     "name": "Sweat organique - Écru",
     "price": 59.0,
     "description": "Sweat doux en coton organique, intérieur gratté, coupe unisexe.",
-    "image": "/images/pull-gris.svg",
+    "image": "/public/images/pull-gris.svg",
     "category": "hommes",
     "subcategory": "t-shirts",
     "collection": "eco"
@@ -134,7 +134,7 @@
     "name": "Parka imperméable recyclée",
     "price": 129.0,
     "description": "Parka longue, membrane recyclée, coutures étanchées, capuche ajustable.",
-    "image": "/images/blouson-bleu.svg",
+    "image": "/public/images/blouson-bleu.svg",
     "category": "femmes",
     "subcategory": "vestes",
     "collection": "recycle"
@@ -144,7 +144,7 @@
     "name": "Cardigan laine bio - Olive",
     "price": 72.0,
     "description": "Cardigan en laine biologique, maille perlée, boutons en corozo.",
-    "image": "/images/veste-lin-beige.svg",
+    "image": "/public/images/veste-lin-beige.svg",
     "category": "femmes",
     "subcategory": "vestes",
     "collection": "classiques"
@@ -154,7 +154,7 @@
     "name": "Short en coton bio - Sable",
     "price": 39.0,
     "description": "Short léger en sergé de coton bio, taille ajustable, poches latérales.",
-    "image": "/images/chino-sable.svg",
+    "image": "/public/images/chino-sable.svg",
     "category": "hommes",
     "subcategory": "pantalons",
     "collection": "eco"
@@ -164,7 +164,7 @@
     "name": "Robe cache-cœur - Terracotta",
     "price": 79.0,
     "description": "Robe cache-cœur en viscose EcoVero, ceinture à nouer, manches 3/4.",
-    "image": "/images/robe-ete.svg",
+    "image": "/public/images/robe-ete.svg",
     "category": "femmes",
     "subcategory": "robes",
     "collection": "classiques"
@@ -174,7 +174,7 @@
     "name": "Doudoune légère recyclée",
     "price": 139.0,
     "description": "Doudoune compressible en fibres recyclées, chaleur 4 saisons.",
-    "image": "/images/blouson-bleu.svg",
+    "image": "/public/images/blouson-bleu.svg",
     "category": "hommes",
     "subcategory": "vestes",
     "collection": "recycle"
