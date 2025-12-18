@@ -1,4 +1,18 @@
 // Snow effect animation for LOWA hero section
+// Vérifier que GSAP est chargé avant d'exécuter
+if (typeof gsap === 'undefined') {
+    console.warn('❄️ GSAP not loaded yet, waiting...')
+    document.addEventListener('DOMContentLoaded', initSnow)
+} else {
+    initSnow()
+}
+
+function initSnow() {
+    if (typeof gsap === 'undefined') {
+        console.error('❄️ GSAP library not found')
+        return
+    }
+
 const arr = [] // particles
 const c = document.querySelector('#snow-canvas')
 if (!c) {
@@ -91,3 +105,5 @@ function render() {
         ctx.restore()
     })
 }
+
+} // Fin de la fonction initSnow()
