@@ -44,7 +44,7 @@ ctx2.fillText('LOWA', 0, fontSize * 0.15)
 const SEGMENTS = 200
 const SEG_W = cw / SEGMENTS
 const pileHeights = new Array(SEGMENTS).fill(0)
-const MAX_PILE = Math.max(30, ch * 0.12) // slimmer pile
+const MAX_PILE = Math.max(20, ch * 0.08) // hauteur réduite
 const LAND_MARGIN = 2 // collide slightly above the pile
 
 function getPileHeightAtX(x) {
@@ -55,7 +55,7 @@ function getPileHeightAtX(x) {
 function addSnowToPile(x, amount) {
     const i = Math.max(0, Math.min(SEGMENTS - 1, Math.floor(x / SEG_W)))
     // distribute to neighbors for a natural shape
-    const a = amount * 0.15 // Ralentir drastiquement l'accumulation (au lieu de 0.45)
+    const a = amount * 0.08 // ralentir l'accumulation
     for (let k = -2; k <= 2; k++) {
         const idx = i + k
         if (idx >= 0 && idx < SEGMENTS) {
@@ -121,7 +121,9 @@ function render() {
     ctx.moveTo(0, ch)
     for (let i = 0; i < SEGMENTS; i++) {
         const x = i * SEG_W
-        const y = ch - pileHeights[i]
+        // Ondulations légères au sommet (vallonné)
+        const wave = Math.sin(i / 25) * 2
+        const y = ch - pileHeights[i] + wave
         ctx.lineTo(x, y)
     }
     ctx.lineTo(cw, ch)
