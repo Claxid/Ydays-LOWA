@@ -29,7 +29,7 @@ ctx2.fillText('LOWA', 0, fontSize * 0.15)
 for (let i = 0; i < 800; i++) makeFlake(i, true)
 
 function makeFlake(i, ff) {
-    const size = gsap.utils.random(2, 5, 0.2) // Flocons plus petits (2-5px)
+    const size = gsap.utils.random(1.5, 4, 0.2) // Flocons encore plus petits (1.5-4px)
     const xOffset = cw * 0.12 // Drift réduit
     arr.push({ i: i, x: 0, x2: 0, y: 0, s: size })
     arr[i].t = gsap
@@ -45,7 +45,7 @@ function makeFlake(i, ff) {
             {
                 ease: 'none',
                 y: ch + 15,
-                duration: gsap.utils.random(8, 15), // Durée plus longue = plus lent
+                duration: gsap.utils.random(6, 12), // Un peu plus rapide (6-12 sec au lieu de 8-15)
                 x: '+=' + `random(-${xOffset}, ${xOffset}, 1)`,
                 x2: xOffset,
             }
@@ -68,14 +68,26 @@ function render() {
                 }
             }
         }
+        // Dessiner un flocon en forme d'étoile "*"
+        const x = c.x + c.x2
+        const y = c.y
+        const s = c.s * gsap.utils.interpolate(1, 0.2, c.y / ch)
+        
+        ctx.save()
+        ctx.translate(x, y)
         ctx.beginPath()
-        ctx.arc(
-            c.x + c.x2,
-            c.y,
-            c.s * gsap.utils.interpolate(1, 0.2, c.y / ch),
-            0,
-            Math.PI * 2
-        )
-        ctx.fill()
+        // Forme d'étoile: 4 lignes qui se croisent
+        ctx.moveTo(-s, 0)
+        ctx.lineTo(s, 0)
+        ctx.moveTo(0, -s)
+        ctx.lineTo(0, s)
+        ctx.moveTo(-s * 0.7, -s * 0.7)
+        ctx.lineTo(s * 0.7, s * 0.7)
+        ctx.moveTo(s * 0.7, -s * 0.7)
+        ctx.lineTo(-s * 0.7, s * 0.7)
+        ctx.strokeStyle = '#ffffff'
+        ctx.lineWidth = 1
+        ctx.stroke()
+        ctx.restore()
     })
 }
