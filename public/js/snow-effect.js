@@ -123,8 +123,8 @@ function render() {
     ctx.moveTo(0, ch)
     for (let i = 0; i < SEGMENTS; i++) {
         const x = i * SEG_W
-        // Ondulations légères au sommet (vallonné)
-        const wave = Math.sin(i / 25) * 2
+        // Ondulations plus prononcées au sommet (vallonné)
+        const wave = Math.sin(i / 20) * 6 + Math.sin(i / 35) * 3
         const y = ch - pileHeights[i] + wave
         ctx.lineTo(x, y)
     }
