@@ -389,10 +389,43 @@
 
         initTheme();
 
+        // Simple fetch with timeout
+        async function fetchWithTimeout(url, ms = 3500) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), ms);
+            try {
+                return await fetch(url, { signal: controller.signal, cache: 'no-cache' });
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
         // Load product data
         async function loadProductDetail() {
             try {
-                const response = await fetch('/public/data/products.json');
+                const paths = [
+                    'https://lowa-api.onrender.com/api/products',
+                    '/data/products.json?v=14',
+                    './data/products.json?v=14',
+                    '/public/data/products.json?v=14',
+                    './public/data/products.json?v=14',
+                    'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json'
+                ];
+
+                let response = null;
+                for (const url of paths) {
+                    try {
+                        const res = await fetchWithTimeout(url, url.includes('onrender') ? 4000 : 2500);
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        response = res;
+                        break;
+                    } catch (err) {
+                        console.warn('Échec chargement produit depuis', url, err.message);
+                    }
+                }
+
+                if (!response) throw new Error('Aucune source produit disponible');
+
                 const products = await response.json();
                 const product = products.find(p => String(p.id) === String(productId));
 

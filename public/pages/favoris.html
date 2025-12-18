@@ -158,12 +158,12 @@
         // Load products and filter favorites
         async function loadFavorites() {
             const paths = [
-                '/data/products.json?v=13',
-                './data/products.json?v=13',
-                '/public/data/products.json?v=13',
-                './public/data/products.json?v=13',
-                'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json',
-                'https://lowa-api.onrender.com/api/products'
+                'https://lowa-api.onrender.com/api/products',
+                '/data/products.json?v=14',
+                './data/products.json?v=14',
+                '/public/data/products.json?v=14',
+                './public/data/products.json?v=14',
+                'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json'
             ];
             let response = null;
             for (const url of paths) {

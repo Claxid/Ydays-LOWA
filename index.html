@@ -532,7 +532,7 @@
                 showSkeleton();
                 try {
                     // Check cache with 1-hour validity and version check
-                    const CACHE_VERSION = 'v13'; // Increment when products.json path changes
+                    const CACHE_VERSION = 'v14'; // Increment when products.json path changes
                     const cached = localStorage.getItem('lowa_products_cache');
                     const cacheTime = localStorage.getItem('lowa_products_cache_time');
                     const cacheVersion = localStorage.getItem('lowa_products_cache_version');
@@ -547,12 +547,12 @@
                         console.log('🌐 Chargement depuis le réseau');
 
                         const paths = [
-                            '/data/products.json?v=13',         // chemin public direct (Vercel/static)
-                            './data/products.json?v=13',        // relative
-                            '/public/data/products.json?v=13',  // fallback si /public est exposé
-                            './public/data/products.json?v=13',
-                            'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json',
-                            'https://lowa-api.onrender.com/api/products'  // backend en dernier avec timeout
+                            'https://lowa-api.onrender.com/api/products', // API en priorité
+                            '/data/products.json?v=14',                   // chemin public direct (Vercel/static)
+                            './data/products.json?v=14',                  // relative
+                            '/public/data/products.json?v=14',            // fallback si /public est exposé
+                            './public/data/products.json?v=14',
+                            'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json'
                         ];
 
                         let response = null;
