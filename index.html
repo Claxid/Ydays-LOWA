@@ -893,8 +893,25 @@
             }
             
             function applyFilters() {
-                // Temporarily bypass all filters - show all products
-                filteredProducts = [...products];
+                filteredProducts = products.filter(product => {
+                    // Search filter
+                    if (activeFilters.search) {
+                        const query = activeFilters.search.toLowerCase();
+                        const matches = product.name.toLowerCase().includes(query) ||
+                                      product.description.toLowerCase().includes(query) ||
+                                      product.category.toLowerCase().includes(query);
+                        if (!matches) return false;
+                    }
+                    // Price filter
+                    if (product.price > maxPrice) return false;
+                    // Category filter
+                    if (activeFilters.category && product.category !== activeFilters.category) return false;
+                    // Subcategory filter
+                    if (activeFilters.subcategory && product.subcategory !== activeFilters.subcategory) return false;
+                    // Collection filter
+                    if (activeFilters.collection && product.collection !== activeFilters.collection) return false;
+                    return true;
+                });
                 updateActiveFiltersBadges();
             }
             
@@ -1076,12 +1093,12 @@
                 attachFavoriteListeners();
             }
             
-            // Sort select handler - DISABLED
-            // document.getElementById('sort-select').addEventListener('change', (e) => {
-            //     sortOrder = e.target.value;
-            //     saveFiltersToStorage();
-            //     sortAndDisplayProducts();
-            // });
+            // Sort select handler
+            document.getElementById('sort-select').addEventListener('change', (e) => {
+                sortOrder = e.target.value;
+                saveFiltersToStorage();
+                sortAndDisplayProducts();
+            });
             
             // Load more button - DISABLED (showing all products at once)
             // document.getElementById('load-more-btn').addEventListener('click', () => {
@@ -1089,35 +1106,42 @@
             //     displayProductsPage();
             // });
             
-            // Search functionality - DISABLED
-            // document.getElementById('search').addEventListener('input', (e) => {
-            //     const query = e.target.value.toLowerCase();
-            //     activeFilters.search = query;
-            //     saveFiltersToStorage();
-            //     sortAndDisplayProducts();
-            // });
+            // Search functionality
+            document.getElementById('search').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                if (query) {
+                    activeFilters.search = query;
+                } else {
+                    delete activeFilters.search;
+                }
+                saveFiltersToStorage();
+                sortAndDisplayProducts();
+            });
             
-            // Reset filters - DISABLED
-            // document.getElementById('reset-filters-search').addEventListener('click', () => {
-            //     activeFilters = {};
-            //     sortOrder = 'default';
-            //     maxPrice = 200;
-            //     document.getElementById('search').value = '';
-            //     document.getElementById('sort-select').value = 'default';
-            //     document.getElementById('price-range').value = '200';
-            //     document.getElementById('price-display').textContent = '200 €';
-            //     localStorage.removeItem('lowa_filters');
-            //     sortAndDisplayProducts();
-            // });
+            // Reset filters
+            document.getElementById('reset-filters-search').addEventListener('click', () => {
+                activeFilters = {};
+                sortOrder = 'default';
+                maxPrice = 200;
+                document.getElementById('search').value = '';
+                document.getElementById('sort-select').value = 'default';
+                document.getElementById('price-range').value = '200';
+                document.getElementById('price-display').textContent = '200 €';
+                localStorage.removeItem('lowa_filters');
+                sortAndDisplayProducts();
+            });
 
             // Scroll to products button (hero CTA)
             // Temporarily disable loading saved filters - showing all products
             // loadFiltersFromStorage();
             
-            // Price range slider handler - DISABLED
-            // document.getElementById('price-range').addEventListener('input', (e) => {
-            //     maxPrice = parseInt(e.target.value);
-            //     document.getElementById('price-display').textContent = maxPrice + ' €';
+            // Price range slider handler
+            document.getElementById('price-range').addEventListener('input', (e) => {
+                maxPrice = parseInt(e.target.value);
+                document.getElementById('price-display').textContent = maxPrice + ' €';
+                saveFiltersToStorage();
+                sortAndDisplayProducts();
+            });
             //     saveFiltersToStorage();
             //     sortAndDisplayProducts();
             // });
