@@ -452,6 +452,26 @@
             let currentPage = 1;
             let sortOrder = 'default';
             const PRODUCTS_PER_PAGE = 12;
+            const FALLBACK_PRODUCTS = [
+                {"id":1,"name":"T-shirt BIO - Naturel","price":29.00,"description":"T-shirt en coton biologique certifié. Coupe confortable, coloris naturels.","image":"/public/images/tshirt-naturel.svg","category":"hommes","subcategory":"t-shirts","collection":"eco"},
+                {"id":2,"name":"Pull recyclé - Gris","price":79.00,"description":"Pull fabriqué à partir de fibres recyclées. Chaud et durable.","image":"/public/images/pull-gris.svg","category":"hommes","subcategory":"vestes","collection":"recycle"},
+                {"id":3,"name":"Pantalon éco - Kaki","price":59.00,"description":"Pantalon en tissu certifié avec renforts minimalistes.","image":"/public/images/pantalon-kaki.svg","category":"hommes","subcategory":"pantalons","collection":"eco"},
+                {"id":4,"name":"Veste en Lin - Beige","price":89.00,"description":"Veste légère en lin naturel, parfaite pour la mi-saison. Coupe ajustée.","image":"/public/images/veste-lin-beige.svg","category":"femmes","subcategory":"vestes","collection":"classiques"},
+                {"id":5,"name":"Robe d'été - Blanc cassé","price":65.00,"description":"Robe fluide en coton bio, idéale pour l'été. Fabrication locale.","image":"/public/images/robe-ete.svg","category":"femmes","subcategory":"robes","collection":"eco"},
+                {"id":6,"name":"Top en fibres recyclées - Rose","price":35.00,"description":"Top féminin fabriqué à partir de bouteilles plastiques recyclées.","image":"/public/images/top-rose.svg","category":"femmes","subcategory":"tops","collection":"recycle"},
+                {"id":7,"name":"Jupe midi - Marine","price":55.00,"description":"Jupe mi-longue en coton bio certifié GOTS. Coupe élégante.","image":"/public/images/jupe-marine.svg","category":"femmes","subcategory":"robes","collection":"classiques"},
+                {"id":8,"name":"Chemise lin - Blanc","price":49.00,"description":"Chemise intemporelle en lin français. Production éthique.","image":"/public/images/chemise-lin.svg","category":"hommes","subcategory":"t-shirts","collection":"classiques"},
+                {"id":9,"name":"Sac en toile recyclée - Noir","price":25.00,"description":"Sac cabas en toile recyclée, résistant et pratique au quotidien.","image":"/public/images/sac-recyc.svg","category":"femmes","subcategory":"accessoires","collection":"recycle"},
+                {"id":10,"name":"Écharpe en laine bio - Camel","price":39.00,"description":"Écharpe douce en laine biologique. Teinture végétale.","image":"/public/images/echarpe.svg","category":"femmes","subcategory":"accessoires","collection":"eco"},
+                {"id":11,"name":"Pantalon chino - Sable","price":69.00,"description":"Chino en coton bio, coupe moderne et confortable.","image":"/public/images/chino-sable.svg","category":"hommes","subcategory":"pantalons","collection":"classiques"},
+                {"id":12,"name":"Blouson recyclé - Bleu nuit","price":95.00,"description":"Blouson fabriqué à partir de fibres recyclées. Design urbain.","image":"/public/images/blouson-bleu.svg","category":"hommes","subcategory":"vestes","collection":"recycle"},
+                {"id":13,"name":"Sweat organique - Écru","price":59.00,"description":"Sweat doux en coton organique, intérieur gratté, coupe unisexe.","image":"/public/images/pull-gris.svg","category":"hommes","subcategory":"t-shirts","collection":"eco"},
+                {"id":14,"name":"Parka imperméable recyclée","price":129.00,"description":"Parka longue, membrane recyclée, coutures étanchées, capuche ajustable.","image":"/public/images/blouson-bleu.svg","category":"femmes","subcategory":"vestes","collection":"recycle"},
+                {"id":15,"name":"Cardigan laine bio - Olive","price":72.00,"description":"Cardigan en laine biologique, maille perlée, boutons en corozo.","image":"/public/images/veste-lin-beige.svg","category":"femmes","subcategory":"vestes","collection":"classiques"},
+                {"id":16,"name":"Short en coton bio - Sable","price":39.00,"description":"Short léger en sergé de coton bio, taille ajustable, poches latérales.","image":"/public/images/chino-sable.svg","category":"hommes","subcategory":"pantalons","collection":"eco"},
+                {"id":17,"name":"Robe cache-cœur - Terracotta","price":79.00,"description":"Robe cache-cœur en viscose EcoVero, ceinture à nouer, manches 3/4.","image":"/public/images/robe-ete.svg","category":"femmes","subcategory":"robes","collection":"classiques"},
+                {"id":18,"name":"Doudoune légère recyclée","price":139.00,"description":"Doudoune compressible en fibres recyclées, chaleur 4 saisons.","image":"/public/images/blouson-bleu.svg","category":"hommes","subcategory":"vestes","collection":"recycle"}
+            ];
 
             function showSkeleton(count = 6) {
                 const skeletonCard = `
@@ -528,10 +548,16 @@
 
                         if (!response) {
                             console.error('❌ Impossible de charger les produits', attempts);
-                            throw new Error('Aucune source de produits disponible');
+                            console.warn('➡️ Utilisation du fallback local (produits embarqués)');
+                            products = FALLBACK_PRODUCTS;
+                        } else {
+                            products = await response.json();
+                        }
+                        if (!Array.isArray(products)) {
+                            console.warn('⚠️ Réponse inattendue, fallback local utilisé');
+                            products = FALLBACK_PRODUCTS;
                         }
 
-                        products = await response.json();
                         console.log('✅ Produits chargés:', products.length);
                         localStorage.setItem('lowa_products_cache', JSON.stringify(products));
                         localStorage.setItem('lowa_products_cache_time', Date.now().toString());
@@ -546,7 +572,9 @@
                     renderAllProducts();
                 } catch (error) {
                     console.error('❌ Erreur chargement:', error);
-                    productsGrid.innerHTML = '<p style="color:red;padding:2rem;text-align:center;">Erreur de chargement des produits. Vérifiez la console.</p>';
+                    console.warn('➡️ Affichage du fallback local');
+                    products = FALLBACK_PRODUCTS;
+                    renderAllProducts();
                 }
             }
             
