@@ -74,7 +74,7 @@ function smoothPile() {
     }
 }
 
-for (let i = 0; i < 600; i++) makeFlake(i, true)
+for (let i = 0; i < 1200; i++) makeFlake(i, true)
 
 function makeFlake(i, ff) {
     const size = gsap.utils.random(1.5, 4, 0.2)
@@ -138,10 +138,10 @@ function render() {
         if (c.t) {
             if (c.t.isActive()) {
                 const d = ctx2.getImageData(c.x + c.x2, c.y, 1, 1)
-                // Collision stricte : alpha > 150 (augmenter la sensibilité)
-                if (d.data[3] > 150) {
+                // Collision : abaisser le seuil à 100 pour plus de sensibilité
+                if (d.data[3] > 100) {
                     c.t.pause()
-                    if (arr.length < 5000) makeFlake(arr.length - 1, false)
+                    if (arr.length < 8000) makeFlake(arr.length - 1, false)
                 }
             }
         }
