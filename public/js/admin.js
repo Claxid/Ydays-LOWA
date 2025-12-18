@@ -249,9 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('❌ Erreur de connexion');
         }
     });
-        productModal.style.display = 'none';
-        loadDashboardData();
-    });
 
     function editProduct(product) {
         document.getElementById('modal-title').textContent = 'Éditer le produit';
