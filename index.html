@@ -929,8 +929,6 @@
             
             // Add filter click listeners - ONLY for dropdown links
             document.addEventListener('click', function(e) {
-                // Temporarily disabled - showing all products
-                return;
                 // Only handle clicks on links inside dropdowns
                 if (e.target.tagName === 'A' && e.target.closest('.dropdown-child') && e.target.dataset.filter) {
                     e.preventDefault();

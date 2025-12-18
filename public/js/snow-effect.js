@@ -20,7 +20,7 @@ ctx2.fillText('LOWA', 0, 200)
 for (let i = 0; i < 1300; i++) makeFlake(i, true)
 
 function makeFlake(i, ff) {
-    const size = gsap.utils.random(1.8, 7, 0.1)
+    const size = gsap.utils.random(3, 8, 0.2)
     arr.push({ i: i, x: 0, x2: 0, y: 0, s: size })
     arr[i].t = gsap
         .timeline({ repeat: -1, repeatRefresh: true })
@@ -43,11 +43,16 @@ function makeFlake(i, ff) {
         .timeScale(size / 37)
 }
 
-ctx.fillStyle = '#e6f6ff'
-    console.log('❄️ Snow effect initialized: ', { flakes: arr.length })
+ctx.fillStyle = '#f4f9ff'
+let firstRenderLogged = false
+console.log('❄️ Snow effect initialized: ', { flakes: arr.length })
 gsap.ticker.add(render)
 
 function render() {
+    if (!firstRenderLogged) {
+        console.log('❄️ Snow render ticking')
+        firstRenderLogged = true
+    }
     ctx.clearRect(0, 0, cw, ch)
     arr.forEach(c => {
         if (c.t) {
