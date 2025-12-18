@@ -55,7 +55,7 @@ function getPileHeightAtX(x) {
 function addSnowToPile(x, amount) {
     const i = Math.max(0, Math.min(SEGMENTS - 1, Math.floor(x / SEG_W)))
     // distribute to neighbors for a natural shape
-    const a = amount
+    const a = amount * 0.15 // Ralentir drastiquement l'accumulation (au lieu de 0.45)
     for (let k = -2; k <= 2; k++) {
         const idx = i + k
         if (idx >= 0 && idx < SEGMENTS) {
@@ -87,22 +87,22 @@ function makeFlake(i, ff) {
     if (r < cw) {
         // Top edge: uniform across full width
         from = { x: r, y: -15, s: size, x2: 0 }
-        to = { ease: 'none', x: () => r + gsap.utils.random(-xOffset * 0.5, xOffset * 0.5), y: ch + 15, duration: gsap.utils.random(6, 12), x2: gsap.utils.random(-xOffset, xOffset) }
+        to = { ease: 'none', x: () => r + gsap.utils.random(-xOffset * 0.5, xOffset * 0.5), y: ch + 15, duration: gsap.utils.random(8, 14), x2: gsap.utils.random(-xOffset, xOffset) }
     } else if (r < cw + ch) {
         // Right edge: full height
         const relY = r - cw
         from = { x: cw + 15, y: relY, s: size, x2: 0 }
-        to = { ease: 'none', x: -15, y: () => relY + gsap.utils.random(-xOffset * 0.3, xOffset * 0.3), duration: gsap.utils.random(6, 12), x2: gsap.utils.random(-xOffset, xOffset) }
+        to = { ease: 'none', x: -15, y: () => relY + gsap.utils.random(-xOffset * 0.3, xOffset * 0.3), duration: gsap.utils.random(8, 14), x2: gsap.utils.random(-xOffset, xOffset) }
     } else if (r < 2 * cw + ch) {
         // Bottom edge: full width
         const relX = r - cw - ch
         from = { x: cw - relX, y: ch + 15, s: size, x2: 0 }
-        to = { ease: 'none', x: () => (cw - relX) + gsap.utils.random(-xOffset * 0.5, xOffset * 0.5), y: -15, duration: gsap.utils.random(6, 12), x2: gsap.utils.random(-xOffset, xOffset) }
+        to = { ease: 'none', x: () => (cw - relX) + gsap.utils.random(-xOffset * 0.5, xOffset * 0.5), y: -15, duration: gsap.utils.random(8, 14), x2: gsap.utils.random(-xOffset, xOffset) }
     } else {
         // Left edge: full height
         const relY = r - 2 * cw - ch
         from = { x: -15, y: relY, s: size, x2: 0 }
-        to = { ease: 'none', x: cw + 15, y: () => relY + gsap.utils.random(-xOffset * 0.3, xOffset * 0.3), duration: gsap.utils.random(6, 12), x2: gsap.utils.random(-xOffset, xOffset) }
+        to = { ease: 'none', x: cw + 15, y: () => relY + gsap.utils.random(-xOffset * 0.3, xOffset * 0.3), duration: gsap.utils.random(8, 14), x2: gsap.utils.random(-xOffset, xOffset) }
     }
 
     arr[i].t = gsap
