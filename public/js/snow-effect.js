@@ -44,8 +44,8 @@ ctx2.fillText('LOWA', 0, fontSize * 0.15)
 const SEGMENTS = 200
 const SEG_W = cw / SEGMENTS
 const pileHeights = new Array(SEGMENTS).fill(0)
-const MAX_PILE = Math.max(40, ch * 0.25) // clamp max pile height
-const LAND_MARGIN = 3 // collide slightly above the pile
+const MAX_PILE = Math.max(30, ch * 0.12) // slimmer pile
+const LAND_MARGIN = 2 // collide slightly above the pile
 
 function getPileHeightAtX(x) {
     const i = Math.max(0, Math.min(SEGMENTS - 1, Math.floor(x / SEG_W)))
@@ -59,7 +59,7 @@ function addSnowToPile(x, amount) {
     for (let k = -2; k <= 2; k++) {
         const idx = i + k
         if (idx >= 0 && idx < SEGMENTS) {
-            const falloff = 1 - Math.abs(k) * 0.22
+            const falloff = 1 - Math.abs(k) * 0.15 // less spread to keep pile thin
             pileHeights[idx] = Math.min(MAX_PILE, pileHeights[idx] + a * falloff)
         }
     }
@@ -135,7 +135,7 @@ function render() {
         // Landing detection and accumulation
         const pileH = getPileHeightAtX(x)
         if (y >= ch - pileH - LAND_MARGIN) {
-            addSnowToPile(x, Math.max(1, s * 0.8))
+            addSnowToPile(x, Math.max(0.5, s * 0.45))
             // Respawn flake from top by restarting its timeline
             c.t.progress(0)
             c.t.play()

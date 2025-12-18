@@ -259,6 +259,22 @@ a:hover{ color:var(--muted) }
   position: relative; /* Important pour le positionnement du canvas */
 }
 
+/* Hide header while hero is visible (Noël theme) */
+[data-theme="noel"] .site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  transition: transform 200ms ease, opacity 200ms ease;
+}
+
+[data-theme="noel"] .site-header.header-hidden {
+  transform: translateY(-110%);
+  opacity: 0;
+  pointer-events: none;
+}
+
 [data-theme="noel"] .hero-content {
   display: none;
 }

@@ -1553,5 +1553,26 @@
         <!-- GSAP for snow effect - Chargement avec defer pour éviter les conflits -->
         <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
         <script defer src="/public/js/snow-effect.js"></script>
+        <script>
+            // Hide header while hero section is in view (Noël theme only)
+            (function(){
+                const root = document.documentElement
+                const header = document.querySelector('.site-header')
+                const hero = document.querySelector('.hero-presentation')
+                if (!header || !hero) return
+                if (root.dataset.theme !== 'noel') return
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            header.classList.add('header-hidden')
+                        } else {
+                            header.classList.remove('header-hidden')
+                        }
+                    })
+                }, { threshold: 0.25 })
+                observer.observe(hero)
+            })()
+        </script>
     </body>
 </html>
