@@ -28,7 +28,8 @@ function makeFlake(i, ff) {
             {
                 x: () => -400 + (cw + 800) * Math.random(),
                 y: -15,
-                s: () => 'random(1.8, 7, .1)',
+                // Snowflake size as a real number (no string) so drawing works
+                s: () => gsap.utils.random(1.8, 7, 0.1),
                 x2: -500,
             },
             {
@@ -43,6 +44,7 @@ function makeFlake(i, ff) {
 }
 
 ctx.fillStyle = '#fff'
+    console.log('❄️ Snow effect initialized: ', { flakes: arr.length })
 gsap.ticker.add(render)
 
 function render() {
