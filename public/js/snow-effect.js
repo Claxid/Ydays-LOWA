@@ -40,6 +40,38 @@ ctx2.font = `bold ${fontSize}px "Arial Black", "Segoe UI", sans-serif`
 ctx2.translate(cw / 2, ch / 2)
 ctx2.fillText('LOWA', 0, fontSize * 0.15)
 
+// --- Snow pile model (bottom accumulation) ---
+const SEGMENTS = 200
+const SEG_W = cw / SEGMENTS
+const pileHeights = new Array(SEGMENTS).fill(0)
+const MAX_PILE = Math.max(40, ch * 0.25) // clamp max pile height
+const LAND_MARGIN = 3 // collide slightly above the pile
+
+function getPileHeightAtX(x) {
+    const i = Math.max(0, Math.min(SEGMENTS - 1, Math.floor(x / SEG_W)))
+    return pileHeights[i]
+}
+
+function addSnowToPile(x, amount) {
+    const i = Math.max(0, Math.min(SEGMENTS - 1, Math.floor(x / SEG_W)))
+    // distribute to neighbors for a natural shape
+    const a = amount
+    for (let k = -2; k <= 2; k++) {
+        const idx = i + k
+        if (idx >= 0 && idx < SEGMENTS) {
+            const falloff = 1 - Math.abs(k) * 0.22
+            pileHeights[idx] = Math.min(MAX_PILE, pileHeights[idx] + a * falloff)
+        }
+    }
+}
+
+function smoothPile() {
+    // simple blur for smoother contour
+    for (let i = 1; i < SEGMENTS - 1; i++) {
+        pileHeights[i] = (pileHeights[i - 1] + pileHeights[i] * 2 + pileHeights[i + 1]) / 4
+    }
+}
+
 for (let i = 0; i < 800; i++) makeFlake(i, true)
 
 function makeFlake(i, ff) {
@@ -71,7 +103,21 @@ gsap.ticker.add(render)
 
 function render() {
     ctx.clearRect(0, 0, cw, ch)
+    // Draw pile first (background)
+    smoothPile()
+    ctx.beginPath()
+    ctx.moveTo(0, ch)
+    for (let i = 0; i < SEGMENTS; i++) {
+        const x = i * SEG_W
+        const y = ch - pileHeights[i]
+        ctx.lineTo(x, y)
+    }
+    ctx.lineTo(cw, ch)
+    ctx.closePath()
     ctx.fillStyle = '#ffffff'
+    ctx.fill()
+
+    // Draw flakes and handle landing
     arr.forEach(c => {
         if (c.t) {
             if (c.t.isActive()) {
@@ -86,6 +132,15 @@ function render() {
         const x = c.x + c.x2
         const y = c.y
         const s = c.s * gsap.utils.interpolate(1, 0.2, c.y / ch)
+        // Landing detection and accumulation
+        const pileH = getPileHeightAtX(x)
+        if (y >= ch - pileH - LAND_MARGIN) {
+            addSnowToPile(x, Math.max(1, s * 0.8))
+            // Respawn flake from top by restarting its timeline
+            c.t.progress(0)
+            c.t.play()
+            return
+        }
         
         ctx.save()
         ctx.translate(x, y)
