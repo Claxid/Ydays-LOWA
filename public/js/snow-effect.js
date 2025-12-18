@@ -75,57 +75,34 @@ function smoothPile() {
 for (let i = 0; i < 800; i++) makeFlake(i, true)
 
 function makeFlake(i, ff) {
-    const size = gsap.utils.random(1.5, 4, 0.2) // Flocons petits
-    const xOffset = cw * 0.12
+    const size = gsap.utils.random(1.5, 4, 0.2)
+    const xOffset = cw * 0.15
     arr.push({ i: i, x: 0, x2: 0, y: 0, s: size })
 
-    // Storm-like origins: top, left, right with diagonal paths
-    const origins = ['top', 'left', 'right']
-    const origin = origins[Math.floor(Math.random() * origins.length)]
+    // Uniform storm from all edges (top, left, right, bottom)
+    const perimeter = 2 * (cw + ch)
+    const r = Math.random() * perimeter
     let from, to
 
-    if (origin === 'top') {
-        from = {
-            x: () => -xOffset + (cw + xOffset * 2) * Math.random(),
-            y: -15,
-            s: size,
-            x2: gsap.utils.random(-xOffset, xOffset)
-        }
-        to = {
-            ease: 'none',
-            y: ch + 15,
-            duration: gsap.utils.random(6, 12), // vitesse inchangée
-            x: '+=' + `random(-${xOffset}, ${xOffset}, 1)`,
-            x2: gsap.utils.random(-xOffset, xOffset)
-        }
-    } else if (origin === 'left') {
-        from = {
-            x: -15,
-            y: () => gsap.utils.random(-15, ch * 0.4),
-            s: size,
-            x2: 0,
-        }
-        to = {
-            ease: 'none',
-            x: cw + 15,
-            y: () => gsap.utils.random(ch * 0.6, ch + 15),
-            duration: gsap.utils.random(6, 12),
-            x2: gsap.utils.random(-xOffset, xOffset)
-        }
-    } else { // right
-        from = {
-            x: cw + 15,
-            y: () => gsap.utils.random(-15, ch * 0.4),
-            s: size,
-            x2: 0,
-        }
-        to = {
-            ease: 'none',
-            x: -15,
-            y: () => gsap.utils.random(ch * 0.6, ch + 15),
-            duration: gsap.utils.random(6, 12),
-            x2: gsap.utils.random(-xOffset, xOffset)
-        }
+    if (r < cw) {
+        // Top edge: uniform across full width
+        from = { x: r, y: -15, s: size, x2: 0 }
+        to = { ease: 'none', x: () => r + gsap.utils.random(-xOffset * 0.5, xOffset * 0.5), y: ch + 15, duration: gsap.utils.random(6, 12), x2: gsap.utils.random(-xOffset, xOffset) }
+    } else if (r < cw + ch) {
+        // Right edge: full height
+        const relY = r - cw
+        from = { x: cw + 15, y: relY, s: size, x2: 0 }
+        to = { ease: 'none', x: -15, y: () => relY + gsap.utils.random(-xOffset * 0.3, xOffset * 0.3), duration: gsap.utils.random(6, 12), x2: gsap.utils.random(-xOffset, xOffset) }
+    } else if (r < 2 * cw + ch) {
+        // Bottom edge: full width
+        const relX = r - cw - ch
+        from = { x: cw - relX, y: ch + 15, s: size, x2: 0 }
+        to = { ease: 'none', x: () => (cw - relX) + gsap.utils.random(-xOffset * 0.5, xOffset * 0.5), y: -15, duration: gsap.utils.random(6, 12), x2: gsap.utils.random(-xOffset, xOffset) }
+    } else {
+        // Left edge: full height
+        const relY = r - 2 * cw - ch
+        from = { x: -15, y: relY, s: size, x2: 0 }
+        to = { ease: 'none', x: cw + 15, y: () => relY + gsap.utils.random(-xOffset * 0.3, xOffset * 0.3), duration: gsap.utils.random(6, 12), x2: gsap.utils.random(-xOffset, xOffset) }
     }
 
     arr[i].t = gsap
