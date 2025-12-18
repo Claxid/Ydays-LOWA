@@ -43,7 +43,7 @@ function makeFlake(i, ff) {
         .timeScale(arr[i].s / 37)
 }
 
-ctx.fillStyle = '#fff'
+ctx.fillStyle = '#e6f6ff'
     console.log('❄️ Snow effect initialized: ', { flakes: arr.length })
 gsap.ticker.add(render)
 

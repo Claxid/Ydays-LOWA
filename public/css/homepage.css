@@ -230,12 +230,8 @@ a:hover{ color:var(--muted) }
   height: 100vh;
   pointer-events: none;
   z-index: 1;
-  opacity: 0;
+  opacity: 1; /* always visible to ensure snow renders */
   transition: opacity 0.5s ease;
-}
-
-[data-theme="noel"] .snow-bg {
-  opacity: 1;
 }
 
 .snow-text-img {
