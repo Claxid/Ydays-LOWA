@@ -20,10 +20,10 @@ ctx2.font = 'bold 1400px "Arial Black", "Segoe UI", sans-serif'
 ctx2.translate(cw / 2, ch / 2)
 ctx2.fillText('LOWA', 0, 200)
 
-for (let i = 0; i < 1300; i++) makeFlake(i, true)
+for (let i = 0; i < 4000; i++) makeFlake(i, true)
 
 function makeFlake(i, ff) {
-    const size = gsap.utils.random(3, 8, 0.2)
+    const size = gsap.utils.random(4, 9, 0.2)
     arr.push({ i: i, x: 0, x2: 0, y: 0, s: size })
     arr[i].t = gsap
         .timeline({ repeat: -1, repeatRefresh: true })
@@ -43,10 +43,10 @@ function makeFlake(i, ff) {
             }
         )
         .seek(ff ? Math.random() * 99 : 0)
-        .timeScale(gsap.utils.random(0.8, 1.4))
+        .timeScale(gsap.utils.random(1.0, 2.0))
 }
 
-ctx.fillStyle = '#f4f9ff'
+ctx.fillStyle = '#ffffff'
 let firstRenderLogged = false
 console.log('❄️ Snow effect initialized: ', { flakes: arr.length })
 gsap.ticker.add(render)
@@ -55,6 +55,10 @@ function render() {
     if (!firstRenderLogged) {
         console.log('❄️ Snow render ticking')
         firstRenderLogged = true
+        // Debug dot in center to confirm canvas is visible
+        ctx.beginPath()
+        ctx.arc(cw / 2, ch / 2, 12, 0, Math.PI * 2)
+        ctx.fill()
     }
     ctx.clearRect(0, 0, cw, ch)
     arr.forEach(c => {
