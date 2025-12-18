@@ -451,6 +451,7 @@
             let filteredProducts = [];
             let currentPage = 1;
             let sortOrder = 'default';
+            const PRODUCTS_PER_PAGE = 12;
 
             function showSkeleton(count = 6) {
                 const skeletonCard = `
@@ -489,8 +490,6 @@
                     const oneHour = 60 * 60 * 1000;
                     
                     console.log('Cache info:', { cacheVersion, CACHE_VERSION, hasCache: !!cached });
-                    
-                    const PRODUCTS_PER_PAGE = 12;
                     
                     if (cached && cacheTime && cacheVersion === CACHE_VERSION && (Date.now() - parseInt(cacheTime)) < oneHour) {
                         console.log('📦 Chargement depuis le cache');
@@ -539,6 +538,11 @@
                     }
                     
                     // Initialize filtered products and display
+                    console.log('Initialisation des produits:', {
+                        count: products.length,
+                        firstProduct: products[0],
+                        filteredCount: filteredProducts.length
+                    });
                     filteredProducts = [...products];
                     displayProductsPage();
                     applyAllFilters();
@@ -798,8 +802,7 @@
             }
             
             function applyAllFilters() {
-                // Call for compatibility
-                applyFilters();
+                // Call sort and display which handles filtering too
                 sortAndDisplayProducts();
             }
             
