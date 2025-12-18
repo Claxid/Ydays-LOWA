@@ -254,20 +254,11 @@ a:hover{ color:var(--muted) }
 /* Noël hero: dark gradient and focused text/snow */
 [data-theme="noel"] .hero-presentation {
   background: linear-gradient(180deg, #0b1a30 0%, #0e223b 100%);
+  align-items: center;
+  justify-content: center;
 }
 
-[data-theme="noel"] .hero-text {
-  color: #e8f1ff;
-}
-
-[data-theme="noel"] .hero-title,
-[data-theme="noel"] .hero-description,
-[data-theme="noel"] .hero-subtitle,
-[data-theme="noel"] .feature {
-  color: #e8f1ff;
-}
-
-[data-theme="noel"] .hero-visual {
+[data-theme="noel"] .hero-content {
   display: none;
 }
 
