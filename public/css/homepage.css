@@ -230,8 +230,12 @@ a:hover{ color:var(--muted) }
   height: 100vh;
   pointer-events: none;
   z-index: 1;
-  opacity: 1; /* always visible to ensure snow renders */
+  opacity: 0;
   transition: opacity 0.5s ease;
+}
+
+[data-theme="noel"] .snow-bg {
+  opacity: 1;
 }
 
 .snow-text-img {
@@ -245,6 +249,26 @@ a:hover{ color:var(--muted) }
   transform: translate(-50%, -50%);
   width: 100vw;
   height: 100vh;
+}
+
+/* Noël hero: dark gradient and focused text/snow */
+[data-theme="noel"] .hero-presentation {
+  background: linear-gradient(180deg, #0b1a30 0%, #0e223b 100%);
+}
+
+[data-theme="noel"] .hero-text {
+  color: #e8f1ff;
+}
+
+[data-theme="noel"] .hero-title,
+[data-theme="noel"] .hero-description,
+[data-theme="noel"] .hero-subtitle,
+[data-theme="noel"] .feature {
+  color: #e8f1ff;
+}
+
+[data-theme="noel"] .hero-visual {
+  display: none;
 }
 
 .hero-content {
