@@ -68,7 +68,20 @@
 
         const favoritesGrid = document.getElementById('favorites-grid');
         const favoritesEmpty = document.getElementById('favorites-empty');
-        let favorites = JSON.parse(localStorage.getItem('lowa_favorites')) || [];
+        const FAVORITES_KEY = 'lowa_favorites';
+        let favorites = [];
+        function loadFavoritesFromStorage() {
+            try {
+                const raw = localStorage.getItem(FAVORITES_KEY);
+                const arr = raw ? JSON.parse(raw) : [];
+                favorites = Array.from(new Set(arr.map(v => parseInt(v, 10)).filter(n => Number.isFinite(n))));
+                localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+            } catch (e) {
+                favorites = [];
+                localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+            }
+        }
+        loadFavoritesFromStorage();
         let allProducts = [];
 
         // Theme Management
@@ -171,9 +184,7 @@
             favoritesEmpty.style.display = 'none';
             favoritesGrid.style.display = 'grid';
 
-            // Convert favorites to strings for comparison
-            const favoritesStr = favorites.map(f => String(f));
-            const favoriteProducts = allProducts.filter(p => favoritesStr.includes(String(p.id)));
+            const favoriteProducts = allProducts.filter(p => favorites.includes(parseInt(p.id, 10)));
             
             if (favoriteProducts.length === 0) {
                 favoritesEmpty.style.display = 'block';
@@ -211,13 +222,15 @@
         }
 
         function toggleFavorite(productId) {
-            const index = favorites.indexOf(productId);
+            const idNum = parseInt(productId, 10);
+            const index = favorites.indexOf(idNum);
             if (index > -1) {
                 favorites.splice(index, 1);
             } else {
-                favorites.push(productId);
+                favorites.push(idNum);
             }
-            localStorage.setItem('lowa_favorites', JSON.stringify(favorites));
+            favorites = Array.from(new Set(favorites));
+            localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
         }
 
         function attachFavoriteListeners() {

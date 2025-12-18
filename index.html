@@ -648,21 +648,38 @@
             
             loadProducts();
             
-            // Favorites management
-            let favorites = JSON.parse(localStorage.getItem('lowa_favorites')) || [];
-            
+            // Favorites management (store as numbers to avoid type mismatches)
+            const FAVORITES_KEY = 'lowa_favorites';
+            let favorites = [];
+
+            function loadFavoritesFromStorage() {
+                try {
+                    const raw = localStorage.getItem(FAVORITES_KEY);
+                    const arr = raw ? JSON.parse(raw) : [];
+                    favorites = Array.from(new Set(arr.map(v => parseInt(v, 10)).filter(n => Number.isFinite(n))));
+                    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+                } catch (e) {
+                    favorites = [];
+                    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+                }
+            }
+            loadFavoritesFromStorage();
+
             function isFavorite(productId) {
-                return favorites.includes(productId);
+                const idNum = parseInt(productId, 10);
+                return favorites.includes(idNum);
             }
             
             function toggleFavorite(productId) {
-                const index = favorites.indexOf(productId);
+                const idNum = parseInt(productId, 10);
+                const index = favorites.indexOf(idNum);
                 if (index > -1) {
                     favorites.splice(index, 1);
                 } else {
-                    favorites.push(productId);
+                    favorites.push(idNum);
                 }
-                localStorage.setItem('lowa_favorites', JSON.stringify(favorites));
+                favorites = Array.from(new Set(favorites));
+                localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
             }
             
             function attachFavoriteListeners() {
