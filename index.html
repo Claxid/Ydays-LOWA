@@ -530,6 +530,7 @@
                 }, 4500);
 
                 showSkeleton();
+                let cachedProducts = null;
                 try {
                     // Check cache with 1-hour validity and version check
                     const CACHE_VERSION = 'v14'; // Increment when products.json path changes
@@ -542,7 +543,8 @@
                     
                     if (cached && cacheTime && cacheVersion === CACHE_VERSION && (Date.now() - parseInt(cacheTime)) < oneHour) {
                         console.log('📦 Chargement depuis le cache');
-                        products = JSON.parse(cached);
+                        cachedProducts = JSON.parse(cached);
+                        products = cachedProducts;
                     } else {
                         console.log('🌐 Chargement depuis le réseau');
 
@@ -601,8 +603,13 @@
                     renderAllProducts();
                 } catch (error) {
                     console.error('❌ Erreur chargement:', error);
-                    console.warn('➡️ Affichage du fallback local');
-                    products = FALLBACK_PRODUCTS;
+                    if (cachedProducts) {
+                        console.warn('➡️ Utilisation du cache local (API indisponible)');
+                        products = cachedProducts;
+                    } else {
+                        console.warn('➡️ Affichage du fallback local');
+                        products = FALLBACK_PRODUCTS;
+                    }
                     renderAllProducts();
                 }
             }
