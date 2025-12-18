@@ -75,27 +75,62 @@ function smoothPile() {
 for (let i = 0; i < 800; i++) makeFlake(i, true)
 
 function makeFlake(i, ff) {
-    const size = gsap.utils.random(1.5, 4, 0.2) // Flocons encore plus petits (1.5-4px)
-    const xOffset = cw * 0.12 // Drift réduit
+    const size = gsap.utils.random(1.5, 4, 0.2) // Flocons petits
+    const xOffset = cw * 0.12
     arr.push({ i: i, x: 0, x2: 0, y: 0, s: size })
+
+    // Storm-like origins: top, left, right with diagonal paths
+    const origins = ['top', 'left', 'right']
+    const origin = origins[Math.floor(Math.random() * origins.length)]
+    let from, to
+
+    if (origin === 'top') {
+        from = {
+            x: () => -xOffset + (cw + xOffset * 2) * Math.random(),
+            y: -15,
+            s: size,
+            x2: gsap.utils.random(-xOffset, xOffset)
+        }
+        to = {
+            ease: 'none',
+            y: ch + 15,
+            duration: gsap.utils.random(6, 12), // vitesse inchangée
+            x: '+=' + `random(-${xOffset}, ${xOffset}, 1)`,
+            x2: gsap.utils.random(-xOffset, xOffset)
+        }
+    } else if (origin === 'left') {
+        from = {
+            x: -15,
+            y: () => gsap.utils.random(-15, ch * 0.4),
+            s: size,
+            x2: 0,
+        }
+        to = {
+            ease: 'none',
+            x: cw + 15,
+            y: () => gsap.utils.random(ch * 0.6, ch + 15),
+            duration: gsap.utils.random(6, 12),
+            x2: gsap.utils.random(-xOffset, xOffset)
+        }
+    } else { // right
+        from = {
+            x: cw + 15,
+            y: () => gsap.utils.random(-15, ch * 0.4),
+            s: size,
+            x2: 0,
+        }
+        to = {
+            ease: 'none',
+            x: -15,
+            y: () => gsap.utils.random(ch * 0.6, ch + 15),
+            duration: gsap.utils.random(6, 12),
+            x2: gsap.utils.random(-xOffset, xOffset)
+        }
+    }
+
     arr[i].t = gsap
         .timeline({ repeat: -1, repeatRefresh: true })
-        .fromTo(
-            arr[i],
-            {
-                x: () => -xOffset + (cw + xOffset * 2) * Math.random(),
-                y: -15,
-                s: size,
-                x2: -xOffset,
-            },
-            {
-                ease: 'none',
-                y: ch + 15,
-                duration: gsap.utils.random(6, 12), // Un peu plus rapide (6-12 sec au lieu de 8-15)
-                x: '+=' + `random(-${xOffset}, ${xOffset}, 1)`,
-                x2: xOffset,
-            }
-        )
+        .fromTo(arr[i], from, to)
         .seek(ff ? Math.random() * 99 : 0)
 }
 
