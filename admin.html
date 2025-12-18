@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - LOWA</title>
+    <link rel="stylesheet" href="/public/css/admin.css">
+</head>
+<body>
+    <div id="login-container" class="admin-container">
+        <div class="login-box">
+            <h1>🔐 Admin LOWA</h1>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="admin-password">Mot de passe</label>
+                    <input type="password" id="admin-password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Se connecter</button>
+                <p id="login-error" class="error-message"></p>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboard-container" class="admin-container" style="display:none;">
+        <header class="admin-header">
+            <h1>🌿 Dashboard Admin</h1>
+            <button id="logout-btn" class="btn btn-secondary">Se déconnecter</button>
+        </header>
+
+        <main class="admin-dashboard">
+            <section class="admin-section">
+                <h2>📊 Statistiques</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <p>Produits</p>
+                        <p class="stat-number" id="products-count">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <p>Commandes</p>
+                        <p class="stat-number">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <p>Utilisateurs</p>
+                        <p class="stat-number">0</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-section">
+                <h2>🛍️ Gestion des Produits</h2>
+                <div class="admin-actions">
+                    <button id="add-product-btn" class="btn btn-primary">+ Ajouter un produit</button>
+                </div>
+                <div id="products-list" class="products-table">
+                    <p>Chargement des produits...</p>
+                </div>
+            </section>
+
+            <section class="admin-section">
+                <h2>⚙️ Paramètres</h2>
+                <div class="settings-group">
+                    <label>
+                        <input type="checkbox" id="maintenance-mode"> Mode maintenance
+                    </label>
+                    <p class="help-text">Quand activé, seuls les admins verront le site</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal pour ajouter/éditer produit -->
+    <div id="product-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2 id="modal-title">Ajouter un produit</h2>
+            <form id="product-form">
+                <div class="form-group">
+                    <label for="product-name">Nom</label>
+                    <input type="text" id="product-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-price">Prix</label>
+                    <input type="number" id="product-price" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-category">Catégorie</label>
+                    <input type="text" id="product-category" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-image">Image URL</label>
+                    <input type="url" id="product-image" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Sauvegarder</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/public/js/admin.js"></script>
+</body>
+</html>
