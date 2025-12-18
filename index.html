@@ -482,7 +482,7 @@
                 showSkeleton();
                 try {
                     // Check cache with 1-hour validity and version check
-                    const CACHE_VERSION = 'v8'; // Increment when products.json path changes
+                    const CACHE_VERSION = 'v9'; // Increment when products.json path changes
                     const cached = localStorage.getItem('lowa_products_cache');
                     const cacheTime = localStorage.getItem('lowa_products_cache_time');
                     const cacheVersion = localStorage.getItem('lowa_products_cache_version');
@@ -499,10 +499,11 @@
                         console.log('🌐 Chargement depuis le réseau');
 
                         const paths = [
-                            '/data/products.json?v=8',           // static root (backend serves "..")
-                            './data/products.json?v=8',          // relative (useful on subpath hosting)
-                            '/public/data/products.json?v=8',    // Vercel static public/
-                            './public/data/products.json?v=8',   // relative public/
+                            'https://lowa-api.onrender.com/api/products',  // API Backend
+                            '/public/data/products.json?v=9',    // Vercel deployment - public/
+                            './public/data/products.json?v=9',   // relative public/
+                            '/data/products.json?v=9',           // static root
+                            './data/products.json?v=9',          // relative
                             'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json'
                         ];
 
@@ -517,7 +518,7 @@
                                     throw new Error(`HTTP ${res.status}: ${res.statusText}`);
                                 }
                                 response = res;
-                                console.log(`✅ products.json chargé depuis ${url}`);
+                                console.log(`✅ Produits chargés depuis ${url}`);
                                 break;
                             } catch (err) {
                                 attempts.push({ url, error: err.message });
@@ -526,8 +527,8 @@
                         }
 
                         if (!response) {
-                            console.error('❌ Impossible de charger products.json', attempts);
-                            throw new Error('Aucune source products.json disponible');
+                            console.error('❌ Impossible de charger les produits', attempts);
+                            throw new Error('Aucune source de produits disponible');
                         }
 
                         products = await response.json();
