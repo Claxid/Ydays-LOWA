@@ -483,7 +483,7 @@
                 showSkeleton();
                 try {
                     // Check cache with 1-hour validity and version check
-                    const CACHE_VERSION = 'v9'; // Increment when products.json path changes
+                    const CACHE_VERSION = 'v10'; // Increment when products.json path changes
                     const cached = localStorage.getItem('lowa_products_cache');
                     const cacheTime = localStorage.getItem('lowa_products_cache_time');
                     const cacheVersion = localStorage.getItem('lowa_products_cache_version');
@@ -499,10 +499,10 @@
 
                         const paths = [
                             'https://lowa-api.onrender.com/api/products',  // API Backend
-                            '/public/data/products.json?v=9',    // Vercel deployment - public/
-                            './public/data/products.json?v=9',   // relative public/
-                            '/data/products.json?v=9',           // static root
-                            './data/products.json?v=9',          // relative
+                            '/data/products.json?v=10',         // Try root first
+                            './data/products.json?v=10',        // Relative from root
+                            '/public/data/products.json?v=10',  // Vercel deployment - public/
+                            './public/data/products.json?v=10', // Relative public/
                             'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json'
                         ];
 
