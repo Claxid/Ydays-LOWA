@@ -52,6 +52,19 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+type Product struct {
+	ID          int       `json:"id"`
+	Name        string    `json:"name"`
+	Price       float64   `json:"price"`
+	Description string    `json:"description"`
+	Image       string    `json:"image"`
+	Category    string    `json:"category"`
+	Subcategory string    `json:"subcategory"`
+	Collection  string    `json:"collection"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
 var db *sql.DB
 
 func initDB() error {
@@ -152,6 +165,25 @@ func initDB() error {
 			cart_value REAL,
 			activity_date DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+		)
+	`)
+	if err != nil {
+		return err
+	}
+
+	// Create products table
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS products (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT NOT NULL,
+			price REAL NOT NULL,
+			description TEXT,
+			image TEXT,
+			category TEXT,
+			subcategory TEXT,
+			collection TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)
 	`)
 	if err != nil {
@@ -697,6 +729,160 @@ func handleGetRecommendations(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// Helper function to check if user is admin
+func isAdmin(r *http.Request) (int, bool) {
+	userID, err := getSessionUserID(r)
+	if err != nil {
+		return 0, false
+	}
+
+	var role string
+	err = db.QueryRow("SELECT role FROM users WHERE id = ?", userID).Scan(&role)
+	if err != nil || role != "admin" {
+		return userID, false
+	}
+	return userID, true
+}
+
+// Get all products
+func handleGetProducts(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	rows, err := db.Query(`
+		SELECT id, name, price, description, image, category, subcategory, collection, created_at, updated_at 
+		FROM products 
+		ORDER BY created_at DESC
+	`)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to fetch products"})
+		return
+	}
+	defer rows.Close()
+
+	products := []Product{}
+	for rows.Next() {
+		var p Product
+		err := rows.Scan(&p.ID, &p.Name, &p.Price, &p.Description, &p.Image, &p.Category, &p.Subcategory, &p.Collection, &p.CreatedAt, &p.UpdatedAt)
+		if err != nil {
+			continue
+		}
+		products = append(products, p)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(products)
+}
+
+// Create product (admin only)
+func handleCreateProduct(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	_, admin := isAdmin(r)
+	if !admin {
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Admin access required"})
+		return
+	}
+
+	var product Product
+	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
+		return
+	}
+
+	result, err := db.Exec(`
+		INSERT INTO products (name, price, description, image, category, subcategory, collection) 
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+	`, product.Name, product.Price, product.Description, product.Image, product.Category, product.Subcategory, product.Collection)
+
+	if err != nil {
+		log.Printf("Error creating product: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to create product"})
+		return
+	}
+
+	productID, _ := result.LastInsertId()
+	product.ID = int(productID)
+
+	log.Printf("Product created: %s (ID: %d)", product.Name, productID)
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(product)
+}
+
+// Update product (admin only)
+func handleUpdateProduct(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	_, admin := isAdmin(r)
+	if !admin {
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Admin access required"})
+		return
+	}
+
+	var product Product
+	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
+		return
+	}
+
+	_, err := db.Exec(`
+		UPDATE products 
+		SET name = ?, price = ?, description = ?, image = ?, category = ?, subcategory = ?, collection = ?, updated_at = CURRENT_TIMESTAMP 
+		WHERE id = ?
+	`, product.Name, product.Price, product.Description, product.Image, product.Category, product.Subcategory, product.Collection, product.ID)
+
+	if err != nil {
+		log.Printf("Error updating product: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to update product"})
+		return
+	}
+
+	log.Printf("Product updated: %s (ID: %d)", product.Name, product.ID)
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(product)
+}
+
+// Delete product (admin only)
+func handleDeleteProduct(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	_, admin := isAdmin(r)
+	if !admin {
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Admin access required"})
+		return
+	}
+
+	// Get product ID from query parameter
+	productID := r.URL.Query().Get("id")
+	if productID == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Product ID required"})
+		return
+	}
+
+	_, err := db.Exec("DELETE FROM products WHERE id = ?", productID)
+	if err != nil {
+		log.Printf("Error deleting product: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to delete product"})
+		return
+	}
+
+	log.Printf("Product deleted: ID %s", productID)
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"success": "Product deleted"})
+}
+
 func main() {
 	addr := flag.String("addr", ":8080", "address to listen on")
 	flag.Parse()
@@ -762,6 +948,21 @@ func main() {
 	http.HandleFunc("/api/user-preferences", withCORS(handleUserPreferences))
 	http.HandleFunc("/api/user-activity", withCORS(handleUserActivity))
 	http.HandleFunc("/api/recommendations", withCORS(handleGetRecommendations))
+
+	// Products API routes
+	http.HandleFunc("/api/products", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleGetProducts(w, r)
+		} else if r.Method == http.MethodPost {
+			handleCreateProduct(w, r)
+		} else if r.Method == http.MethodPut {
+			handleUpdateProduct(w, r)
+		} else if r.Method == http.MethodDelete {
+			handleDeleteProduct(w, r)
+		} else {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}))
 
 	// Static files from parent directory with cache middleware
 	// Serve root directory which contains public/, index.html, etc.

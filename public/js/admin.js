@@ -110,8 +110,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load Dashboard
     async function loadDashboardData() {
+        const token = localStorage.getItem('adminToken');
         try {
-            const response = await fetch('/data/products.json');
+            const response = await fetch(`${API_BASE_URL}/products`, {
+                headers: {
+                    'Authorization': token
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load products');
+            }
+            
             const products = await response.json();
             document.getElementById('products-count').textContent = products.length;
             displayProducts(products);
@@ -186,18 +196,59 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Form submit
-    productForm.addEventListener('submit', (e) => {
+    productForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const token = localStorage.getItem('adminToken');
         const productId = productForm.dataset.productId;
+        
         const product = {
-            id: productId || Date.now().toString(),
             name: document.getElementById('product-name').value,
             price: parseFloat(document.getElementById('product-price').value),
             category: document.getElementById('product-category').value,
-            image: document.getElementById('product-image').value
+            image: document.getElementById('product-image').value,
+            description: document.getElementById('product-description')?.value || '',
+            subcategory: document.getElementById('product-subcategory')?.value || '',
+            collection: document.getElementById('product-collection')?.value || 'eco'
         };
         
-        alert('Produit sauvegardé (intégration API requise)');
+        try {
+            let response;
+            if (productId) {
+                // Update existing product
+                product.id = parseInt(productId);
+                response = await fetch(`${API_BASE_URL}/products`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token
+                    },
+                    body: JSON.stringify(product)
+                });
+            } else {
+                // Create new product
+                response = await fetch(`${API_BASE_URL}/products`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token
+                    },
+                    body: JSON.stringify(product)
+                });
+            }
+            
+            if (response.ok) {
+                productModal.style.display = 'none';
+                loadDashboardData();
+                alert(productId ? '✅ Produit modifié avec succès' : '✅ Produit ajouté avec succès');
+            } else {
+                const error = await response.json();
+                alert('❌ Erreur: ' + (error.error || 'Impossible de sauvegarder le produit'));
+            }
+        } catch (error) {
+            console.error('Error saving product:', error);
+            alert('❌ Erreur de connexion');
+        }
+    });
         productModal.style.display = 'none';
         loadDashboardData();
     });
@@ -208,12 +259,39 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('product-price').value = product.price;
         document.getElementById('product-category').value = product.category;
         document.getElementById('product-image').value = product.image;
+        if (document.getElementById('product-description')) {
+            document.getElementById('product-description').value = product.description || '';
+        }
+        if (document.getElementById('product-subcategory')) {
+            document.getElementById('product-subcategory').value = product.subcategory || '';
+        }
+        if (document.getElementById('product-collection')) {
+            document.getElementById('product-collection').value = product.collection || 'eco';
+        }
         productForm.dataset.productId = product.id;
         productModal.style.display = 'flex';
     }
 
-    function deleteProduct(productId) {
-        alert('Produit supprimé (intégration API requise)');
-        loadDashboardData();
+    async function deleteProduct(productId) {
+        const token = localStorage.getItem('adminToken');
+        try {
+            const response = await fetch(`${API_BASE_URL}/products?id=${productId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': token
+                }
+            });
+            
+            if (response.ok) {
+                alert('✅ Produit supprimé avec succès');
+                loadDashboardData();
+            } else {
+                const error = await response.json();
+                alert('❌ Erreur: ' + (error.error || 'Impossible de supprimer le produit'));
+            }
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            alert('❌ Erreur de connexion');
+        }
     }
 });
