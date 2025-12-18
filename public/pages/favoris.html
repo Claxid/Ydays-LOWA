@@ -125,8 +125,10 @@
         // Load products and filter favorites
         async function loadFavorites() {
             const paths = [
-                '/public/data/products.json?v=11',
-                '/data/products.json?v=11',
+                '/data/products.json?v=13',
+                './data/products.json?v=13',
+                '/public/data/products.json?v=13',
+                './public/data/products.json?v=13',
                 'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json',
                 'https://lowa-api.onrender.com/api/products'
             ];
@@ -180,6 +182,10 @@
             }
             
             favoritesGrid.innerHTML = favoriteProducts.map(product => {
+                const formatPrice = (v) => {
+                    const n = typeof v === 'number' ? v : parseFloat(v);
+                    return isFinite(n) ? n.toFixed(2) : '0.00';
+                };
                 const collectionLabels = {
                     'eco': '🌱 Éco',
                     'recycle': '♻️ Recyclé',
@@ -194,7 +200,7 @@
                     <h3>${product.name}</h3>
                     <p>${product.description}</p>
                     <div class="meta">
-                        <span class="product-price">${product.price.toFixed(2)} €</span>
+                        <span class="product-price">${formatPrice(product.price)} €</span>
                         <button class="btn primary add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">Ajouter</button>
                     </div>
                 </article>`;

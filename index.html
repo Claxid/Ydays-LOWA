@@ -448,29 +448,31 @@
             
             // Variables globales pour les produits
             let products;
+            let renderCompleted = false;
+            let renderFailSafe = null;
             let filteredProducts = [];
             let currentPage = 1;
             let sortOrder = 'default';
             const PRODUCTS_PER_PAGE = 12;
             const FALLBACK_PRODUCTS = [
-                {"id":1,"name":"T-shirt BIO - Naturel","price":29.00,"description":"T-shirt en coton biologique certifié. Coupe confortable, coloris naturels.","image":"/public/images/tshirt-naturel.svg","category":"hommes","subcategory":"t-shirts","collection":"eco"},
-                {"id":2,"name":"Pull recyclé - Gris","price":79.00,"description":"Pull fabriqué à partir de fibres recyclées. Chaud et durable.","image":"/public/images/pull-gris.svg","category":"hommes","subcategory":"vestes","collection":"recycle"},
-                {"id":3,"name":"Pantalon éco - Kaki","price":59.00,"description":"Pantalon en tissu certifié avec renforts minimalistes.","image":"/public/images/pantalon-kaki.svg","category":"hommes","subcategory":"pantalons","collection":"eco"},
-                {"id":4,"name":"Veste en Lin - Beige","price":89.00,"description":"Veste légère en lin naturel, parfaite pour la mi-saison. Coupe ajustée.","image":"/public/images/veste-lin-beige.svg","category":"femmes","subcategory":"vestes","collection":"classiques"},
-                {"id":5,"name":"Robe d'été - Blanc cassé","price":65.00,"description":"Robe fluide en coton bio, idéale pour l'été. Fabrication locale.","image":"/public/images/robe-ete.svg","category":"femmes","subcategory":"robes","collection":"eco"},
-                {"id":6,"name":"Top en fibres recyclées - Rose","price":35.00,"description":"Top féminin fabriqué à partir de bouteilles plastiques recyclées.","image":"/public/images/top-rose.svg","category":"femmes","subcategory":"tops","collection":"recycle"},
-                {"id":7,"name":"Jupe midi - Marine","price":55.00,"description":"Jupe mi-longue en coton bio certifié GOTS. Coupe élégante.","image":"/public/images/jupe-marine.svg","category":"femmes","subcategory":"robes","collection":"classiques"},
-                {"id":8,"name":"Chemise lin - Blanc","price":49.00,"description":"Chemise intemporelle en lin français. Production éthique.","image":"/public/images/chemise-lin.svg","category":"hommes","subcategory":"t-shirts","collection":"classiques"},
-                {"id":9,"name":"Sac en toile recyclée - Noir","price":25.00,"description":"Sac cabas en toile recyclée, résistant et pratique au quotidien.","image":"/public/images/sac-recyc.svg","category":"femmes","subcategory":"accessoires","collection":"recycle"},
-                {"id":10,"name":"Écharpe en laine bio - Camel","price":39.00,"description":"Écharpe douce en laine biologique. Teinture végétale.","image":"/public/images/echarpe.svg","category":"femmes","subcategory":"accessoires","collection":"eco"},
-                {"id":11,"name":"Pantalon chino - Sable","price":69.00,"description":"Chino en coton bio, coupe moderne et confortable.","image":"/public/images/chino-sable.svg","category":"hommes","subcategory":"pantalons","collection":"classiques"},
-                {"id":12,"name":"Blouson recyclé - Bleu nuit","price":95.00,"description":"Blouson fabriqué à partir de fibres recyclées. Design urbain.","image":"/public/images/blouson-bleu.svg","category":"hommes","subcategory":"vestes","collection":"recycle"},
-                {"id":13,"name":"Sweat organique - Écru","price":59.00,"description":"Sweat doux en coton organique, intérieur gratté, coupe unisexe.","image":"/public/images/pull-gris.svg","category":"hommes","subcategory":"t-shirts","collection":"eco"},
-                {"id":14,"name":"Parka imperméable recyclée","price":129.00,"description":"Parka longue, membrane recyclée, coutures étanchées, capuche ajustable.","image":"/public/images/blouson-bleu.svg","category":"femmes","subcategory":"vestes","collection":"recycle"},
-                {"id":15,"name":"Cardigan laine bio - Olive","price":72.00,"description":"Cardigan en laine biologique, maille perlée, boutons en corozo.","image":"/public/images/veste-lin-beige.svg","category":"femmes","subcategory":"vestes","collection":"classiques"},
-                {"id":16,"name":"Short en coton bio - Sable","price":39.00,"description":"Short léger en sergé de coton bio, taille ajustable, poches latérales.","image":"/public/images/chino-sable.svg","category":"hommes","subcategory":"pantalons","collection":"eco"},
-                {"id":17,"name":"Robe cache-cœur - Terracotta","price":79.00,"description":"Robe cache-cœur en viscose EcoVero, ceinture à nouer, manches 3/4.","image":"/public/images/robe-ete.svg","category":"femmes","subcategory":"robes","collection":"classiques"},
-                {"id":18,"name":"Doudoune légère recyclée","price":139.00,"description":"Doudoune compressible en fibres recyclées, chaleur 4 saisons.","image":"/public/images/blouson-bleu.svg","category":"hommes","subcategory":"vestes","collection":"recycle"}
+                {"id":1,"name":"T-shirt BIO - Naturel","price":29.00,"description":"T-shirt en coton biologique certifié. Coupe confortable, coloris naturels.","image":"/images/tshirt-naturel.svg","category":"hommes","subcategory":"t-shirts","collection":"eco"},
+                {"id":2,"name":"Pull recyclé - Gris","price":79.00,"description":"Pull fabriqué à partir de fibres recyclées. Chaud et durable.","image":"/images/pull-gris.svg","category":"hommes","subcategory":"vestes","collection":"recycle"},
+                {"id":3,"name":"Pantalon éco - Kaki","price":59.00,"description":"Pantalon en tissu certifié avec renforts minimalistes.","image":"/images/pantalon-kaki.svg","category":"hommes","subcategory":"pantalons","collection":"eco"},
+                {"id":4,"name":"Veste en Lin - Beige","price":89.00,"description":"Veste légère en lin naturel, parfaite pour la mi-saison. Coupe ajustée.","image":"/images/veste-lin-beige.svg","category":"femmes","subcategory":"vestes","collection":"classiques"},
+                {"id":5,"name":"Robe d'été - Blanc cassé","price":65.00,"description":"Robe fluide en coton bio, idéale pour l'été. Fabrication locale.","image":"/images/robe-ete.svg","category":"femmes","subcategory":"robes","collection":"eco"},
+                {"id":6,"name":"Top en fibres recyclées - Rose","price":35.00,"description":"Top féminin fabriqué à partir de bouteilles plastiques recyclées.","image":"/images/top-rose.svg","category":"femmes","subcategory":"tops","collection":"recycle"},
+                {"id":7,"name":"Jupe midi - Marine","price":55.00,"description":"Jupe mi-longue en coton bio certifié GOTS. Coupe élégante.","image":"/images/jupe-marine.svg","category":"femmes","subcategory":"robes","collection":"classiques"},
+                {"id":8,"name":"Chemise lin - Blanc","price":49.00,"description":"Chemise intemporelle en lin français. Production éthique.","image":"/images/chemise-lin.svg","category":"hommes","subcategory":"t-shirts","collection":"classiques"},
+                {"id":9,"name":"Sac en toile recyclée - Noir","price":25.00,"description":"Sac cabas en toile recyclée, résistant et pratique au quotidien.","image":"/images/sac-recyc.svg","category":"femmes","subcategory":"accessoires","collection":"recycle"},
+                {"id":10,"name":"Écharpe en laine bio - Camel","price":39.00,"description":"Écharpe douce en laine biologique. Teinture végétale.","image":"/images/echarpe.svg","category":"femmes","subcategory":"accessoires","collection":"eco"},
+                {"id":11,"name":"Pantalon chino - Sable","price":69.00,"description":"Chino en coton bio, coupe moderne et confortable.","image":"/images/chino-sable.svg","category":"hommes","subcategory":"pantalons","collection":"classiques"},
+                {"id":12,"name":"Blouson recyclé - Bleu nuit","price":95.00,"description":"Blouson fabriqué à partir de fibres recyclées. Design urbain.","image":"/images/blouson-bleu.svg","category":"hommes","subcategory":"vestes","collection":"recycle"},
+                {"id":13,"name":"Sweat organique - Écru","price":59.00,"description":"Sweat doux en coton organique, intérieur gratté, coupe unisexe.","image":"/images/pull-gris.svg","category":"hommes","subcategory":"t-shirts","collection":"eco"},
+                {"id":14,"name":"Parka imperméable recyclée","price":129.00,"description":"Parka longue, membrane recyclée, coutures étanchées, capuche ajustable.","image":"/images/blouson-bleu.svg","category":"femmes","subcategory":"vestes","collection":"recycle"},
+                {"id":15,"name":"Cardigan laine bio - Olive","price":72.00,"description":"Cardigan en laine biologique, maille perlée, boutons en corozo.","image":"/images/veste-lin-beige.svg","category":"femmes","subcategory":"vestes","collection":"classiques"},
+                {"id":16,"name":"Short en coton bio - Sable","price":39.00,"description":"Short léger en sergé de coton bio, taille ajustable, poches latérales.","image":"/images/chino-sable.svg","category":"hommes","subcategory":"pantalons","collection":"eco"},
+                {"id":17,"name":"Robe cache-cœur - Terracotta","price":79.00,"description":"Robe cache-cœur en viscose EcoVero, ceinture à nouer, manches 3/4.","image":"/images/robe-ete.svg","category":"femmes","subcategory":"robes","collection":"classiques"},
+                {"id":18,"name":"Doudoune légère recyclée","price":139.00,"description":"Doudoune compressible en fibres recyclées, chaleur 4 saisons.","image":"/images/blouson-bleu.svg","category":"hommes","subcategory":"vestes","collection":"recycle"}
             ];
 
             function showSkeleton(count = 6) {
@@ -513,10 +515,21 @@
 
             // Fetch and render products with smart caching
             async function loadProducts() {
+                // Fail-safe: if nothing rendered after 4.5s, force fallback render
+                renderCompleted = false;
+                if (renderFailSafe) clearTimeout(renderFailSafe);
+                renderFailSafe = setTimeout(() => {
+                    if (!renderCompleted) {
+                        console.warn('⏱️ Fail-safe: rendu fallback produits');
+                        products = FALLBACK_PRODUCTS;
+                        renderAllProducts();
+                    }
+                }, 4500);
+
                 showSkeleton();
                 try {
                     // Check cache with 1-hour validity and version check
-                    const CACHE_VERSION = 'v11'; // Increment when products.json path changes
+                    const CACHE_VERSION = 'v13'; // Increment when products.json path changes
                     const cached = localStorage.getItem('lowa_products_cache');
                     const cacheTime = localStorage.getItem('lowa_products_cache_time');
                     const cacheVersion = localStorage.getItem('lowa_products_cache_version');
@@ -531,8 +544,10 @@
                         console.log('🌐 Chargement depuis le réseau');
 
                         const paths = [
-                            '/public/data/products.json?v=11',  // public folder (prioritaire)
-                            '/data/products.json?v=11',         // racine
+                            '/data/products.json?v=13',         // chemin public direct (Vercel/static)
+                            './data/products.json?v=13',        // relative
+                            '/public/data/products.json?v=13',  // fallback si /public est exposé
+                            './public/data/products.json?v=13',
                             'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json',
                             'https://lowa-api.onrender.com/api/products'  // backend en dernier avec timeout
                         ];
@@ -594,6 +609,10 @@
                 const productsGrid = document.getElementById('products');
                 const resultsCount = document.getElementById('results-count');
                 const totalCount = document.getElementById('total-count');
+                const formatPrice = (v) => {
+                    const n = typeof v === 'number' ? v : parseFloat(v);
+                    return isFinite(n) ? n.toFixed(2) : '0.00';
+                };
                 
                 console.log('🎨 Rendu de', products.length, 'produits');
                 
@@ -606,7 +625,7 @@
                         <h3>${product.name}</h3>
                         <p>${product.description}</p>
                         <div class="meta">
-                            <span class="product-price">${product.price.toFixed(2)} €</span>
+                            <span class="product-price">${formatPrice(product.price)} €</span>
                             <button class="btn primary add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">Ajouter</button>
                         </div>
                     </article>
@@ -622,6 +641,9 @@
                 // Attach event listeners
                 attachCartListeners();
                 attachFavoriteListeners();
+
+                renderCompleted = true;
+                if (renderFailSafe) clearTimeout(renderFailSafe);
             }
             
             loadProducts();
@@ -983,6 +1005,10 @@
                         'recycle': '♻️ Recyclé',
                         'classiques': '✨ Classique'
                     };
+                    const formatPrice = (v) => {
+                        const n = typeof v === 'number' ? v : parseFloat(v);
+                        return isFinite(n) ? n.toFixed(2) : '0.00';
+                    };
                     return `
                     <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${collectionLabels[product.collection] || product.collection}">
                         <div class="product-image-container">
@@ -992,7 +1018,7 @@
                         <h3>${product.name}</h3>
                         <p>${product.description}</p>
                         <div class="meta">
-                            <span class="product-price">${product.price.toFixed(2)} €</span>
+                            <span class="product-price">${formatPrice(product.price)} €</span>
                             <button class="btn primary add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">Ajouter</button>
                         </div>
                     </article>`;
@@ -1135,6 +1161,7 @@
             
             // Authentication System
             const API_BASE = 'https://lowa-api.onrender.com/api';
+            const LOCAL_USERS_KEY = 'lowa_local_users';
             let currentUser = null;
             let sessionToken = null;
             
@@ -1309,8 +1336,20 @@
                     document.getElementById('login-form').reset();
                     submitBtn.textContent = 'Se connecter';
                 } catch (err) {
-                    alert('Erreur de connexion: ' + err.message);
-                    submitBtn.textContent = 'Se connecter';
+                    // Fallback local auth when API indisponible
+                    const localUsers = JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || '[]');
+                    const matched = localUsers.find(u => u.email === email && u.password === password);
+                    if (matched) {
+                        const token = 'local-' + Date.now();
+                        saveSession(token, matched);
+                        closeAllModals();
+                        document.getElementById('login-form').reset();
+                        alert('Connexion réussie (mode local, API indisponible)');
+                        submitBtn.textContent = 'Se connecter';
+                    } else {
+                        alert('Erreur de connexion: serveur indisponible et aucun compte local correspondant');
+                        submitBtn.textContent = 'Se connecter';
+                    }
                 } finally {
                     submitBtn.disabled = false;
                 }
@@ -1343,7 +1382,21 @@
                     document.getElementById('register-form').reset();
                     submitBtn.textContent = 'S\'inscrire';
                 } catch (err) {
-                    alert('Erreur d\'inscription: ' + err.message);
+                    // Fallback local account creation to keep UX usable when API is down
+                    const localUsers = JSON.parse(localStorage.getItem(LOCAL_USERS_KEY) || '[]');
+                    const already = localUsers.find(u => u.email === email);
+                    if (already) {
+                        alert('Compte local déjà existant. Essayez de vous connecter.');
+                    } else {
+                        const newUser = { id: 'local-' + Date.now(), email, nom, prenom, sexe, password };
+                        localUsers.push(newUser);
+                        localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(localUsers));
+                        const token = 'local-' + Date.now();
+                        saveSession(token, newUser);
+                        closeAllModals();
+                        document.getElementById('register-form').reset();
+                        alert('Inscription réussie en mode local (API indisponible)');
+                    }
                     submitBtn.textContent = 'S\'inscrire';
                 } finally {
                     submitBtn.disabled = false;
