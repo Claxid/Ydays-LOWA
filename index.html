@@ -531,6 +531,7 @@
 
                 showSkeleton();
                 let cachedProducts = null;
+                let succeeded = false;
                 try {
                     // Check cache with 1-hour validity and version check
                     const CACHE_VERSION = 'v14'; // Increment when products.json path changes
@@ -601,8 +602,13 @@
                     
                     // Direct display without any filtering
                     renderAllProducts();
+                    succeeded = true;
                 } catch (error) {
                     console.error('❌ Erreur chargement:', error);
+                    if (succeeded) {
+                        console.warn('⚠️ Erreur après rendu, on conserve la dernière liste chargée');
+                        return;
+                    }
                     if (cachedProducts) {
                         console.warn('➡️ Utilisation du cache local (API indisponible)');
                         products = cachedProducts;
