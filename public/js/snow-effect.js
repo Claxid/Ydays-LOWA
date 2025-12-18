@@ -41,11 +41,12 @@ ctx2.translate(cw / 2, ch / 2)
 ctx2.fillText('LOWA', 0, fontSize * 0.15)
 
 // --- Snow pile model (bottom accumulation) ---
-const SEGMENTS = 200
+const SEGMENTS = 150 // Réduit pour perf
 const SEG_W = cw / SEGMENTS
 const pileHeights = new Array(SEGMENTS).fill(0)
-const MAX_PILE = Math.max(20, ch * 0.08) // hauteur réduite
-const LAND_MARGIN = 2 // collide slightly above the pile
+const MAX_PILE = Math.max(20, ch * 0.08)
+const LAND_MARGIN = 2
+let smoothCounter = 0 // Smooth toutes les 2 frames seulement
 
 function getPileHeightAtX(x) {
     const i = Math.max(0, Math.min(SEGMENTS - 1, Math.floor(x / SEG_W)))
@@ -66,12 +67,13 @@ function addSnowToPile(x, amount) {
 }
 
 function smoothPile() {
-    // simple blur for smoother contour
+    // Smooth seulement toutes les 2 frames pour réduire les calculs
+    if (smoothCounter++ % 2 !== 0) return
     for (let i = 1; i < SEGMENTS - 1; i++) {
         pileHeights[i] = (pileHeights[i - 1] + pileHeights[i] * 2 + pileHeights[i + 1]) / 4
     }
 }
-
+for (let i = 0; i < 500; i++) makeFlake(i, true)
 for (let i = 0; i < 800; i++) makeFlake(i, true)
 
 function makeFlake(i, ff) {
