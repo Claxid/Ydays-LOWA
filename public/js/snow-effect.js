@@ -73,8 +73,8 @@ function smoothPile() {
         pileHeights[i] = (pileHeights[i - 1] + pileHeights[i] * 2 + pileHeights[i + 1]) / 4
     }
 }
-for (let i = 0; i < 500; i++) makeFlake(i, true)
-for (let i = 0; i < 800; i++) makeFlake(i, true)
+
+for (let i = 0; i < 600; i++) makeFlake(i, true)
 
 function makeFlake(i, ff) {
     const size = gsap.utils.random(1.5, 4, 0.2)
@@ -138,9 +138,10 @@ function render() {
         if (c.t) {
             if (c.t.isActive()) {
                 const d = ctx2.getImageData(c.x + c.x2, c.y, 1, 1)
-                if (d.data[3] > 150 && Math.random() > 0.5) {
+                // Collision stricte : alpha > 150 (augmenter la sensibilité)
+                if (d.data[3] > 150) {
                     c.t.pause()
-                    if (arr.length < 9000) makeFlake(arr.length - 1, false)
+                    if (arr.length < 5000) makeFlake(arr.length - 1, false)
                 }
             }
         }
