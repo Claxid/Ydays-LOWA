@@ -1,5 +1,5 @@
-// Admin Dashboard
-const ADMIN_PASSWORD = 'admin123'; // À changer en production avec une vraie API
+// Admin Dashboard with API Integration
+const API_BASE_URL = 'https://lowa-api.onrender.com/api';
 
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
@@ -14,22 +14,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check if already logged in
     checkAdminSession();
 
-    function checkAdminSession() {
-        const adminSession = localStorage.getItem('adminSession');
-        if (adminSession && isSessionValid(adminSession)) {
-            showDashboard();
-        } else {
-            showLogin();
+    async function checkAdminSession() {
+        const token = localStorage.getItem('adminToken');
+        if (token) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/user`, {
+                    headers: {
+                        'Authorization': token
+                    }
+                });
+                if (response.ok) {
+                    const user = await response.json();
+                    if (user.role === 'admin') {
+                        showDashboard();
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.error('Session check failed:', error);
+            }
+            localStorage.removeItem('adminToken');
         }
-    }
-
-    function isSessionValid(session) {
-        try {
-            const data = JSON.parse(session);
-            return data.timestamp && (Date.now() - data.timestamp < 24 * 60 * 60 * 1000); // 24h
-        } catch {
-            return false;
-        }
+        showLogin();
     }
 
     function showLogin() {
@@ -44,24 +50,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Login
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const password = document.getElementById('admin-password').value;
         const errorMsg = document.getElementById('login-error');
 
-        if (password === ADMIN_PASSWORD) {
-            localStorage.setItem('adminSession', JSON.stringify({ timestamp: Date.now() }));
-            showDashboard();
-            errorMsg.textContent = '';
-        } else {
-            errorMsg.textContent = '❌ Mot de passe incorrect';
-            document.getElementById('admin-password').value = '';
+        try {
+            const response = await fetch(`${API_BASE_URL}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: 'admin@lowa.com', // Email admin par défaut
+                    password: password
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.user.role === 'admin') {
+                    localStorage.setItem('adminToken', data.token);
+                    showDashboard();
+                    errorMsg.textContent = '';
+                } else {
+                    errorMsg.textContent = '❌ Accès refusé: compte non-admin';
+                }
+            } else {
+                errorMsg.textContent = '❌ Identifiants incorrects';
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            errorMsg.textContent = '❌ Erreur de connexion';
         }
+        
+        document.getElementById('admin-password').value = '';
     });
 
     // Logout
-    logoutBtn.addEventListener('click', () => {
-        localStorage.removeItem('adminSession');
+    logoutBtn.addEventListener('click', async () => {
+        const token = localStorage.getItem('adminToken');
+        if (token) {
+            try {
+                await fetch(`${API_BASE_URL}/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': token
+                    }
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+        localStorage.removeItem('adminToken');
         showLogin();
         loginForm.reset();
     });
