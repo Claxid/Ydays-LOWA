@@ -466,6 +466,7 @@
                     </article>`;
                 productsGrid.innerHTML = Array.from({ length: count }).map(() => skeletonCard).join('');
             }
+            
 
             function updateEmptyState() {
                 const visible = Array.from(productsGrid.children).some(el => el.style.display !== 'none');
@@ -537,21 +538,51 @@
                         localStorage.setItem('lowa_products_cache_version', CACHE_VERSION);
                     }
                     
-                    // Initialize filtered products and display
-                    console.log('Initialisation des produits:', {
-                        count: products.length,
-                        firstProduct: products[0],
-                        filteredCount: filteredProducts.length
-                    });
+                    // Initialize filtered products and display - NO FILTERS
+                    console.log('✅ Produits chargés:', products.length);
                     filteredProducts = [...products];
-                    console.log('filteredProducts après copie:', filteredProducts.length);
-                    displayProductsPage();
-                    // Temporarily disabled: applyAllFilters();
+                    
+                    // Direct display without any filtering
+                    renderAllProducts();
                 } catch (error) {
-                    console.error('Erreur lors du chargement des produits:', error);
-                    productsGrid.innerHTML = '<p>Erreur de chargement des produits.</p>';
-                    emptyState.hidden = true;
+                    console.error('❌ Erreur chargement:', error);
+                    productsGrid.innerHTML = '<p style="color:red;padding:2rem;text-align:center;">Erreur de chargement des produits. Vérifiez la console.</p>';
                 }
+            }
+            
+            // Simple function to render all products directly
+            function renderAllProducts() {
+                const productsGrid = document.getElementById('products');
+                const resultsCount = document.getElementById('results-count');
+                const totalCount = document.getElementById('total-count');
+                
+                console.log('🎨 Rendu de', products.length, 'produits');
+                
+                const html = products.map(product => `
+                    <article class="product" role="listitem" data-id="${product.id}">
+                        <div class="product-image-container">
+                            <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" />
+                            <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Favoris">❤️</button>
+                        </div>
+                        <h3>${product.name}</h3>
+                        <p>${product.description}</p>
+                        <div class="meta">
+                            <span class="product-price">${product.price.toFixed(2)} €</span>
+                            <button class="btn primary add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">Ajouter</button>
+                        </div>
+                    </article>
+                `).join('');
+                
+                productsGrid.innerHTML = html;
+                resultsCount.textContent = products.length;
+                totalCount.textContent = products.length;
+                document.getElementById('products-empty').hidden = true;
+                
+                console.log('✅ Produits affichés dans le DOM');
+                
+                // Attach event listeners
+                attachCartListeners();
+                attachFavoriteListeners();
             }
             
             loadProducts();
@@ -945,57 +976,51 @@
                 attachFavoriteListeners();
             }
             
-            // Sort select handler
-            document.getElementById('sort-select').addEventListener('change', (e) => {
-                // Temporarily disabled - showing all products
-                // sortOrder = e.target.value;
-                // saveFiltersToStorage();
-                // sortAndDisplayProducts();
-            });
+            // Sort select handler - DISABLED
+            // document.getElementById('sort-select').addEventListener('change', (e) => {
+            //     sortOrder = e.target.value;
+            //     saveFiltersToStorage();
+            //     sortAndDisplayProducts();
+            // });
             
-            // Load more button
-            document.getElementById('load-more-btn').addEventListener('click', () => {
-                currentPage++;
-                displayProductsPage();
-                // Scroll to products smoothly
-                document.querySelector('.product:last-child')?.scrollIntoView({ behavior: 'smooth' });
-            });
+            // Load more button - DISABLED (showing all products at once)
+            // document.getElementById('load-more-btn').addEventListener('click', () => {
+            //     currentPage++;
+            //     displayProductsPage();
+            // });
             
-            // Search functionality
-            document.getElementById('search').addEventListener('input', (e) => {
-                // Temporarily disabled - showing all products
-                // const query = e.target.value.toLowerCase();
-                // activeFilters.search = query;
-                // saveFiltersToStorage();
-                // sortAndDisplayProducts();
-            });
+            // Search functionality - DISABLED
+            // document.getElementById('search').addEventListener('input', (e) => {
+            //     const query = e.target.value.toLowerCase();
+            //     activeFilters.search = query;
+            //     saveFiltersToStorage();
+            //     sortAndDisplayProducts();
+            // });
             
-            // Reset filters
-            document.getElementById('reset-filters-search').addEventListener('click', () => {
-                activeFilters = {};
-                sortOrder = 'default';
-                maxPrice = 200;
-                document.getElementById('search').value = '';
-                document.getElementById('sort-select').value = 'default';
-                document.getElementById('price-range').value = '200';
-                document.getElementById('price-display').textContent = '200 €';
-                localStorage.removeItem('lowa_filters');
-
-                sortAndDisplayProducts();
-            });
+            // Reset filters - DISABLED
+            // document.getElementById('reset-filters-search').addEventListener('click', () => {
+            //     activeFilters = {};
+            //     sortOrder = 'default';
+            //     maxPrice = 200;
+            //     document.getElementById('search').value = '';
+            //     document.getElementById('sort-select').value = 'default';
+            //     document.getElementById('price-range').value = '200';
+            //     document.getElementById('price-display').textContent = '200 €';
+            //     localStorage.removeItem('lowa_filters');
+            //     sortAndDisplayProducts();
+            // });
 
             // Scroll to products button (hero CTA)
             // Temporarily disable loading saved filters - showing all products
             // loadFiltersFromStorage();
             
-            // Price range slider handler
-            document.getElementById('price-range').addEventListener('input', (e) => {
-                // Temporarily disabled - showing all products
-                // maxPrice = parseInt(e.target.value);
-                // document.getElementById('price-display').textContent = maxPrice + ' €';
-                // saveFiltersToStorage();
-                // sortAndDisplayProducts();
-            });
+            // Price range slider handler - DISABLED
+            // document.getElementById('price-range').addEventListener('input', (e) => {
+            //     maxPrice = parseInt(e.target.value);
+            //     document.getElementById('price-display').textContent = maxPrice + ' €';
+            //     saveFiltersToStorage();
+            //     sortAndDisplayProducts();
+            // });
             
             document.getElementById('scroll-to-products').addEventListener('click', () => {
                 document.getElementById('products-heading').scrollIntoView({
