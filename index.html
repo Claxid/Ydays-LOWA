@@ -534,68 +534,56 @@
             }
 
             async function loadProducts() {
-                const CACHE_VERSION = 'v14';
+                const CACHE_VERSION = 'v15';
                 const oneHour = 60 * 60 * 1000;
                 const cached = localStorage.getItem('lowa_products_cache');
                 const cacheTime = localStorage.getItem('lowa_products_cache_time');
                 const cacheVersion = localStorage.getItem('lowa_products_cache_version');
-
                 const hasFreshCache = cached && cacheTime && cacheVersion === CACHE_VERSION && (Date.now() - parseInt(cacheTime)) < oneHour;
 
-                // 1) If we have cache, render immediately (no skeleton delay)
-                if (hasFreshCache) {
-                    try { products = JSON.parse(cached); } catch { products = FALLBACK_PRODUCTS; }
-                    filteredProducts = [...products];
-                    renderAllProducts();
-                } else {
-                    showSkeleton();
-                }
+                showSkeleton();
+                let apiSuccess = false;
 
-                // 2) Revalidate in background (API first with short timeout)
+                // Always try API first (prioritize fresh data from admin)
                 try {
-                    const apiRes = await fetchWithTimeout('https://lowa-api.onrender.com/api/products', 2500);
+                    console.log('🌐 Fetching products from API...');
+                    const apiRes = await fetchWithTimeout('https://lowa-api.onrender.com/api/products', 3000);
                     if (!apiRes.ok) throw new Error('API HTTP ' + apiRes.status);
                     const fresh = await apiRes.json();
                     if (Array.isArray(fresh) && fresh.length) {
-                        const baseForMerge = hasFreshCache ? products : FALLBACK_PRODUCTS;
-                        products = mergeProducts(baseForMerge, fresh);
+                        console.log('✅ API returned', fresh.length, 'products');
+                        products = fresh;
+                        filteredProducts = [...products];
+                        renderAllProducts();
                         localStorage.setItem('lowa_products_cache', JSON.stringify(products));
                         localStorage.setItem('lowa_products_cache_time', Date.now().toString());
                         localStorage.setItem('lowa_products_cache_version', CACHE_VERSION);
-                        if (!hasFreshCache) {
-                            filteredProducts = [...products];
-                            renderAllProducts();
-                            return;
-                        } else {
-                            if (products.length > (filteredProducts?.length || 0)) {
-                                filteredProducts = [...products];
-                                renderAllProducts();
-                            }
-                            return;
-                        }
+                        apiSuccess = true;
+                        return;
                     }
-                    throw new Error('API payload invalid');
-                } catch (e) {
-                    // 3) Static fallback only if nothing shown yet
-                    if (!hasFreshCache) {
-                        try {
-                            const staticRes = await fetchWithTimeout('/public/data/products.json?v=14', 1200);
-                            if (staticRes.ok) {
-                                const fallbackList = await staticRes.json();
-                                if (Array.isArray(fallbackList) && fallbackList.length) {
-                                    products = mergeProducts(FALLBACK_PRODUCTS, fallbackList);
-                                    filteredProducts = [...products];
-                                    renderAllProducts();
-                                    return;
-                                }
-                            }
-                        } catch {}
-                        // Final hard fallback
-                        products = [...FALLBACK_PRODUCTS];
+                    throw new Error('Empty API response');
+                } catch (apiErr) {
+                    console.warn('⚠️ API failed:', apiErr.message);
+                }
+
+                // Fallback to cache if API failed
+                if (hasFreshCache && !apiSuccess) {
+                    try {
+                        console.log('📦 Fallback to cache');
+                        products = JSON.parse(cached);
                         filteredProducts = [...products];
                         renderAllProducts();
+                        return;
+                    } catch (e) {
+                        console.warn('⚠️ Cache parse error:', e.message);
                     }
                 }
+
+                // Last resort: hardcoded fallback
+                console.warn('📍 Using hardcoded fallback');
+                products = [...FALLBACK_PRODUCTS];
+                filteredProducts = [...products];
+                renderAllProducts();
             }
             
             // Simple function to render all products directly
