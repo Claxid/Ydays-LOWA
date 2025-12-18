@@ -69,7 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 const data = await response.json();
-                if (data.user.role === 'admin') {
+                const userRole = data.user ? data.user.role : data.role;
+                if (userRole === 'admin') {
                     localStorage.setItem('adminToken', data.token);
                     showDashboard();
                     errorMsg.textContent = '';
