@@ -8,10 +8,14 @@ const cw = (c.width = 3000)
 const ch = (c.height = 3000)
 const c2 = c.cloneNode(true)
 const ctx2 = c2.getContext('2d', { willReadFrequently: true })
-const txtImg = document.querySelector('#snow-text-img')
 
-if (txtImg && txtImg.complete) ctx2.drawImage(txtImg, 560, 1380)
-else if (txtImg) txtImg.onload = () => ctx2.drawImage(txtImg, 560, 1380)
+// Draw LOWA text mask directly on offscreen canvas to avoid missing image issues
+ctx2.fillStyle = '#000'
+ctx2.textAlign = 'center'
+ctx2.textBaseline = 'middle'
+ctx2.font = 'bold 1400px "Arial Black", "Segoe UI", sans-serif'
+ctx2.translate(cw / 2, ch / 2)
+ctx2.fillText('LOWA', 0, 200)
 
 for (let i = 0; i < 1300; i++) makeFlake(i, true)
 
