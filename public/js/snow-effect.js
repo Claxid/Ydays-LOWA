@@ -1,7 +1,10 @@
 // Snow effect animation for LOWA hero section
 const arr = [] // particles
 const c = document.querySelector('#snow-canvas')
-if (!c) return;
+if (!c) {
+    console.warn('❄️ snow: canvas not found')
+    return;
+}
 
 const ctx = c.getContext('2d')
 const cw = (c.width = 3000)
@@ -40,7 +43,7 @@ function makeFlake(i, ff) {
             }
         )
         .seek(ff ? Math.random() * 99 : 0)
-        .timeScale(size / 37)
+        .timeScale(gsap.utils.random(0.8, 1.4))
 }
 
 ctx.fillStyle = '#f4f9ff'

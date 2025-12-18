@@ -229,7 +229,7 @@ a:hover{ color:var(--muted) }
   width: 100vw;
   height: 100vh;
   pointer-events: none;
-  z-index: 1;
+  z-index: 3;
   opacity: 0;
   transition: opacity 0.5s ease;
 }
