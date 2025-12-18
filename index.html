@@ -544,8 +544,9 @@
                         filteredCount: filteredProducts.length
                     });
                     filteredProducts = [...products];
+                    console.log('filteredProducts après copie:', filteredProducts.length);
                     displayProductsPage();
-                    applyAllFilters();
+                    // Temporarily disabled: applyAllFilters();
                 } catch (error) {
                     console.error('Erreur lors du chargement des produits:', error);
                     productsGrid.innerHTML = '<p>Erreur de chargement des produits.</p>';
@@ -878,9 +879,23 @@
             }
             
             function displayProductsPage() {
+                console.log('displayProductsPage appelée', {
+                    filteredProducts: filteredProducts?.length,
+                    currentPage,
+                    PRODUCTS_PER_PAGE
+                });
+                
+                if (!filteredProducts || filteredProducts.length === 0) {
+                    console.error('Aucun produit filtré disponible!');
+                    document.getElementById('products-empty').hidden = false;
+                    return;
+                }
+                
                 const start = (currentPage - 1) * PRODUCTS_PER_PAGE;
                 const end = start + PRODUCTS_PER_PAGE;
                 const paginated = filteredProducts.slice(start, end);
+                
+                console.log('Produits à afficher:', paginated.length, paginated);
                 
                 const productsGrid = document.getElementById('products');
                 const resultsCount = document.getElementById('results-count');
@@ -926,7 +941,7 @@
                 // Update empty state
                 document.getElementById('products-empty').hidden = filteredProducts.length > 0;
                 
-                attachAddToCartListeners();
+                attachCartListeners();
                 attachFavoriteListeners();
             }
             
