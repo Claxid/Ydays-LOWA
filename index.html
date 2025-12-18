@@ -499,6 +499,18 @@
                 burgerBtn.setAttribute('aria-expanded', open);
             });
 
+            // Fetch helper with timeout to avoid spinner bloqué
+            async function fetchWithTimeout(url, ms = 3000) {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), ms);
+                try {
+                    const res = await fetch(url, { cache: 'no-cache', signal: controller.signal });
+                    return res;
+                } finally {
+                    clearTimeout(timer);
+                }
+            }
+
             // Fetch and render products with smart caching
             async function loadProducts() {
                 showSkeleton();
@@ -519,12 +531,10 @@
                         console.log('🌐 Chargement depuis le réseau');
 
                         const paths = [
-                            'https://lowa-api.onrender.com/api/products',  // API Backend
-                            '/data/products.json?v=11',         // Try root first
-                            './data/products.json?v=11',        // Relative from root
-                            '/public/data/products.json?v=11',  // Vercel deployment - public/
-                            './public/data/products.json?v=11', // Relative public/
-                            'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json'
+                            '/public/data/products.json?v=11',  // public folder (prioritaire)
+                            '/data/products.json?v=11',         // racine
+                            'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json',
+                            'https://lowa-api.onrender.com/api/products'  // backend en dernier avec timeout
                         ];
 
                         let response = null;
@@ -532,7 +542,8 @@
 
                         for (const url of paths) {
                             try {
-                                const res = await fetch(url, { cache: 'no-cache' });
+                                const timeoutMs = url.includes('onrender') ? 3000 : 2000;
+                                const res = await fetchWithTimeout(url, timeoutMs);
                                 attempts.push({ url, status: res.status });
                                 if (!res.ok) {
                                     throw new Error(`HTTP ${res.status}: ${res.statusText}`);

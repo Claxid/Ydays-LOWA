@@ -110,16 +110,53 @@
 
         initTheme();
 
+        // Fetch helper with timeout to éviter blocage spinner
+        async function fetchWithTimeout(url, ms = 3000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), ms);
+            try {
+                const res = await fetch(url, { cache: 'no-cache', signal: controller.signal });
+                return res;
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
         // Load products and filter favorites
         async function loadFavorites() {
-            try {
-                const response = await fetch('/public/data/products.json');
-                allProducts = await response.json();
-                renderFavorites();
-            } catch (error) {
-                console.error('Erreur chargement produits:', error);
-                favoritesEmpty.style.display = 'block';
+            const paths = [
+                '/public/data/products.json?v=11',
+                '/data/products.json?v=11',
+                'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json',
+                'https://lowa-api.onrender.com/api/products'
+            ];
+            let response = null;
+            for (const url of paths) {
+                try {
+                    const timeoutMs = url.includes('onrender') ? 3000 : 2000;
+                    const res = await fetchWithTimeout(url, timeoutMs);
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    response = res;
+                    break;
+                } catch (e) {
+                    console.warn('Échec chargement', url, e.message);
+                }
             }
+
+            if (!response) {
+                console.error('Impossible de charger les produits favoris, fallback local');
+                allProducts = [];
+                favoritesEmpty.style.display = 'block';
+                return;
+            }
+
+            try {
+                allProducts = await response.json();
+            } catch (e) {
+                console.error('JSON invalide pour les produits favoris', e);
+                allProducts = [];
+            }
+            renderFavorites();
         }
 
         function renderFavorites() {
