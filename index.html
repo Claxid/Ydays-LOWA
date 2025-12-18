@@ -373,8 +373,8 @@
                         
                         <div class="price-filter">
                             <label for="price-range">Prix max : </label>
-                            <input id="price-range" type="range" min="0" max="200" step="5" value="200" aria-label="Filtrer par prix maximum" />
-                            <span id="price-display">200 €</span>
+                            <input id="price-range" type="range" min="0" max="1000" step="5" value="1000" aria-label="Filtrer par prix maximum" />
+                            <span id="price-display">1000 €</span>
                         </div>
                         
                         <div class="results-counter">
@@ -797,7 +797,7 @@
             
             // Filter functionality
             let activeFilters = {};
-            let maxPrice = 200;
+            let maxPrice = 1000;
             
             // Load filters from localStorage on init
             function loadFiltersFromStorage() {
@@ -806,7 +806,7 @@
                     try {
                         const saved = JSON.parse(stored);
                         activeFilters = saved.filters || {};
-                        maxPrice = saved.maxPrice || 200;
+                        maxPrice = saved.maxPrice || 1000;
                         // Update UI
                         document.getElementById('price-range').value = maxPrice;
                         document.getElementById('price-display').textContent = maxPrice + ' €';
@@ -859,9 +859,9 @@
                         btn.addEventListener('click', (e) => {
                             const clearType = e.target.dataset.clear;
                             if (clearType === 'price') {
-                                maxPrice = 200;
-                                document.getElementById('price-range').value = 200;
-                                document.getElementById('price-display').textContent = '200 €';
+                                maxPrice = 1000;
+                                document.getElementById('price-range').value = 1000;
+                                document.getElementById('price-display').textContent = '1000 €';
                             } else {
                                 delete activeFilters[clearType];
                             }
@@ -1102,11 +1102,11 @@
             document.getElementById('reset-filters-search').addEventListener('click', () => {
                 activeFilters = {};
                 sortOrder = 'default';
-                maxPrice = 200;
+                maxPrice = 1000;
                 document.getElementById('search').value = '';
                 document.getElementById('sort-select').value = 'default';
-                document.getElementById('price-range').value = '200';
-                document.getElementById('price-display').textContent = '200 €';
+                document.getElementById('price-range').value = '1000';
+                document.getElementById('price-display').textContent = '1000 €';
                 localStorage.removeItem('lowa_filters');
                 sortAndDisplayProducts();
             });
