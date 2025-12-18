@@ -243,16 +243,8 @@ a:hover{ color:var(--muted) }
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  aspect-ratio: 1;
-  width: 100%;
-  height: auto;
-}
-
-@media (max-aspect-ratio: 1) {
-  #snow-canvas {
-    width: auto;
-    height: 100%;
-  }
+  width: 100vw;
+  height: 100vh;
 }
 
 .hero-content {

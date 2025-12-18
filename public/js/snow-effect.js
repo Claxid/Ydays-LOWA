@@ -20,7 +20,8 @@ ctx2.fillText('LOWA', 0, 200)
 for (let i = 0; i < 1300; i++) makeFlake(i, true)
 
 function makeFlake(i, ff) {
-    arr.push({ i: i, x: 0, x2: 0, y: 0, s: 0 })
+    const size = gsap.utils.random(1.8, 7, 0.1)
+    arr.push({ i: i, x: 0, x2: 0, y: 0, s: size })
     arr[i].t = gsap
         .timeline({ repeat: -1, repeatRefresh: true })
         .fromTo(
@@ -28,8 +29,7 @@ function makeFlake(i, ff) {
             {
                 x: () => -400 + (cw + 800) * Math.random(),
                 y: -15,
-                // Snowflake size as a real number (no string) so drawing works
-                s: () => gsap.utils.random(1.8, 7, 0.1),
+                s: size,
                 x2: -500,
             },
             {
@@ -40,7 +40,7 @@ function makeFlake(i, ff) {
             }
         )
         .seek(ff ? Math.random() * 99 : 0)
-        .timeScale(arr[i].s / 37)
+        .timeScale(size / 37)
 }
 
 ctx.fillStyle = '#e6f6ff'
