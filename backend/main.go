@@ -971,17 +971,20 @@ func main() {
 	// Middleware to add cache headers
 	cacheMiddleware := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Cache static assets for 30 days
-			if strings.HasPrefix(r.URL.Path, "/assets/") {
-				w.Header().Set("Cache-Control", "public, max-age=2592000, immutable")
-			}
-			// Cache HTML/JSON API responses for 1 hour
-			if strings.HasPrefix(r.URL.Path, "/api/") {
-				w.Header().Set("Cache-Control", "private, max-age=3600")
-			}
-			// Cache HTML pages for 1 hour
+			// NO cache for HTML files - always check for updates
 			if strings.HasSuffix(r.URL.Path, ".html") || r.URL.Path == "/" {
-				w.Header().Set("Cache-Control", "public, max-age=3600")
+				w.Header().Set("Cache-Control", "public, max-age=0, must-revalidate")
+				w.Header().Set("Pragma", "no-cache")
+				w.Header().Set("Expires", "0")
+			} else if strings.HasSuffix(r.URL.Path, ".js") || strings.HasSuffix(r.URL.Path, ".css") {
+				// Short cache for JS/CSS files - 5 minutes
+				w.Header().Set("Cache-Control", "public, max-age=300, must-revalidate")
+			} else if strings.HasPrefix(r.URL.Path, "/assets/") || strings.HasPrefix(r.URL.Path, "/public/") {
+				// Cache other assets for 24 hours (revalidate if modified)
+				w.Header().Set("Cache-Control", "public, max-age=86400, must-revalidate")
+			} else if strings.HasPrefix(r.URL.Path, "/api/") {
+				// No cache for API responses
+				w.Header().Set("Cache-Control", "private, max-age=0, no-cache, no-store, must-revalidate")
 			}
 			next.ServeHTTP(w, r)
 		})

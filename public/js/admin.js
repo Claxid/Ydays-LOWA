@@ -1,5 +1,5 @@
 // Admin Dashboard with API Integration
-const API_BASE_URL = 'https://lowa-api.onrender.com/api';
+const API_BASE_URL = 'http://localhost:8080/api';
 
 document.addEventListener('DOMContentLoaded', () => {
         function invalidateProductsCache() {
