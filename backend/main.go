@@ -65,7 +65,12 @@ type Product struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+type MaintenanceMode struct {
+	Enabled bool `json:"enabled"`
+}
+
 var db *sql.DB
+var maintenanceEnabled = false
 
 func initDB() error {
 	var err error
@@ -189,6 +194,20 @@ func initDB() error {
 	if err != nil {
 		return err
 	}
+
+	// Create maintenance_mode table
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS maintenance_mode (
+			id INTEGER PRIMARY KEY CHECK (id = 1),
+			enabled BOOLEAN DEFAULT 0
+		)
+	`)
+	if err != nil {
+		return err
+	}
+
+	// Ensure maintenance mode record exists
+	db.Exec("INSERT OR IGNORE INTO maintenance_mode (id, enabled) VALUES (1, 0)")
 
 	log.Println("✓ Database initialized successfully (lowa.db)")
 	return nil
@@ -883,6 +902,53 @@ func handleDeleteProduct(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"success": "Product deleted"})
 }
 
+// Get maintenance mode status
+func handleGetMaintenanceMode(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var enabled bool
+	err := db.QueryRow("SELECT enabled FROM maintenance_mode WHERE id = 1").Scan(&enabled)
+	if err != nil {
+		enabled = false
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{"enabled": enabled})
+}
+
+// Set maintenance mode (admin only)
+func handleSetMaintenanceMode(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	_, admin := isAdmin(r)
+	if !admin {
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Admin access required"})
+		return
+	}
+
+	var body MaintenanceMode
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
+		return
+	}
+
+	_, err := db.Exec("UPDATE maintenance_mode SET enabled = ? WHERE id = 1", body.Enabled)
+	if err != nil {
+		log.Printf("Error updating maintenance mode: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to update maintenance mode"})
+		return
+	}
+
+	maintenanceEnabled = body.Enabled
+	log.Printf("Maintenance mode set to: %v", body.Enabled)
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{"enabled": body.Enabled})
+}
+
 func main() {
 	addr := flag.String("addr", ":8080", "address to listen on")
 	flag.Parse()
@@ -959,6 +1025,17 @@ func main() {
 			handleUpdateProduct(w, r)
 		} else if r.Method == http.MethodDelete {
 			handleDeleteProduct(w, r)
+		} else {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}))
+
+	// Maintenance mode API routes
+	http.HandleFunc("/api/maintenance-mode", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleGetMaintenanceMode(w, r)
+		} else if r.Method == http.MethodPost {
+			handleSetMaintenanceMode(w, r)
 		} else {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}

@@ -132,6 +132,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const products = await response.json();
             document.getElementById('products-count').textContent = products.length;
             displayProducts(products);
+            
+            // Load maintenance mode status
+            loadMaintenanceModeStatus();
         } catch (error) {
             console.error('Erreur chargement produits:', error);
             document.getElementById('products-list').innerHTML = '<p>Erreur de chargement</p>';
@@ -173,12 +176,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Add event listeners
         list.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', () => editProduct(products.find(p => p.id === btn.dataset.id)));
+            btn.addEventListener('click', () => {
+                const productId = parseInt(btn.dataset.id);
+                const product = products.find(p => p.id === productId);
+                if (product) {
+                    editProduct(product);
+                }
+            });
         });
         list.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (confirm('Confirmer la suppression ?')) {
-                    deleteProduct(btn.dataset.id);
+                    deleteProduct(parseInt(btn.dataset.id));
                 }
             });
         });
@@ -298,6 +307,55 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Error deleting product:', error);
             alert('❌ Erreur de connexion');
+        }
+    }
+
+    // Maintenance Mode Management
+    const maintenanceCheckbox = document.getElementById('maintenance-mode');
+    
+    maintenanceCheckbox.addEventListener('change', async (e) => {
+        const token = localStorage.getItem('adminToken');
+        const isEnabled = e.target.checked;
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/maintenance-mode`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token
+                },
+                body: JSON.stringify({ enabled: isEnabled })
+            });
+            
+            if (response.ok) {
+                alert(isEnabled ? '✅ Mode maintenance activé' : '✅ Mode maintenance désactivé');
+            } else {
+                const error = await response.json();
+                alert('❌ Erreur: ' + (error.error || 'Impossible de modifier le mode maintenance'));
+                e.target.checked = !isEnabled;
+            }
+        } catch (error) {
+            console.error('Error updating maintenance mode:', error);
+            alert('❌ Erreur de connexion');
+            e.target.checked = !isEnabled;
+        }
+    });
+
+    function loadMaintenanceModeStatus() {
+        const token = localStorage.getItem('adminToken');
+        try {
+            fetch(`${API_BASE_URL}/maintenance-mode`, {
+                headers: {
+                    'Authorization': token
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                maintenanceCheckbox.checked = data.enabled || false;
+            })
+            .catch(err => console.error('Failed to load maintenance status:', err));
+        } catch (error) {
+            console.error('Error loading maintenance status:', error);
         }
     }
 });
