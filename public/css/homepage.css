@@ -378,13 +378,14 @@ a:hover{ color:var(--muted) }
 
 .scroll-hint {
   position: absolute;
-  bottom: 2rem;
+  bottom: 4rem;
   left: 50%;
   transform: translateX(-50%);
   color: var(--dark);
   font-weight: 500;
   opacity: 0.7;
   animation: bounce 2s infinite;
+  z-index: 10;
 }
 
 @keyframes fadeInUp {
