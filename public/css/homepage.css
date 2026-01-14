@@ -1,5 +1,13 @@
+/* Google Fonts Import - Typographie LOWA */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap');
+
 /* Styles de base pour LOWA — minimal, responsive */
 :root{
+  /* Polices typographie */
+  --font-primary: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-secondary: 'Lora', 'Georgia', serif;
+  --font-body: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  
   /* Palette de base (mêmes valeurs que le thème clair) */
   --accent:#c570da;     /* violet riche */
   --dark:#4c423c;       /* marron foncé texte */
@@ -48,56 +56,111 @@
   --accent:#c570da;     /* violet riche */
   --dark:#4c423c;       /* marron foncé pour le texte */
   --muted:#8a7c73;      /* texte secondaire atténué */
-  --pastel-green:#c9d3a3; /* kaki clair pour bordures/fonds légers */
+  --pastel-green:#98a869; /* vert sauge kaki */
   --pale-green:#f2ece7;   /* fond carte très clair */
   --soft-green:#dcd4cb;   /* surface douce intermédiaire */
+  --ocre:#B37A57;       /* ocre chaud */
 }
 
-/* THEME CREPUSCULE - Même palette, nuances assombries (violet/ocre) */
+/* THEME CREPUSCULE - Palette sombre avec violet et accents chaleureux */
 [data-theme="dark"]{
   --bg:#2f2730;         /* fond sombre violine */
-  --accent:#a45ac7;     /* violet assombri */
+  --accent:#c570da;     /* violet riche (même que light pour cohérence) */
   --dark:#E2D8D1;       /* texte beige clair pour contraste */
   --muted:#b296aa;      /* texte secondaire */
-  --pastel-green:#44394a; /* surfaces foncées */
+  --pastel-green:#6b7d4f; /* vert sauge assombri */
   --pale-green:#3a3038;   /* fond cartes sombre */
   --soft-green:#40363f;   /* surface intermédiaire */
+  --ocre:#d4a574;       /* ocre clair pour contraste */
 }
 
-/* THEME TEMPERATE - Palette boisée (beige/ocre/kaki) */
+/* THEME TEMPERATE - Palette boisée avec ocre et vert sauge */
 [data-theme="temperate"]{
   --bg:#e8dfd6;         /* beige boisé */
-  --accent:#B37A57;     /* ocre chaud */
-  --dark:#4c423c;       /* texte principal */
+  --accent:#B37A57;     /* ocre chaud comme couleur principale */
+  --dark:#4c423c;       /* marron foncé pour le texte */
   --muted:#8c705c;      /* texte secondaire */
-  --pastel-green:#b9c493; /* kaki doux pour bordures */
+  --pastel-green:#98a869; /* vert sauge kaki */
   --pale-green:#ebe2d8;   /* fond cartes clair */
   --soft-green:#d8cbbf;   /* surface douce */
 }
 
-/* THEME NOEL - Palette festive (rouge/vert/or) */
+/* THEME NOEL - Palette festive avec couleurs de Noël et palette de base */
 [data-theme="noel"]{
   --bg:#1a1a2e;         /* bleu nuit profond */
   --accent:#c73e1d;     /* rouge festif */
   --dark:#f5f5f5;       /* texte clair */
   --muted:#d4af37;      /* or pour accents */
-  --pastel-green:#2d5016; /* vert sapin */
+  --pastel-green:#2d5016; /* vert sapin inspiré du vert sauge */
   --pale-green:#16213e;   /* fond cartes sombre */
   --soft-green:#0f3460;   /* surface intermédiaire */
+  --ocre:#B37A57;       /* ocre pour accents chaleureux */
 }
 
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:'Inter', 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;color:var(--dark);background:var(--bg);line-height:calc(1.6 * var(--spacing-scale));font-size:calc(16px * var(--font-scale))}
-body{display:flex;flex-direction:column}
+html,body{height:100%;margin:0;font-family:var(--font-body);color:var(--dark);background:var(--bg);line-height:calc(1.6 * var(--spacing-scale));font-size:calc(16px * var(--font-scale))}
+body{display:flex;flex-direction:column;font-family:var(--font-body)}
 main{flex:1}
 
 /* Typography improvements */
-h1, h2, h3, h4, h5, h6{ margin-top:0; font-weight:700; letter-spacing:-0.5px }
-h1{ font-size:calc(2.5rem * var(--font-scale)); line-height:1.2 }
-h2{ font-size:calc(1.8rem * var(--font-scale)); line-height:1.3 }
-p{ margin-bottom:calc(1rem * var(--spacing-scale)) }
-a{ color:var(--accent);text-decoration:none;transition:color var(--transition-fast) }
+h1, h2, h3, h4, h5, h6{ 
+  margin-top:0; 
+  font-weight:700; 
+  letter-spacing:-0.5px;
+  font-family: var(--font-primary);
+  color: var(--dark);
+}
+
+h1{ 
+  font-size:calc(2.5rem * var(--font-scale)); 
+  line-height:1.2;
+  font-weight: 800;
+  font-family: var(--font-primary);
+}
+
+h2{ 
+  font-size:calc(1.8rem * var(--font-scale)); 
+  line-height:1.3;
+  font-weight: 700;
+  font-family: var(--font-primary);
+}
+
+h3{ 
+  font-size:calc(1.4rem * var(--font-scale));
+  line-height:1.3;
+  font-weight: 700;
+  font-family: var(--font-primary);
+}
+
+h4, h5, h6{
+  font-size:calc(1.1rem * var(--font-scale));
+  font-weight: 600;
+  font-family: var(--font-primary);
+}
+
+p{ 
+  margin-bottom:calc(1rem * var(--spacing-scale));
+  font-family: var(--font-body);
+  font-size: calc(1rem * var(--font-scale));
+  line-height: 1.6;
+  color: var(--dark);
+}
+
+a{ color:var(--accent);text-decoration:none;transition:color var(--transition-fast);font-family:inherit }
 a:hover{ color:var(--muted) }
+
+/* Body text */
+body{
+  font-family: var(--font-body);
+  font-size: calc(1rem * var(--font-scale));
+  line-height: 1.6;
+}
+
+/* Branding */
+.brand{
+  font-family: var(--font-primary);
+  font-weight: 800;
+}
 
 /* Layout */
 .container{max-width:var(--container);margin:0 auto;padding:calc(1rem * var(--spacing-scale))}
@@ -118,7 +181,8 @@ a:hover{ color:var(--muted) }
 .site-header:hover{ box-shadow:var(--shadow-medium) }
 .header-inner{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 0;gap:2rem}
 .brand{
-  font-weight:800;
+  font-family: var(--font-primary);
+  font-weight: 800;
   color:var(--dark);
   text-decoration:none;
   font-size:1.3rem;
