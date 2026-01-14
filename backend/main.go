@@ -209,6 +209,21 @@ func initDB() error {
 	// Ensure maintenance mode record exists
 	db.Exec("INSERT OR IGNORE INTO maintenance_mode (id, enabled) VALUES (1, 0)")
 
+	// Create settings table
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS admin_settings (
+			key TEXT PRIMARY KEY,
+			value TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	if err != nil {
+		return err
+	}
+
+	// Ensure default settings exist
+	db.Exec("INSERT OR IGNORE INTO admin_settings (key, value) VALUES ('default_theme', 'noel')")
+
 	log.Println("✓ Database initialized successfully (lowa.db)")
 	return nil
 }
@@ -949,6 +964,80 @@ func handleSetMaintenanceMode(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{"enabled": body.Enabled})
 }
 
+// Get default theme (public endpoint)
+func handleGetDefaultTheme(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var theme string
+	err := db.QueryRow("SELECT value FROM admin_settings WHERE key = 'default_theme'").Scan(&theme)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			theme = "noel"
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Database error"})
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"theme": theme})
+}
+
+// Set default theme (admin only)
+func handleSetDefaultTheme(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	_, admin := isAdmin(r)
+	if !admin {
+		w.WriteHeader(http.StatusForbidden)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Admin access required"})
+		return
+	}
+
+	var body map[string]string
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
+		return
+	}
+
+	theme, ok := body["theme"]
+	if !ok || theme == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Theme is required"})
+		return
+	}
+
+	// Validate theme
+	validThemes := map[string]bool{"noel": true, "light": true, "dark": true, "temperate": true}
+	if !validThemes[theme] {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Invalid theme"})
+		return
+	}
+
+	_, err := db.Exec(
+		"INSERT OR REPLACE INTO admin_settings (key, value, updated_at) VALUES ('default_theme', ?, CURRENT_TIMESTAMP)",
+		theme,
+	)
+	if err != nil {
+		log.Printf("Error updating default theme: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to update theme"})
+		return
+	}
+
+	log.Printf("Default theme updated to: %s", theme)
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"theme":   theme,
+		"message": "Default theme updated successfully",
+	})
+}
+
 func main() {
 	addr := flag.String("addr", ":8080", "address to listen on")
 	flag.Parse()
@@ -1039,6 +1128,17 @@ func main() {
 			handleGetMaintenanceMode(w, r)
 		} else if r.Method == http.MethodPost {
 			handleSetMaintenanceMode(w, r)
+		} else {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	}))
+
+	// Theme settings API routes
+	http.HandleFunc("/api/admin/settings/default-theme", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleGetDefaultTheme(w, r)
+		} else if r.Method == http.MethodPost {
+			handleSetDefaultTheme(w, r)
 		} else {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}

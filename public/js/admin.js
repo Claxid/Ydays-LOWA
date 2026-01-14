@@ -358,4 +358,77 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error loading maintenance status:', error);
         }
     }
+
+    // Default Theme Management
+    const defaultThemeSelect = document.getElementById('default-theme');
+    const saveThemeBtn = document.getElementById('save-theme-btn');
+    const themeMessage = document.getElementById('theme-message');
+
+    if (defaultThemeSelect && saveThemeBtn) {
+        // Load current default theme
+        async function loadDefaultTheme() {
+            const token = localStorage.getItem('adminToken');
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/settings/default-theme`, {
+                    headers: {
+                        'Authorization': token
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    defaultThemeSelect.value = data.theme || 'noel';
+                }
+            } catch (error) {
+                console.error('Error loading default theme:', error);
+            }
+        }
+
+        saveThemeBtn.addEventListener('click', async () => {
+            const token = localStorage.getItem('adminToken');
+            const selectedTheme = defaultThemeSelect.value;
+
+            if (!selectedTheme) {
+                themeMessage.textContent = '❌ Veuillez sélectionner un thème';
+                themeMessage.style.color = '#d32f2f';
+                return;
+            }
+
+            saveThemeBtn.disabled = true;
+            saveThemeBtn.textContent = '⏳ Enregistrement...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/settings/default-theme`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token
+                    },
+                    body: JSON.stringify({ theme: selectedTheme })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    themeMessage.textContent = `✅ Thème par défaut changé à "${selectedTheme}" avec succès!`;
+                    themeMessage.style.color = '#4caf50';
+                    setTimeout(() => {
+                        themeMessage.textContent = '';
+                    }, 3000);
+                } else {
+                    const error = await response.json();
+                    themeMessage.textContent = `❌ Erreur: ${error.error || 'Impossible de changer le thème'}`;
+                    themeMessage.style.color = '#d32f2f';
+                }
+            } catch (error) {
+                console.error('Error saving default theme:', error);
+                themeMessage.textContent = '❌ Erreur de connexion';
+                themeMessage.style.color = '#d32f2f';
+            } finally {
+                saveThemeBtn.disabled = false;
+                saveThemeBtn.textContent = '💾 Enregistrer le thème';
+            }
+        });
+
+        // Load theme on page load
+        loadDefaultTheme();
+    }
 });

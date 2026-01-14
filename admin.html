@@ -68,6 +68,22 @@
                     <p class="help-text">Quand activé, seuls les admins verront le site</p>
                 </div>
             </section>
+
+            <section class="admin-section">
+                <h2>🎨 Thème par défaut</h2>
+                <p class="help-text">Le thème par défaut s'appliquera à tous les nouveaux utilisateurs et visiteurs non connectés</p>
+                <div class="settings-group">
+                    <label for="default-theme">Sélectionnez le thème par défaut :</label>
+                    <select id="default-theme" required>
+                        <option value="noel">❄️ Noël (Mode Neige)</option>
+                        <option value="light">☀️ Clair</option>
+                        <option value="dark">🌙 Sombre</option>
+                        <option value="temperate">🍂 Tempéré</option>
+                    </select>
+                    <button id="save-theme-btn" class="btn btn-primary" style="margin-top: 1rem;">💾 Enregistrer le thème</button>
+                    <p id="theme-message" class="help-text" style="margin-top: 0.5rem;"></p>
+                </div>
+            </section>
         </main>
     </div>
 
