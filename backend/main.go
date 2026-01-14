@@ -222,7 +222,7 @@ func initDB() error {
 	}
 
 	// Ensure default settings exist
-	db.Exec("INSERT OR IGNORE INTO admin_settings (key, value) VALUES ('default_theme', 'noel')")
+	db.Exec("INSERT OR IGNORE INTO admin_settings (key, value) VALUES ('default_theme', 'light')")
 
 	log.Println("✓ Database initialized successfully (lowa.db)")
 	return nil

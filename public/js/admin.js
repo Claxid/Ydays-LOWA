@@ -376,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 if (response.ok) {
                     const data = await response.json();
-                    defaultThemeSelect.value = data.theme || 'noel';
+                    defaultThemeSelect.value = data.theme || 'light';
                 }
             } catch (error) {
                 console.error('Error loading default theme:', error);
