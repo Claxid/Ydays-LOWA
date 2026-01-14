@@ -972,7 +972,7 @@ func handleGetDefaultTheme(w http.ResponseWriter, r *http.Request) {
 	err := db.QueryRow("SELECT value FROM admin_settings WHERE key = 'default_theme'").Scan(&theme)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			theme = "noel"
+			theme = "light"
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Database error"})
