@@ -48,42 +48,45 @@
   --accent:#c570da;     /* violet riche */
   --dark:#4c423c;       /* marron foncé pour le texte */
   --muted:#8a7c73;      /* texte secondaire atténué */
-  --pastel-green:#c9d3a3; /* kaki clair pour bordures/fonds légers */
+  --pastel-green:#98a869; /* vert sauge kaki */
   --pale-green:#f2ece7;   /* fond carte très clair */
   --soft-green:#dcd4cb;   /* surface douce intermédiaire */
+  --ocre:#B37A57;       /* ocre chaud */
 }
 
-/* THEME CREPUSCULE - Même palette, nuances assombries (violet/ocre) */
+/* THEME CREPUSCULE - Palette sombre avec violet et accents chaleureux */
 [data-theme="dark"]{
   --bg:#2f2730;         /* fond sombre violine */
-  --accent:#a45ac7;     /* violet assombri */
+  --accent:#c570da;     /* violet riche (même que light pour cohérence) */
   --dark:#E2D8D1;       /* texte beige clair pour contraste */
   --muted:#b296aa;      /* texte secondaire */
-  --pastel-green:#44394a; /* surfaces foncées */
+  --pastel-green:#6b7d4f; /* vert sauge assombri */
   --pale-green:#3a3038;   /* fond cartes sombre */
   --soft-green:#40363f;   /* surface intermédiaire */
+  --ocre:#d4a574;       /* ocre clair pour contraste */
 }
 
-/* THEME TEMPERATE - Palette boisée (beige/ocre/kaki) */
+/* THEME TEMPERATE - Palette boisée avec ocre et vert sauge */
 [data-theme="temperate"]{
   --bg:#e8dfd6;         /* beige boisé */
-  --accent:#B37A57;     /* ocre chaud */
-  --dark:#4c423c;       /* texte principal */
+  --accent:#B37A57;     /* ocre chaud comme couleur principale */
+  --dark:#4c423c;       /* marron foncé pour le texte */
   --muted:#8c705c;      /* texte secondaire */
-  --pastel-green:#b9c493; /* kaki doux pour bordures */
+  --pastel-green:#98a869; /* vert sauge kaki */
   --pale-green:#ebe2d8;   /* fond cartes clair */
   --soft-green:#d8cbbf;   /* surface douce */
 }
 
-/* THEME NOEL - Palette festive (rouge/vert/or) */
+/* THEME NOEL - Palette festive avec couleurs de Noël et palette de base */
 [data-theme="noel"]{
   --bg:#1a1a2e;         /* bleu nuit profond */
   --accent:#c73e1d;     /* rouge festif */
   --dark:#f5f5f5;       /* texte clair */
   --muted:#d4af37;      /* or pour accents */
-  --pastel-green:#2d5016; /* vert sapin */
+  --pastel-green:#2d5016; /* vert sapin inspiré du vert sauge */
   --pale-green:#16213e;   /* fond cartes sombre */
   --soft-green:#0f3460;   /* surface intermédiaire */
+  --ocre:#B37A57;       /* ocre pour accents chaleureux */
 }
 
 *{box-sizing:border-box}
