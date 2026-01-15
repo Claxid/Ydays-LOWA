@@ -11,9 +11,6 @@
     <link rel="stylesheet" href="/public/css/admin.css">
 </head>
 <body>
-    <div class="snow-bg">
-        <canvas id="snow-canvas"></canvas>
-    </div>
     <div id="login-container" class="admin-container">
         <div class="login-box">
             <h1>🔐 Admin LOWA</h1>
@@ -82,10 +79,10 @@
                 <div class="settings-group">
                     <label for="default-theme">Sélectionnez le thème par défaut :</label>
                     <select id="default-theme" required>
-                        <option value="light">☀️ Clair</option>
-                        <option value="dark">🌙 Sombre</option>
-                        <option value="temperate">🍂 Tempéré</option>
                         <option value="noel">❄️ Noël (Mode Neige)</option>
+                        <option value="light">☀️ Clair</option>
+                        <option value="dark">� Sombre</option>
+                        <option value="temperate">🍂 Tempéré</option>
                     </select>
                     <button id="save-theme-btn" class="btn btn-primary" style="margin-top: 1rem;">💾 Enregistrer le thème</button>
                     <p id="theme-message" class="help-text" style="margin-top: 0.5rem;"></p>
@@ -147,7 +144,6 @@
         </div>
     </div>
 
-    <script src="/public/js/snow-effect.js"></script>
     <script src="/public/js/admin.js"></script>
 </body>
 </html>

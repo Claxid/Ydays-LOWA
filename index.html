@@ -342,12 +342,12 @@
         <main>
             <!-- Hero / Presentation Section (fullscreen) -->
             <section class="hero-presentation">
-                <div style="text-align: center; padding-top: 4rem; margin-bottom: 4rem;">
-                    <h1 style="font-size: 5rem; font-weight: 800; margin: 0; color: var(--theme-text); letter-spacing: 2px;">LOWA</h1>
+                <div class="snow-bg">
+                    <canvas id="snow-canvas"></canvas>
                 </div>
                 <div class="hero-content">
                     <div class="hero-text">
-                        <h1 class="hero-title">LOWA</h1>
+                        <h1 class="hero-title">🌿 LOWA</h1>
                         <p class="hero-subtitle">Mode éthique et durable</p>
                         <p class="hero-description">
                             Les invendus des marques responsables trouvent ici une seconde vie : 
@@ -1193,8 +1193,8 @@
                 const spacing = localStorage.getItem('lowa_pref_spacing') || 'normal';
                 const animations = localStorage.getItem('lowa_pref_animations') !== 'false';
                 
-                // Force light theme as default on each load
-                setTheme('light');
+                // Force Noël as default on each load to ensure snow effect is visible
+                setTheme('noel');
                 applyFontSize(fontSize);
                 applySpacing(spacing);
                 applyAnimations(animations);

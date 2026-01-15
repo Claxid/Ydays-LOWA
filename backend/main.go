@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/lib/pq"
 )
 
 type User struct {
@@ -74,7 +74,11 @@ var maintenanceEnabled = false
 
 func initDB() error {
 	var err error
-	db, err = sql.Open("sqlite", "./lowa.db")
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		return fmt.Errorf("DATABASE_URL environment variable is not set")
+	}
+	db, err = sql.Open("postgres", databaseURL)
 	if err != nil {
 		return err
 	}

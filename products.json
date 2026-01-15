@@ -169,7 +169,7 @@
     "name": "Short en coton bio - Sable",
     "price": 39.00,
     "description": "Short léger en sergé de coton bio, taille ajustable, poches latérales.",
-      "image": "/images/chino-sable.svg",
+    "image": "/images/chino-sable.svg",
     "category": "hommes",
     "subcategory": "pantalons",
     "collection": "eco"
@@ -180,7 +180,7 @@
     "name": "Robe cache-cœur - Terracotta",
     "price": 79.00,
     "description": "Robe cache-cœur en viscose EcoVero, ceinture à nouer, manches 3/4.",
-      "image": "/images/robe-ete.svg",
+    "image": "/images/robe-ete.svg",
     "category": "femmes",
     "subcategory": "robes",
     "collection": "classiques"
@@ -191,7 +191,7 @@
     "name": "Doudoune légère recyclée",
     "price": 139.00,
     "description": "Doudoune compressible en fibres recyclées, chaleur 4 saisons.",
-      "image": "/images/blouson-bleu.svg",
+    "image": "/images/blouson-bleu.svg",
     "category": "hommes",
     "subcategory": "vestes",
     "collection": "recycle"
