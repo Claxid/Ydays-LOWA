@@ -705,6 +705,9 @@
                 document.querySelectorAll('.fav-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         e.stopPropagation();
+                        if (!requireAuth('Connectez-vous ou créez un compte pour gérer vos favoris.')) {
+                            return;
+                        }
                         const productId = e.target.dataset.id;
                         toggleFavorite(productId);
                         e.target.classList.toggle('active');
@@ -780,6 +783,9 @@
             function attachCartListeners() {
                 document.querySelectorAll('.add-to-cart').forEach(btn => {
                     btn.addEventListener('click', (e) => {
+                        if (!requireAuth('Connectez-vous ou créez un compte pour ajouter des articles au panier.')) {
+                            return;
+                        }
                         const productId = e.target.dataset.id;
                         const product = document.querySelector(`[data-id="${productId}"]`);
                         if (!product) return;
@@ -1240,6 +1246,15 @@
             const LOCAL_USERS_KEY = 'lowa_local_users';
             let currentUser = null;
             let sessionToken = null;
+
+            function requireAuth(reason) {
+                if (currentUser) return true;
+                if (reason) {
+                    alert(reason);
+                }
+                openModal('login-modal');
+                return false;
+            }
             
             function loadSessionFromStorage() {
                 const stored = localStorage.getItem('lowa_session');
@@ -1496,6 +1511,14 @@
             
             // Load session on page load
             loadSessionFromStorage();
+
+            // If the page was opened with a login request (e.g., from another page), show the modal
+            (function handleAuthRedirect() {
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('auth') === 'login' && !currentUser) {
+                    openModal('login-modal');
+                }
+            })();
             
             // Cookie Management
             function initCookieBanner() {

@@ -393,6 +393,19 @@
 
         initTheme();
 
+        function requireAuth(reason) {
+            try {
+                const session = JSON.parse(localStorage.getItem('lowa_session') || 'null');
+                if (session && session.user) return true;
+            } catch (e) {}
+            if (reason) {
+                alert(reason);
+            }
+            const redirectTarget = encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = `/index.html?auth=login&redirect=${redirectTarget}`;
+            return false;
+        }
+
         // Simple fetch with timeout
         async function fetchWithTimeout(url, ms = 3500) {
             const controller = new AbortController();
@@ -509,6 +522,9 @@
 
         document.querySelectorAll('.add-to-cart').forEach(btn => {
             btn.addEventListener('click', (e) => {
+                if (!requireAuth('Connectez-vous ou créez un compte pour ajouter des articles au panier.')) {
+                    return;
+                }
                 const img = document.querySelector('.product-main-image img');
                 cart.push({
                     id: e.target.dataset.id,
@@ -570,6 +586,9 @@
             }
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if (!requireAuth('Connectez-vous ou créez un compte pour gérer vos favoris.')) {
+                    return;
+                }
                 toggleFavorite(productId);
                 btn.classList.toggle('active');
                 btn.style.transform = 'scale(1.3)';

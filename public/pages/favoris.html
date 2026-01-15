@@ -106,6 +106,20 @@
             }
         }
         loadFavoritesFromStorage();
+
+        function requireAuth(reason) {
+            try {
+                const session = JSON.parse(localStorage.getItem('lowa_session') || 'null');
+                if (session && session.user) return true;
+            } catch (e) {}
+            if (reason) {
+                alert(reason);
+            }
+            const redirectTarget = encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = `/index.html?auth=login&redirect=${redirectTarget}`;
+            return false;
+        }
+
         let allProducts = [];
 
         // Theme Management
@@ -265,6 +279,9 @@
             document.querySelectorAll('.fav-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    if (!requireAuth('Connectez-vous ou créez un compte pour gérer vos favoris.')) {
+                        return;
+                    }
                     const productId = e.target.dataset.id;
                     toggleFavorite(productId);
                     // Remove from view
@@ -275,6 +292,9 @@
 
         // Clear all favorites
         document.getElementById('clear-favorites').addEventListener('click', () => {
+            if (!requireAuth('Connectez-vous ou créez un compte pour gérer vos favoris.')) {
+                return;
+            }
             if (confirm('Voulez-vous vraiment supprimer tous vos favoris ?')) {
                 favorites = [];
                 localStorage.setItem('lowa_favorites', JSON.stringify(favorites));
@@ -313,6 +333,9 @@
         function attachCartListeners() {
             document.querySelectorAll('.add-to-cart').forEach(btn => {
                 btn.addEventListener('click', (e) => {
+                    if (!requireAuth('Connectez-vous ou créez un compte pour ajouter des articles au panier.')) {
+                        return;
+                    }
                     const productId = e.target.dataset.id;
                     const product = document.querySelector(`[data-id="${productId}"]`);
                     if (!product) return;
