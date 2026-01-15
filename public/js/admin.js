@@ -62,34 +62,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = document.getElementById('admin-password').value;
         const errorMsg = document.getElementById('login-error');
 
-        try {
-            const response = await fetch(`${API_BASE_URL}/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email: 'admin@lowa.com', // Email admin par défaut
-                    password: password
-                })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                const userRole = data.user ? data.user.role : data.role;
-                if (userRole === 'admin') {
-                    localStorage.setItem('adminToken', data.token);
-                    showDashboard();
-                    errorMsg.textContent = '';
-                } else {
-                    errorMsg.textContent = '❌ Accès refusé: compte non-admin';
-                }
-            } else {
-                errorMsg.textContent = '❌ Identifiants incorrects';
-            }
-        } catch (error) {
-            console.error('Login error:', error);
-            errorMsg.textContent = '❌ Erreur de connexion';
+        // Direct password check (admin123)
+        if (password === 'admin123') {
+            const token = 'admin-token-' + Date.now();
+            localStorage.setItem('adminToken', token);
+            showDashboard();
+            errorMsg.textContent = '';
+        } else {
+            errorMsg.textContent = '❌ Mot de passe incorrect';
         }
         
         document.getElementById('admin-password').value = '';
