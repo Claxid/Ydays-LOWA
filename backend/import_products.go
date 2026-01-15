@@ -10,7 +10,7 @@ import (
 	"log"
 	"os"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/lib/pq"
 )
 
 type Product struct {
@@ -25,12 +25,23 @@ type Product struct {
 }
 
 func main() {
+	// Get database URL from environment
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		log.Fatal("DATABASE_URL environment variable is not set")
+	}
+
 	// Open database
-	db, err := sql.Open("sqlite", "../lowa.db")
+	db, err := sql.Open("postgres", databaseURL)
 	if err != nil {
 		log.Fatal("Failed to open database:", err)
 	}
 	defer db.Close()
+
+	// Test connection
+	if err = db.Ping(); err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
 
 	// Read JSON file
 	data, err := os.ReadFile("../public/data/products.json")
@@ -47,9 +58,10 @@ func main() {
 	// Insert products
 	for _, p := range products {
 		_, err := db.Exec(`
-			INSERT OR REPLACE INTO products (id, name, price, description, image, category, subcategory, collection) 
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-		`, p.ID, p.Name, p.Price, p.Description, p.Image, p.Category, p.Subcategory, p.Collection)
+			INSERT INTO produits (nom, description, prix, image_url, id_categorie) 
+			VALUES ($1, $2, $3, $4, (SELECT id FROM categories WHERE nom = $5))
+			ON CONFLICT DO NOTHING
+		`, p.Name, p.Description, p.Price, p.Image, p.Category)
 
 		if err != nil {
 			log.Printf("Failed to insert product %s: %v", p.Name, err)

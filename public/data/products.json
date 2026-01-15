@@ -174,7 +174,7 @@
     "name": "Doudoune légère recyclée",
     "price": 139.0,
     "description": "Doudoune compressible en fibres recyclées, chaleur 4 saisons.",
-      "image": "/public/images/blouson-bleu.svg"
+    "image": "/public/images/blouson-bleu.svg",
     "category": "hommes",
     "subcategory": "vestes",
     "collection": "recycle"
