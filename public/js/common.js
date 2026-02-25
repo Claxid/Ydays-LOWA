@@ -5,7 +5,7 @@
 
 const LOWA = {
   SUPABASE: {
-    URL: 'https://eslvxznzuioygnnszt0y.supabase.co',
+    URL: 'https://feslvznzutoygnnszt0y.supabase.co',
     ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlc2x2em56dXRveWdubnN6dG95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMTI3NzYsImV4cCI6MjA4NzU4ODc3Nn0.6krv4Cuge49e7tTggfql0My22DS_DpnNx5Dgg3utBxA',
     client: null
   },
