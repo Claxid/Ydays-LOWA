@@ -42,22 +42,35 @@ async function loadProducts() {
   showSkeleton();
   let apiSuccess = false;
 
-  // Try API first
+  // Try Supabase first
   try {
-    console.log('🌐 Fetching products from API...');
-    const apiRes = await fetchWithTimeout('https://lowa-api.onrender.com/api/products', 3000);
-    if (!apiRes.ok) throw new Error('API HTTP ' + apiRes.status);
-    const fresh = await apiRes.json();
-    if (Array.isArray(fresh) && fresh.length) {
-      console.log('✅ API returned', fresh.length, 'products');
-      products = fresh;
-      filteredProducts = [...products];
-      renderAllProducts();
-      localStorage.setItem(LOWA.STORAGE.CACHE_KEY, JSON.stringify(products));
-      localStorage.setItem(LOWA.STORAGE.CACHE_TIME_KEY, Date.now().toString());
-      localStorage.setItem(LOWA.STORAGE.CACHE_VERSION_KEY, LOWA.STORAGE.CACHE_VERSION);
-      apiSuccess = true;
-      return;
+    console.log('🌐 Fetching products from Supabase...');
+    const supabaseClient = initSupabase();
+    
+    if (supabaseClient) {
+      const { data, error } = await supabaseClient
+        .from('products')
+        .select('*')
+        .order('id', { ascending: true });
+      
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        console.log('✅ Supabase returned', data.length, 'products');
+        products = data;
+        filteredProducts = [...products];
+        renderAllProducts();
+        localStorage.setItem(LOWA.STORAGE.CACHE_KEY, JSON.stringify(products));
+        localStorage.setItem(LOWA.STORAGE.CACHE_TIME_KEY, Date.now().toString());
+        localStorage.setItem(LOWA.STORAGE.CACHE_VERSION_KEY, LOWA.STORAGE.CACHE_VERSION);
+        apiSuccess = true;
+        return;
+      }
+    }
+    throw new Error('Empty Supabase response');
+  } catch (apiErr) {
+    console.warn('⚠️ Supabase failed:', apiErr.message);
+  }
     }
     throw new Error('Empty API response');
   } catch (apiErr) {

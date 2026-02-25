@@ -4,8 +4,13 @@
  */
 
 const LOWA = {
+  SUPABASE: {
+    URL: 'https://eslvxznzuioygnnszt0y.supabase.co',
+    ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlc2x2em56dXRveWdubnN6dG95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMTI3NzYsImV4cCI6MjA4NzU4ODc3Nn0.6krv4Cuge49e7tTggfql0My22DS_DpnNx5Dgg3utBxA',
+    client: null
+  },
   API: {
-    BASE: 'https://lowa-api.onrender.com/api',
+    BASE: 'https://lowa-api.onrender.com/api', // Ancien - sera supprimé après migration
     LOCAL_USERS_KEY: 'lowa_local_users'
   },
   STORAGE: {
@@ -16,13 +21,31 @@ const LOWA = {
     CACHE_KEY: 'lowa_products_cache',
     CACHE_TIME_KEY: 'lowa_products_cache_time',
     CACHE_VERSION_KEY: 'lowa_products_cache_version',
-    CACHE_VERSION: 'v15',
+    CACHE_VERSION: 'v16', // Bumped for Supabase
     COOKIE_CONSENT_KEY: 'lowa_cookie_consent'
   },
   PAGINATION: {
     PRODUCTS_PER_PAGE: 12
   }
 };
+
+/**
+ * Initialiser le client Supabase
+ */
+function initSupabase() {
+  if (typeof supabase === 'undefined') {
+    console.error('❌ Supabase library not loaded');
+    return null;
+  }
+  if (!LOWA.SUPABASE.client) {
+    LOWA.SUPABASE.client = supabase.createClient(
+      LOWA.SUPABASE.URL,
+      LOWA.SUPABASE.ANON_KEY
+    );
+    console.log('✅ Supabase client initialized');
+  }
+  return LOWA.SUPABASE.client;
+}
 
 /**
  * Format un prix numérique
