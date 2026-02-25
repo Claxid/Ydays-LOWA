@@ -33,16 +33,25 @@ const LOWA = {
  * Initialiser le client Supabase
  */
 function initSupabase() {
-  if (typeof supabase === 'undefined') {
-    console.error('❌ Supabase library not loaded');
+  // Check if Supabase library is loaded
+  const supabaseLib = window.supabase;
+  
+  if (!supabaseLib || typeof supabaseLib.createClient !== 'function') {
+    console.error('❌ Supabase library not loaded. Check CDN link.');
     return null;
   }
+  
   if (!LOWA.SUPABASE.client) {
-    LOWA.SUPABASE.client = supabase.createClient(
-      LOWA.SUPABASE.URL,
-      LOWA.SUPABASE.ANON_KEY
-    );
-    console.log('✅ Supabase client initialized');
+    try {
+      LOWA.SUPABASE.client = supabaseLib.createClient(
+        LOWA.SUPABASE.URL,
+        LOWA.SUPABASE.ANON_KEY
+      );
+      console.log('✅ Supabase client initialized');
+    } catch (err) {
+      console.error('❌ Supabase initialization error:', err);
+      return null;
+    }
   }
   return LOWA.SUPABASE.client;
 }

@@ -71,11 +71,6 @@ async function loadProducts() {
   } catch (apiErr) {
     console.warn('⚠️ Supabase failed:', apiErr.message);
   }
-    }
-    throw new Error('Empty API response');
-  } catch (apiErr) {
-    console.warn('⚠️ API failed:', apiErr.message);
-  }
 
   // Fallback to cache
   if (hasFreshCache && !apiSuccess) {
