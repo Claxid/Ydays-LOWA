@@ -1,0 +1,200 @@
+/**
+ * LOWA - Products Module
+ * Chargement et affichage des produits
+ */
+
+let products = [];
+let filteredProducts = [];
+let currentPage = 1;
+let sortOrder = 'default';
+
+const FALLBACK_PRODUCTS = [
+  {"id":1,"name":"T-shirt BIO - Naturel","price":29.00,"description":"T-shirt en coton biologique certifié. Coupe confortable, coloris naturels.","image":"/public/images/tshirt-naturel.svg","category":"hommes","subcategory":"t-shirts","collection":"eco"},
+  {"id":2,"name":"Pull recyclé - Gris","price":79.00,"description":"Pull fabriqué à partir de fibres recyclées. Chaud et durable.","image":"/public/images/pull-gris.svg","category":"hommes","subcategory":"vestes","collection":"recycle"},
+  {"id":3,"name":"Pantalon éco - Kaki","price":59.00,"description":"Pantalon en tissu certifié avec renforts minimalistes.","image":"/public/images/pantalon-kaki.svg","category":"hommes","subcategory":"pantalons","collection":"eco"},
+  {"id":4,"name":"Veste en Lin - Beige","price":89.00,"description":"Veste légère en lin naturel, parfaite pour la mi-saison. Coupe ajustée.","image":"/public/images/veste-lin-beige.svg","category":"femmes","subcategory":"vestes","collection":"classiques"},
+  {"id":5,"name":"Robe d'été - Blanc cassé","price":65.00,"description":"Robe fluide en coton bio, idéale pour l'été. Fabrication locale.","image":"/public/images/robe-ete.svg","category":"femmes","subcategory":"robes","collection":"eco"},
+  {"id":6,"name":"Top en fibres recyclées - Rose","price":35.00,"description":"Top féminin fabriqué à partir de bouteilles plastiques recyclées.","image":"/public/images/top-rose.svg","category":"femmes","subcategory":"tops","collection":"recycle"},
+  {"id":7,"name":"Jupe midi - Marine","price":55.00,"description":"Jupe mi-longue en coton bio certifié GOTS. Coupe élégante.","image":"/public/images/jupe-marine.svg","category":"femmes","subcategory":"robes","collection":"classiques"},
+  {"id":8,"name":"Chemise lin - Blanc","price":49.00,"description":"Chemise intemporelle en lin français. Production éthique.","image":"/public/images/chemise-lin.svg","category":"hommes","subcategory":"t-shirts","collection":"classiques"},
+  {"id":9,"name":"Sac en toile recyclée - Noir","price":25.00,"description":"Sac cabas en toile recyclée, résistant et pratique au quotidien.","image":"/public/images/sac-recyc.svg","category":"femmes","subcategory":"accessoires","collection":"recycle"},
+  {"id":10,"name":"Écharpe en laine bio - Camel","price":39.00,"description":"Écharpe douce en laine biologique. Teinture végétale.","image":"/public/images/echarpe.svg","category":"femmes","subcategory":"accessoires","collection":"eco"},
+  {"id":11,"name":"Pantalon chino - Sable","price":69.00,"description":"Chino en coton bio, coupe moderne et confortable.","image":"/public/images/chino-sable.svg","category":"hommes","subcategory":"pantalons","collection":"classiques"},
+  {"id":12,"name":"Blouson recyclé - Bleu nuit","price":95.00,"description":"Blouson fabriqué à partir de fibres recyclées. Design urbain.","image":"/public/images/blouson-bleu.svg","category":"hommes","subcategory":"vestes","collection":"recycle"},
+  {"id":13,"name":"Sweat organique - Écru","price":59.00,"description":"Sweat doux en coton organique, intérieur gratté, coupe unisexe.","image":"/public/images/pull-gris.svg","category":"hommes","subcategory":"t-shirts","collection":"eco"},
+  {"id":14,"name":"Parka imperméable recyclée","price":129.00,"description":"Parka longue, membrane recyclée, coutures étanchées, capuche ajustable.","image":"/public/images/blouson-bleu.svg","category":"femmes","subcategory":"vestes","collection":"recycle"},
+  {"id":15,"name":"Cardigan laine bio - Olive","price":72.00,"description":"Cardigan en laine biologique, maille perlée, boutons en corozo.","image":"/public/images/veste-lin-beige.svg","category":"femmes","subcategory":"vestes","collection":"classiques"},
+  {"id":16,"name":"Short en coton bio - Sable","price":39.00,"description":"Short léger en sergé de coton bio, taille ajustable, poches latérales.","image":"/public/images/chino-sable.svg","category":"hommes","subcategory":"pantalons","collection":"eco"},
+  {"id":17,"name":"Robe cache-cœur - Terracotta","price":79.00,"description":"Robe cache-cœur en viscose EcoVero, ceinture à nouer, manches 3/4.","image":"/public/images/robe-ete.svg","category":"femmes","subcategory":"robes","collection":"classiques"},
+  {"id":18,"name":"Doudoune légère recyclée","price":139.00,"description":"Doudoune compressible en fibres recyclées, chaleur 4 saisons.","image":"/public/images/blouson-bleu.svg","category":"hommes","subcategory":"vestes","collection":"recycle"}
+];
+
+/**
+ * Charger les produits avec cache et fallback
+ */
+async function loadProducts() {
+  const oneHour = 60 * 60 * 1000;
+  const cached = localStorage.getItem(LOWA.STORAGE.CACHE_KEY);
+  const cacheTime = localStorage.getItem(LOWA.STORAGE.CACHE_TIME_KEY);
+  const cacheVersion = localStorage.getItem(LOWA.STORAGE.CACHE_VERSION_KEY);
+  const hasFreshCache = cached && cacheTime && cacheVersion === LOWA.STORAGE.CACHE_VERSION && (Date.now() - parseInt(cacheTime)) < oneHour;
+
+  showSkeleton();
+  let apiSuccess = false;
+
+  // Try API first
+  try {
+    console.log('🌐 Fetching products from API...');
+    const apiRes = await fetchWithTimeout('https://lowa-api.onrender.com/api/products', 3000);
+    if (!apiRes.ok) throw new Error('API HTTP ' + apiRes.status);
+    const fresh = await apiRes.json();
+    if (Array.isArray(fresh) && fresh.length) {
+      console.log('✅ API returned', fresh.length, 'products');
+      products = fresh;
+      filteredProducts = [...products];
+      renderAllProducts();
+      localStorage.setItem(LOWA.STORAGE.CACHE_KEY, JSON.stringify(products));
+      localStorage.setItem(LOWA.STORAGE.CACHE_TIME_KEY, Date.now().toString());
+      localStorage.setItem(LOWA.STORAGE.CACHE_VERSION_KEY, LOWA.STORAGE.CACHE_VERSION);
+      apiSuccess = true;
+      return;
+    }
+    throw new Error('Empty API response');
+  } catch (apiErr) {
+    console.warn('⚠️ API failed:', apiErr.message);
+  }
+
+  // Fallback to cache
+  if (hasFreshCache && !apiSuccess) {
+    try {
+      console.log('📦 Fallback to cache');
+      products = JSON.parse(cached);
+      filteredProducts = [...products];
+      renderAllProducts();
+      return;
+    } catch (e) {
+      console.warn('⚠️ Cache parse error:', e.message);
+    }
+  }
+
+  // Last resort
+  console.warn('📍 Using hardcoded fallback');
+  products = [...FALLBACK_PRODUCTS];
+  filteredProducts = [...products];
+  renderAllProducts();
+}
+
+/**
+ * Afficher tous les produits
+ */
+function renderAllProducts() {
+  const productsGrid = document.getElementById('products');
+  const resultsCount = document.getElementById('results-count');
+  const totalCount = document.getElementById('total-count');
+  
+  console.log('🎨 Rendu de', products.length, 'produits');
+  
+  const html = products.map(product => `
+    <article class="product" role="listitem" data-id="${product.id}">
+      <div class="product-image-container">
+        <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
+        <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Favoris">❤️</button>
+      </div>
+      <h3>${product.name}</h3>
+      <p>${product.description}</p>
+      <div class="meta">
+        <span class="product-price">${formatPrice(product.price)} €</span>
+        <button class="btn primary add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">Ajouter</button>
+      </div>
+    </article>
+  `).join('');
+  
+  productsGrid.innerHTML = html;
+  resultsCount.textContent = products.length;
+  totalCount.textContent = products.length;
+  document.getElementById('products-empty').hidden = true;
+  
+  attachCartListeners();
+  attachFavoriteListeners();
+}
+
+/**
+ * Afficher les produits paginés
+ */
+function displayProductsPage() {
+  if (!filteredProducts || filteredProducts.length === 0) {
+    document.getElementById('products-empty').hidden = false;
+    return;
+  }
+  
+  const start = (currentPage - 1) * LOWA.PAGINATION.PRODUCTS_PER_PAGE;
+  const end = start + LOWA.PAGINATION.PRODUCTS_PER_PAGE;
+  const paginated = filteredProducts.slice(start, end);
+  
+  const productsGrid = document.getElementById('products');
+  const resultsCount = document.getElementById('results-count');
+  const totalCount = document.getElementById('total-count');
+  const paginationContainer = document.getElementById('pagination-container');
+  
+  const collectionLabels = {
+    'eco': '🌱 Éco',
+    'recycle': '♻️ Recyclé',
+    'classiques': '✨ Classique'
+  };
+
+  resultsCount.textContent = Math.min(currentPage * LOWA.PAGINATION.PRODUCTS_PER_PAGE, filteredProducts.length);
+  totalCount.textContent = filteredProducts.length;
+  
+  const html = paginated.map(product => `
+    <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${collectionLabels[product.collection] || product.collection}">
+      <div class="product-image-container">
+        <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
+        <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">❤️</button>
+      </div>
+      <h3>${product.name}</h3>
+      <p>${product.description}</p>
+      <div class="meta">
+        <span class="product-price">${formatPrice(product.price)} €</span>
+        <button class="btn primary add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">Ajouter</button>
+      </div>
+    </article>
+  `).join('');
+  
+  if (currentPage === 1) {
+    productsGrid.innerHTML = html;
+  } else {
+    productsGrid.innerHTML += html;
+  }
+  
+  const hasMore = (currentPage * LOWA.PAGINATION.PRODUCTS_PER_PAGE) < filteredProducts.length;
+  paginationContainer.hidden = !hasMore || filteredProducts.length === 0;
+  document.getElementById('products-empty').hidden = filteredProducts.length > 0;
+  
+  attachCartListeners();
+  attachFavoriteListeners();
+}
+
+/**
+ * Attacher les événements du panier
+ */
+function attachCartListeners() {
+  document.querySelectorAll('.add-to-cart').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      if (!requireAuth('Connectez-vous ou créez un compte pour ajouter des articles au panier.')) {
+        return;
+      }
+      const productId = e.target.dataset.id;
+      const product = document.querySelector(`[data-id="${productId}"]`);
+      if (!product) return;
+      const img = product.querySelector('img');
+      addToCart({
+        id: productId,
+        name: e.target.dataset.name,
+        price: parseFloat(e.target.dataset.price),
+        image: img.src
+      });
+      e.target.textContent = '✓ Ajouté';
+      setTimeout(() => { e.target.textContent = 'Ajouter'; }, 1500);
+    });
+  });
+}

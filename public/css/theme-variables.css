@@ -1,0 +1,170 @@
+/* LOWA - Theme Variables */
+
+:root {
+  /* Typography */
+  --font-primary: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-secondary: 'Lora', 'Georgia', serif;
+  --font-body: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  
+  /* Color Palette */
+  --palette-beige: #E2D8D1;
+  --palette-violet: #c570da;
+  --palette-kaki: #98a869;
+  --palette-ocre: #B37A57;
+  --palette-marron: #4c423c;
+  
+  /* Light Mode (default) */
+  --theme-bg: #E2D8D1;
+  --theme-surface: #E2D8D1;
+  --theme-text: #4c423c;
+  --theme-text-muted: #8a7c73;
+  --theme-border: #dcd4cb;
+  --theme-accent: #c570da;
+  --theme-accent-light: rgba(197,112,218,0.14);
+  --theme-input-bg: #E2D8D1;
+  --theme-input-border: #dcd4cb;
+  --theme-kaki: #98a869;
+  --theme-ocre: #B37A57;
+}
+
+/* Dark Mode */
+html[data-theme="dark"] {
+  --theme-bg: #2f2730;
+  --theme-surface: #2f2730;
+  --theme-text: #E2D8D1;
+  --theme-text-muted: #b296aa;
+  --theme-border: #44394a;
+  --theme-accent: #c570da;
+  --theme-accent-light: rgba(197,112,218,0.2);
+  --theme-input-bg: #2f2730;
+  --theme-input-border: #44394a;
+  --theme-kaki: #6b7d4f;
+  --theme-ocre: #d4a574;
+}
+
+/* Temperate Mode */
+html[data-theme="temperate"] {
+  --theme-bg: #e8dfd6;
+  --theme-surface: #e8dfd6;
+  --theme-text: #4c423c;
+  --theme-text-muted: #8c705c;
+  --theme-border: #d8cbbf;
+  --theme-accent: #B37A57;
+  --theme-accent-light: rgba(179,122,87,0.16);
+  --theme-input-bg: #e8dfd6;
+  --theme-input-border: #d8cbbf;
+  --theme-kaki: #98a869;
+  --theme-ocre: #B37A57;
+}
+
+/* Noel Mode */
+html[data-theme="noel"] {
+  --theme-bg: #1a1a2e;
+  --theme-surface: #1a1a2e;
+  --theme-text: #f5f5f5;
+  --theme-text-muted: #d4af37;
+  --theme-border: #2d3e50;
+  --theme-accent: #c73e1d;
+  --theme-accent-light: rgba(199,62,29,0.16);
+  --theme-input-bg: #1a1a2e;
+  --theme-input-border: #2d3e50;
+  --theme-kaki: #2d5016;
+  --theme-ocre: #B37A57;
+}
+
+/* Apply themes globally */
+html[data-theme] body {
+  background: var(--theme-bg);
+  color: var(--theme-text);
+}
+
+html[data-theme] a {
+  color: var(--theme-accent);
+}
+
+html[data-theme] .site-header {
+  background: var(--theme-surface);
+  border-bottom-color: var(--theme-border);
+}
+
+html[data-theme] .main-nav a,
+html[data-theme] .main-nav button {
+  color: var(--theme-text-muted);
+}
+
+html[data-theme] .main-nav a:hover,
+html[data-theme] .main-nav button:hover {
+  color: var(--theme-text);
+  background: var(--theme-accent-light);
+}
+
+html[data-theme] .btn {
+  background: var(--theme-accent);
+  color: var(--theme-surface);
+  border-color: var(--theme-accent);
+}
+
+html[data-theme] input[type="text"],
+html[data-theme] input[type="email"],
+html[data-theme] input[type="password"],
+html[data-theme] input[type="search"],
+html[data-theme] select {
+  background: var(--theme-input-bg);
+  color: var(--theme-text);
+  border-color: var(--theme-input-border);
+}
+
+html[data-theme] .modal-content {
+  background: var(--theme-surface);
+  color: var(--theme-text);
+}
+
+html[data-theme] .cookie-banner {
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+  color: var(--theme-text);
+}
+
+html[data-theme] .product {
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+  color: var(--theme-text);
+}
+
+html[data-theme] .empty-state {
+  border-color: var(--theme-border);
+  color: var(--theme-text-muted);
+}
+
+html[data-theme] .dropdown-content {
+  background: var(--theme-surface);
+  color: var(--theme-text);
+}
+
+html[data-theme] .dropdown-content a {
+  color: var(--theme-text-muted);
+}
+
+html[data-theme] .dropdown-content a:hover {
+  background: var(--theme-accent-light);
+  color: var(--theme-text);
+}
+
+/* Theme Toggle Button */
+.theme-btn {
+  background: transparent;
+  border: none;
+  color: var(--theme-text);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.theme-btn:hover {
+  background: var(--theme-accent-light);
+  transform: scale(1.1);
+}
