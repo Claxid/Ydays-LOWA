@@ -192,6 +192,12 @@ body{
   flex-shrink:0;
 }
 .brand:hover{ color:var(--accent);transform:scale(1.05) }
+.brand-logo{
+  display:block;
+  height:34px;
+  width:auto;
+  max-width:170px;
+}
 
 /* Navigation */
 .main-nav{display:flex;align-items:center;gap:2rem;flex:1;justify-content:center;flex-wrap:wrap}
@@ -1288,6 +1294,7 @@ body{
 @media (max-width:400px){
   h1{ font-size:1.8rem }
   .brand{ font-size:1.2rem }
+  .brand-logo{ height:30px; max-width:150px }
   .product-price{ font-size:1.15rem }
 }
 

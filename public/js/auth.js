@@ -20,7 +20,6 @@ async function savePublicProfileRecord(supabaseClient, profile) {
   if (!supabaseClient || !profile || !profile.email) return;
 
   const payload = {
-    id: Date.now(),
     email: profile.email,
     prenom: profile.prenom || null,
     nom: profile.nom || null,
@@ -28,7 +27,9 @@ async function savePublicProfileRecord(supabaseClient, profile) {
   };
 
   try {
-    const { error } = await supabaseClient.from('users').insert(payload);
+    const { error } = await supabaseClient
+      .from('users')
+      .upsert(payload, { onConflict: 'email' });
     if (error) {
       const isDuplicate = /duplicate key|unique constraint/i.test(error.message || '');
       if (!isDuplicate) {
