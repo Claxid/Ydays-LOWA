@@ -87,20 +87,29 @@ async function toggleFavorite(productId) {
  * Attacher les événements des favoris
  */
 function attachFavoriteListeners() {
-  document.querySelectorAll('.fav-btn').forEach(btn => {
+  const buttons = document.querySelectorAll('.fav-btn');
+  console.log('📌 attachFavoriteListeners called');
+  console.log('📌 Found', buttons.length, 'favorite buttons');
+  
+  buttons.forEach((btn, index) => {
+    console.log(`📌 Attaching listener to button ${index}, data-id="${btn.dataset.id}"`);
     btn.addEventListener('click', (e) => {
+      console.log('🖱️ Favorite button clicked!', e.target.dataset.id);
       const run = async () => {
-      e.stopPropagation();
-      if (!requireAuth('Connectez-vous ou créez un compte pour gérer vos favoris.')) {
-        return;
-      }
-      const productId = e.target.dataset.id;
-      await toggleFavorite(productId);
-      e.target.classList.toggle('active');
-      e.target.style.transform = 'scale(1.3)';
-      setTimeout(() => { e.target.style.transform = ''; }, 200);
+        e.stopPropagation();
+        if (!requireAuth('Connectez-vous ou créez un compte pour gérer vos favoris.')) {
+          console.warn('⚠️ Auth check failed');
+          return;
+        }
+        const productId = e.target.dataset.id;
+        await toggleFavorite(productId);
+        e.target.classList.toggle('active');
+        e.target.style.transform = 'scale(1.3)';
+        setTimeout(() => { e.target.style.transform = ''; }, 200);
       };
-      run().catch(() => {});
+      run().catch((err) => {
+        console.error('❌ Error in favorite handler:', err);
+      });
     });
   });
 }
