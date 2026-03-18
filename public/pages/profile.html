@@ -718,6 +718,9 @@
             // Update session storage
             const session = JSON.parse(localStorage.getItem('lowa_session') || '{}');
             session.user = Object.assign({}, session.user || {}, updatedUser || {});
+            if (!session.storage_scope && session.user && (session.user.id || session.user.email)) {
+              session.storage_scope = String(session.user.id || session.user.email);
+            }
             localStorage.setItem('lowa_session', JSON.stringify(session));
             profileScopedSet('lowa_avatar', base64);
 
@@ -734,6 +737,9 @@
 
             const session = JSON.parse(localStorage.getItem('lowa_session') || '{}');
             session.user = Object.assign({}, session.user || {}, { pdp: base64 });
+            if (!session.storage_scope && session.user && (session.user.id || session.user.email)) {
+              session.storage_scope = String(session.user.id || session.user.email);
+            }
             localStorage.setItem('lowa_session', JSON.stringify(session));
 
             alert('Photo enregistrée localement sur cet appareil.');

@@ -69,6 +69,12 @@ function getActiveStorageUserId() {
     const raw = localStorage.getItem(LOWA.STORAGE.SESSION_KEY);
     if (raw) {
       const session = JSON.parse(raw);
+      const explicitScope = session && session.storage_scope ? sanitizeStorageSegment(session.storage_scope) : null;
+      if (explicitScope && explicitScope !== 'guest') {
+        setActiveStorageUserId(explicitScope);
+        return explicitScope;
+      }
+
       const user = session && session.user ? session.user : null;
       const jwtPayload = decodeJwtPayload(session && session.token ? session.token : '');
       const idOrEmail =

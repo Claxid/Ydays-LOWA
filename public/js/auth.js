@@ -5,6 +5,11 @@
 let currentUser = null;
 let sessionToken = null;
 
+function buildSessionStorageScope(token, user) {
+  const basis = (user && (user.id || user.email)) || token || 'guest';
+  return sanitizeStorageSegment(basis);
+}
+
 function refreshScopedClientState() {
   try {
     if (typeof loadFavoritesFromStorage === 'function') {
@@ -92,8 +97,11 @@ function loadSessionFromStorage() {
     const session = JSON.parse(stored);
     sessionToken = session.token || null;
     currentUser = session.user || null;
+    const storageScope = session.storage_scope || buildSessionStorageScope(sessionToken, currentUser);
+    session.storage_scope = storageScope;
+    localStorage.setItem(LOWA.STORAGE.SESSION_KEY, JSON.stringify(session));
     if (typeof setActiveStorageUserId === 'function') {
-      setActiveStorageUserId((currentUser && (currentUser.id || currentUser.email)) || sessionToken || 'guest');
+      setActiveStorageUserId(storageScope);
     }
     updateUserUI();
   } catch (e) {
@@ -107,9 +115,10 @@ function loadSessionFromStorage() {
 function saveSession(token, user) {
   sessionToken = token;
   currentUser = user;
-  localStorage.setItem(LOWA.STORAGE.SESSION_KEY, JSON.stringify({ token, user }));
+  const storageScope = buildSessionStorageScope(token, user);
+  localStorage.setItem(LOWA.STORAGE.SESSION_KEY, JSON.stringify({ token, user, storage_scope: storageScope }));
   if (typeof setActiveStorageUserId === 'function') {
-    setActiveStorageUserId((user && (user.id || user.email)) || token || 'guest');
+    setActiveStorageUserId(storageScope);
   }
   refreshScopedClientState();
   updateUserUI();
