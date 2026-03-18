@@ -5,6 +5,7 @@
 
 let cart = [];
 const CART_STORAGE_KEY = 'lowa_cart';
+let isHydratingCart = false;
 
 /**
  * Initialiser le panier
@@ -16,6 +17,21 @@ function initCart() {
   cart = raw ? JSON.parse(raw) : [];
   updateCartUI();
   setupCartListeners();
+  hydrateCartFromCloud();
+}
+
+async function hydrateCartFromCloud() {
+  try {
+    const state = await lowaReadUserState();
+    if (!state || !Array.isArray(state.cart)) return;
+    isHydratingCart = true;
+    cart = state.cart;
+    updateCartUI();
+  } catch (e) {
+    console.warn('Hydrate cart warning:', e && e.message ? e.message : e);
+  } finally {
+    isHydratingCart = false;
+  }
 }
 
 /**
@@ -46,6 +62,10 @@ function updateCartUI() {
     scopedStorageSet(CART_STORAGE_KEY, JSON.stringify(cart));
   } else {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+  }
+
+  if (!isHydratingCart) {
+    lowaWriteUserStatePatch({ cart: cart }).catch(() => {});
   }
   
   // Sync with database if logged in

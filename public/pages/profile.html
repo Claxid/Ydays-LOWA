@@ -363,6 +363,33 @@
         }
       }
 
+      async function hydrateProfileStateFromCloud() {
+        try {
+          const state = await lowaReadUserState();
+          if (!state) return;
+
+          if (state.avatar) {
+            profileScopedSet('lowa_avatar', state.avatar);
+            loadAvatar();
+          }
+
+          if (state.theme) {
+            profileScopedSet('lowa_theme', state.theme);
+            applyTheme(state.theme);
+          }
+
+          if (state.font_size) profileScopedSet('lowa_pref_font_size', state.font_size);
+          if (state.spacing) profileScopedSet('lowa_pref_spacing', state.spacing);
+          if (typeof state.animations === 'boolean') profileScopedSet('lowa_pref_animations', String(state.animations));
+          if (state.language) profileScopedSet('lowa_pref_lang', state.language);
+          if (typeof state.notif === 'boolean') profileScopedSet('lowa_pref_notif', String(state.notif));
+
+          loadAdvancedPrefs();
+        } catch (e) {
+          console.warn('Hydrate profile state warning:', e && e.message ? e.message : e);
+        }
+      }
+
       document.getElementById('avatar').addEventListener('click', () => {
         document.getElementById('avatar-upload').click();
       });
@@ -615,6 +642,15 @@
         profileScopedSet('lowa_theme', String(theme));
         profileScopedSet('lowa_pref_font_size', String(fontSize));
         profileScopedSet('lowa_pref_spacing', String(spacing));
+
+        lowaWriteUserStatePatch({
+          theme: String(theme),
+          font_size: String(fontSize),
+          spacing: String(spacing),
+          animations: Boolean(animations),
+          language: String(lang),
+          notif: Boolean(notif)
+        }).catch(() => {});
         
         // Apply animations preference
         if (!animations) {
@@ -723,6 +759,7 @@
             }
             localStorage.setItem('lowa_session', JSON.stringify(session));
             profileScopedSet('lowa_avatar', base64);
+            lowaWriteUserStatePatch({ avatar: base64 }).catch(() => {});
 
             console.log('Photo de profil mise à jour avec succès');
           } catch (err) {
@@ -734,6 +771,7 @@
             avatarContainer.style.backgroundImage = `url(${base64})`;
             avatarText.style.display = 'none';
             profileScopedSet('lowa_avatar', base64);
+            lowaWriteUserStatePatch({ avatar: base64 }).catch(() => {});
 
             const session = JSON.parse(localStorage.getItem('lowa_session') || '{}');
             session.user = Object.assign({}, session.user || {}, { pdp: base64 });
@@ -760,6 +798,7 @@
         loadSession();
         try {
           console.log('Initialisation du profil...');
+          await hydrateProfileStateFromCloud();
           await fetchUser();
           await fetchHistory();
           await loadPrefs();

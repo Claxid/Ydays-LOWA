@@ -30,6 +30,24 @@ function loadFavoritesFromStorage() {
   }
 }
 
+async function hydrateFavoritesFromCloud() {
+  try {
+    const state = await lowaReadUserState();
+    if (!state || !Array.isArray(state.favorites)) return;
+    favorites = Array.from(new Set(state.favorites.map(v => parseInt(v, 10)).filter(n => Number.isFinite(n))));
+    if (typeof scopedStorageSet === 'function') {
+      scopedStorageSet(LOWA.STORAGE.FAVORITES_KEY, JSON.stringify(favorites));
+    } else {
+      localStorage.setItem(LOWA.STORAGE.FAVORITES_KEY, JSON.stringify(favorites));
+    }
+    if (typeof sortAndDisplayProducts === 'function') {
+      sortAndDisplayProducts();
+    }
+  } catch (e) {
+    console.warn('Hydrate favorites warning:', e && e.message ? e.message : e);
+  }
+}
+
 /**
  * Vérifier si un produit est en favoris
  */
@@ -41,7 +59,7 @@ function isFavorite(productId) {
 /**
  * Basculer le statut favori
  */
-function toggleFavorite(productId) {
+async function toggleFavorite(productId) {
   const idNum = parseInt(productId, 10);
   const index = favorites.indexOf(idNum);
   if (index > -1) {
@@ -55,6 +73,8 @@ function toggleFavorite(productId) {
   } else {
     localStorage.setItem(LOWA.STORAGE.FAVORITES_KEY, JSON.stringify(favorites));
   }
+
+  await lowaWriteUserStatePatch({ favorites: favorites });
 }
 
 /**
@@ -63,15 +83,18 @@ function toggleFavorite(productId) {
 function attachFavoriteListeners() {
   document.querySelectorAll('.fav-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
+      const run = async () => {
       e.stopPropagation();
       if (!requireAuth('Connectez-vous ou créez un compte pour gérer vos favoris.')) {
         return;
       }
       const productId = e.target.dataset.id;
-      toggleFavorite(productId);
+      await toggleFavorite(productId);
       e.target.classList.toggle('active');
       e.target.style.transform = 'scale(1.3)';
       setTimeout(() => { e.target.style.transform = ''; }, 200);
+      };
+      run().catch(() => {});
     });
   });
 }
@@ -79,4 +102,5 @@ function attachFavoriteListeners() {
 // Initialiser les favoris au chargement
 document.addEventListener('DOMContentLoaded', () => {
   loadFavoritesFromStorage();
+  hydrateFavoritesFromCloud();
 });

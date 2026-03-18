@@ -127,6 +127,98 @@ function scopedStorageSet(baseKey, value, options = {}) {
   localStorage.setItem(scopedKey, value);
 }
 
+const LOWA_USER_STATE_TABLE = 'user_state';
+
+function lowaNormalizeUserState(row) {
+  const state = row || {};
+  return {
+    favorites: Array.isArray(state.favorites) ? state.favorites : [],
+    cart: Array.isArray(state.cart) ? state.cart : [],
+    theme: typeof state.theme === 'string' ? state.theme : null,
+    font_size: typeof state.font_size === 'string' ? state.font_size : null,
+    spacing: typeof state.spacing === 'string' ? state.spacing : null,
+    animations: typeof state.animations === 'boolean' ? state.animations : null,
+    language: typeof state.language === 'string' ? state.language : null,
+    notif: typeof state.notif === 'boolean' ? state.notif : null,
+    avatar: typeof state.avatar === 'string' ? state.avatar : null
+  };
+}
+
+async function lowaGetAuthUser() {
+  const supabaseClient = initSupabase();
+  if (!supabaseClient) return null;
+  try {
+    const { data, error } = await supabaseClient.auth.getUser();
+    if (error || !data || !data.user) return null;
+    return data.user;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function lowaReadUserState() {
+  const supabaseClient = initSupabase();
+  if (!supabaseClient) return null;
+  const authUser = await lowaGetAuthUser();
+  if (!authUser) return null;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from(LOWA_USER_STATE_TABLE)
+      .select('favorites, cart, theme, font_size, spacing, animations, language, notif, avatar')
+      .eq('user_id', authUser.id)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Read user_state warning:', error.message || error);
+      return null;
+    }
+    return lowaNormalizeUserState(data);
+  } catch (e) {
+    console.warn('Read user_state warning:', e && e.message ? e.message : e);
+    return null;
+  }
+}
+
+async function lowaWriteUserStatePatch(patch) {
+  const supabaseClient = initSupabase();
+  if (!supabaseClient) return false;
+  const authUser = await lowaGetAuthUser();
+  if (!authUser) return false;
+
+  const existing = (await lowaReadUserState()) || {};
+  const merged = Object.assign({}, lowaNormalizeUserState(existing), patch || {});
+
+  const payload = {
+    user_id: authUser.id,
+    favorites: Array.isArray(merged.favorites) ? merged.favorites : [],
+    cart: Array.isArray(merged.cart) ? merged.cart : [],
+    theme: merged.theme || null,
+    font_size: merged.font_size || null,
+    spacing: merged.spacing || null,
+    animations: typeof merged.animations === 'boolean' ? merged.animations : null,
+    language: merged.language || null,
+    notif: typeof merged.notif === 'boolean' ? merged.notif : null,
+    avatar: merged.avatar || null,
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    const { error } = await supabaseClient
+      .from(LOWA_USER_STATE_TABLE)
+      .upsert(payload, { onConflict: 'user_id' });
+
+    if (error) {
+      console.warn('Write user_state warning:', error.message || error);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.warn('Write user_state warning:', e && e.message ? e.message : e);
+    return false;
+  }
+}
+
 window.LOWA_DEBUG_SCOPE = function() {
   const uid = getActiveStorageUserId();
   const sessionRaw = localStorage.getItem(LOWA.STORAGE.SESSION_KEY);
