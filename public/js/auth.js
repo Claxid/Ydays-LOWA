@@ -92,6 +92,9 @@ function loadSessionFromStorage() {
     const session = JSON.parse(stored);
     sessionToken = session.token || null;
     currentUser = session.user || null;
+    if (typeof setActiveStorageUserId === 'function') {
+      setActiveStorageUserId((currentUser && (currentUser.id || currentUser.email)) || sessionToken || 'guest');
+    }
     updateUserUI();
   } catch (e) {
     localStorage.removeItem(LOWA.STORAGE.SESSION_KEY);
@@ -105,6 +108,9 @@ function saveSession(token, user) {
   sessionToken = token;
   currentUser = user;
   localStorage.setItem(LOWA.STORAGE.SESSION_KEY, JSON.stringify({ token, user }));
+  if (typeof setActiveStorageUserId === 'function') {
+    setActiveStorageUserId((user && (user.id || user.email)) || token || 'guest');
+  }
   refreshScopedClientState();
   updateUserUI();
 }
@@ -116,6 +122,9 @@ function clearSession() {
   sessionToken = null;
   currentUser = null;
   localStorage.removeItem(LOWA.STORAGE.SESSION_KEY);
+  if (typeof clearActiveStorageUserId === 'function') {
+    clearActiveStorageUserId();
+  }
   refreshScopedClientState();
   updateUserUI();
 }

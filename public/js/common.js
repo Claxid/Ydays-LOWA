@@ -30,6 +30,7 @@ const LOWA = {
 };
 
 const LOWA_SCOPED_STORAGE_VERSION = 'v2';
+const LOWA_ACTIVE_USER_STORAGE_KEY = 'lowa_active_user_scope';
 
 function sanitizeStorageSegment(value) {
   return String(value || 'guest')
@@ -38,13 +39,50 @@ function sanitizeStorageSegment(value) {
     .slice(0, 80);
 }
 
+function setActiveStorageUserId(value) {
+  const normalized = sanitizeStorageSegment(value);
+  if (normalized && normalized !== 'guest') {
+    localStorage.setItem(LOWA_ACTIVE_USER_STORAGE_KEY, normalized);
+  }
+}
+
+function clearActiveStorageUserId() {
+  localStorage.removeItem(LOWA_ACTIVE_USER_STORAGE_KEY);
+}
+
+function decodeJwtPayload(token) {
+  try {
+    const parts = String(token || '').split('.');
+    if (parts.length < 2) return null;
+    const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const pad = b64.length % 4;
+    const padded = b64 + (pad ? '='.repeat(4 - pad) : '');
+    const json = atob(padded);
+    return JSON.parse(json);
+  } catch (e) {
+    return null;
+  }
+}
+
 function getActiveStorageUserId() {
   try {
+    const persisted = localStorage.getItem(LOWA_ACTIVE_USER_STORAGE_KEY);
+    if (persisted) return sanitizeStorageSegment(persisted);
+
     const raw = localStorage.getItem(LOWA.STORAGE.SESSION_KEY);
     if (!raw) return 'guest';
     const session = JSON.parse(raw);
     const user = session && session.user ? session.user : null;
-    const idOrEmail = (user && (user.id || user.email)) || 'guest';
+    const jwtPayload = decodeJwtPayload(session && session.token ? session.token : '');
+    const idOrEmail =
+      (user && (user.id || user.email)) ||
+      (jwtPayload && (jwtPayload.sub || jwtPayload.email)) ||
+      'guest';
+
+    if (idOrEmail && idOrEmail !== 'guest') {
+      setActiveStorageUserId(idOrEmail);
+    }
+
     return sanitizeStorageSegment(idOrEmail);
   } catch (e) {
     return 'guest';

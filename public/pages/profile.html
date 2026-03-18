@@ -662,6 +662,7 @@
       document.getElementById('logout-btn').addEventListener('click', async () => {
         try { await fetch(API + '/logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
         localStorage.removeItem('lowa_session');
+        if (typeof clearActiveStorageUserId === 'function') clearActiveStorageUserId();
         window.location.href = '/';
       });
 
@@ -716,7 +717,7 @@
 
             // Update session storage
             const session = JSON.parse(localStorage.getItem('lowa_session') || '{}');
-            session.user = updatedUser;
+            session.user = Object.assign({}, session.user || {}, updatedUser || {});
             localStorage.setItem('lowa_session', JSON.stringify(session));
             profileScopedSet('lowa_avatar', base64);
 
@@ -732,6 +733,7 @@
       document.getElementById('logout-btn-hero').addEventListener('click', async () => {
         try { await fetch(API + '/logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
         localStorage.removeItem('lowa_session');
+        if (typeof clearActiveStorageUserId === 'function') clearActiveStorageUserId();
         window.location.href = '/';
       });
 
