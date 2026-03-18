@@ -142,18 +142,6 @@ function setupLoginForm() {
       submitBtn.disabled = true;
       submitBtn.textContent = '⏳ Connexion...';
       
-      const response = await fetch(LOWA.API.BASE + '/login', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email, password})
-      });
-      
-      if (!response.ok) throw new Error('Login failed');
-      const data = await response.json();
-      saveSession(data.token, data.user);
-      closeAllModals();
-      loginForm.reset();
-      submitBtn.textContent = 'Se connecter';
     } catch (err) {
       const localUsers = JSON.parse(localStorage.getItem(LOWA.API.LOCAL_USERS_KEY) || '[]');
       const matched = localUsers.find(u => u.email === email && u.password === password);
@@ -173,6 +161,34 @@ function setupLoginForm() {
     }
   });
 }
+      const supabaseClient = initSupabase();
+      if (!supabaseClient) throw new Error('Supabase non initialisé');
+      
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) throw error;
+      
+      // Récupérer les données du profil utilisateur depuis la table users
+      const { data: userData, error: userErr } = await supabaseClient
+        .from('users')
+        .select('id, email, nom, prenom, sexe')
+        .eq('email', email)
+        .single();
+      
+      if (userErr) throw userErr;
+      
+      saveSession(data.session.access_token, userData);
+      closeAllModals();
+      loginForm.reset();
+      submitBtn.textContent = 'Se connecter';
+    } catch (err) {
+      console.error('Erreur connexion:', err);
+      alert('Erreur: ' + err.message);
+      submitBtn.textContent = 'Se connecter'
+
 
 /**
  * Configurer le formulaire d'inscription
@@ -194,18 +210,6 @@ function setupRegisterForm() {
       submitBtn.disabled = true;
       submitBtn.textContent = '⏳ Inscription...';
       
-      const response = await fetch(LOWA.API.BASE + '/register', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email, nom, prenom, sexe, password})
-      });
-      
-      if (!response.ok) throw new Error('Registration failed');
-      const data = await response.json();
-      saveSession(data.token, {id: data.user_id, email, nom, prenom, sexe});
-      closeAllModals();
-      registerForm.reset();
-      submitBtn.textContent = 'S\'inscrire';
     } catch (err) {
       const localUsers = JSON.parse(localStorage.getItem(LOWA.API.LOCAL_USERS_KEY) || '[]');
       const already = localUsers.find(u => u.email === email);
@@ -227,6 +231,42 @@ function setupRegisterForm() {
     }
   });
 }
+      const supabaseClient = initSupabase();
+      if (!supabaseClient) throw new Error('Supabase non initialisé');
+      
+      // Créer le compte d'authentification
+      const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+        email,
+        password
+      });
+      
+      if (authError) throw authError;
+      
+      // Créer l'enregistrement utilisateur dans la table users
+      const { data: userData, error: userError } = await supabaseClient
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          email,
+          nom,
+          prenom,
+          sexe
+        })
+        .select()
+        .single();
+      
+      if (userError) throw userError;
+      
+      saveSession(authData.session.access_token, userData);
+      closeAllModals();
+      registerForm.reset();
+      submitBtn.textContent = 'S\'inscrire';
+      alert('✅ Inscription réussie ! Vous êtes connecté.');
+    } catch (err) {
+      console.error('Erreur inscription:', err);
+      alert('Erreur: ' + err.message);
+      submitBtn.textContent = 'S\'inscrire'
+
 
 /**
  * Configurer la déconnexion
@@ -237,10 +277,6 @@ function setupLogout() {
   
   logoutBtn.addEventListener('click', async () => {
     try {
-      await fetch(LOWA.API.BASE + '/logout', {
-        method: 'POST',
-        headers: {Authorization: sessionToken}
-      });
     } catch (e) {}
     clearSession();
     const userMenu = document.getElementById('user-menu');
@@ -249,6 +285,13 @@ function setupLogout() {
     }
   });
 }
+      const supabaseClient = initSupabase();
+      if (supabaseClient) {
+        await supabaseClient.auth.signOut();
+      }
+    } catch (e) {
+      console.error('Erreur déconnexion:', e);
+    }
 
 /**
  * Gérer la redirection d'authentification
