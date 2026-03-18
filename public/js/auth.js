@@ -16,6 +16,30 @@ function mapSupabaseUserToProfile(user) {
   };
 }
 
+async function savePublicProfileRecord(supabaseClient, profile) {
+  if (!supabaseClient || !profile || !profile.email) return;
+
+  const payload = {
+    id: Date.now(),
+    email: profile.email,
+    prenom: profile.prenom || null,
+    nom: profile.nom || null,
+    sexe: profile.sexe || null
+  };
+
+  try {
+    const { error } = await supabaseClient.from('users').insert(payload);
+    if (error) {
+      const isDuplicate = /duplicate key|unique constraint/i.test(error.message || '');
+      if (!isDuplicate) {
+        console.warn('Sync profil users non critique:', error.message || error);
+      }
+    }
+  } catch (e) {
+    console.warn('Sync profil users non critique:', e && e.message ? e.message : e);
+  }
+}
+
 /**
  * Vérifier l'authentification et afficher modal si nécessaire
  */
@@ -211,11 +235,16 @@ function setupRegisterForm() {
 
       if (data && data.session && data.user) {
         const profile = mapSupabaseUserToProfile(data.user);
+        await savePublicProfileRecord(supabaseClient, profile);
         saveSession(data.session.access_token, profile);
         closeAllModals();
         registerForm.reset();
         alert('Inscription reussie.');
       } else {
+        if (data && data.user) {
+          const profile = mapSupabaseUserToProfile(data.user);
+          await savePublicProfileRecord(supabaseClient, profile);
+        }
         closeAllModals();
         registerForm.reset();
         alert('Compte cree. Verifie ton email pour confirmer, puis connecte-toi.');
