@@ -174,6 +174,30 @@
         </header>
         <div class="header-spacer" aria-hidden="true"></div>
 
+        <nav class="mobile-dock" aria-label="Navigation mobile rapide">
+            <a href="/index.html" class="mobile-dock-item active" aria-label="Accueil">
+                <span class="icon">🏠</span>
+                <span class="label">Accueil</span>
+            </a>
+            <button type="button" id="mobile-categories-btn" class="mobile-dock-item" aria-label="Collections">
+                <span class="icon">🧭</span>
+                <span class="label">Collections</span>
+            </button>
+            <a href="/public/pages/favoris.html" class="mobile-dock-item" aria-label="Favoris">
+                <span class="icon">❤️</span>
+                <span class="label">Favoris</span>
+            </a>
+            <button type="button" id="mobile-cart-btn" class="mobile-dock-item" aria-label="Panier">
+                <span class="icon">🛒</span>
+                <span class="label">Panier</span>
+                <span class="mobile-badge" id="mobile-cart-count">0</span>
+            </button>
+            <button type="button" id="mobile-account-btn" class="mobile-dock-item" aria-label="Compte">
+                <span class="icon">👤</span>
+                <span class="label">Compte</span>
+            </button>
+        </nav>
+
         <main>
             <!-- Hero / Presentation Section (fullscreen) -->
             <section class="hero-presentation">

@@ -1965,3 +1965,115 @@ form .btn{
   }
 }
 
+/* Mobile ecommerce dock (inspired by major marketplace patterns) */
+.mobile-dock{
+  display:none;
+}
+
+@media (max-width:900px){
+  body{
+    padding-bottom:84px;
+  }
+
+  .search-and-controls{
+    position:sticky;
+    top:70px;
+    z-index:15;
+    background:linear-gradient(180deg, rgba(242,236,231,0.97), rgba(242,236,231,0.8));
+    backdrop-filter: blur(8px);
+    border:1px solid var(--soft-green);
+    border-radius:14px;
+    padding:0.65rem;
+    box-shadow:0 8px 20px rgba(76,66,60,0.1);
+  }
+
+  .mobile-dock{
+    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    gap:0.15rem;
+    position:fixed;
+    left:10px;
+    right:10px;
+    bottom:10px;
+    z-index:120;
+    padding:0.4rem;
+    border-radius:18px;
+    border:1px solid rgba(152,168,105,0.32);
+    background:linear-gradient(180deg, rgba(245,241,235,0.96), rgba(226,216,209,0.96));
+    box-shadow:0 14px 34px rgba(33,25,20,0.24);
+    backdrop-filter: blur(12px);
+  }
+
+  .mobile-dock-item{
+    appearance:none;
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    text-decoration:none;
+    padding:0.45rem 0.2rem;
+    border-radius:12px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:0.18rem;
+    min-height:58px;
+    cursor:pointer;
+    position:relative;
+    transition:all var(--transition-fast);
+  }
+
+  .mobile-dock-item .icon{
+    font-size:1.15rem;
+    line-height:1;
+  }
+
+  .mobile-dock-item .label{
+    font-size:0.7rem;
+    font-weight:700;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+  }
+
+  .mobile-dock-item.active,
+  .mobile-dock-item:hover,
+  .mobile-dock-item:focus-visible{
+    color:var(--accent);
+    background:rgba(197,112,218,0.14);
+    outline:none;
+  }
+
+  .mobile-badge{
+    position:absolute;
+    top:3px;
+    right:8px;
+    min-width:16px;
+    height:16px;
+    padding:0 4px;
+    border-radius:999px;
+    font-size:0.62rem;
+    font-weight:800;
+    color:#fff;
+    background:linear-gradient(135deg, #d34e8e, #ba4fd6);
+    display:grid;
+    place-items:center;
+  }
+}
+
+@media (max-width:520px){
+  .search-and-controls{
+    top:62px;
+    padding:0.55rem;
+  }
+
+  .mobile-dock{
+    left:7px;
+    right:7px;
+    bottom:7px;
+  }
+
+  body{
+    padding-bottom:82px;
+  }
+}
+
