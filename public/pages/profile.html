@@ -704,7 +704,7 @@
             });
 
             if (!resp.ok) {
-              throw new Error('Échec de la mise à jour');
+              throw new Error('Échec de la mise à jour distante');
             }
 
             const updatedUser = await resp.json();
@@ -723,8 +723,20 @@
 
             console.log('Photo de profil mise à jour avec succès');
           } catch (err) {
-            console.error('Erreur lors de la mise à jour:', err);
-            alert('Erreur lors de la mise à jour de la photo de profil');
+            console.warn('Mise à jour distante indisponible, fallback local:', err && err.message ? err.message : err);
+
+            // Fallback local: ne pas bloquer l'utilisateur si l'API profil est indisponible
+            const avatarContainer = document.getElementById('avatar');
+            const avatarText = document.getElementById('avatar-text');
+            avatarContainer.style.backgroundImage = `url(${base64})`;
+            avatarText.style.display = 'none';
+            profileScopedSet('lowa_avatar', base64);
+
+            const session = JSON.parse(localStorage.getItem('lowa_session') || '{}');
+            session.user = Object.assign({}, session.user || {}, { pdp: base64 });
+            localStorage.setItem('lowa_session', JSON.stringify(session));
+
+            alert('Photo enregistrée localement sur cet appareil.');
           }
         };
         reader.readAsDataURL(file);

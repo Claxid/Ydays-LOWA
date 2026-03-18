@@ -66,24 +66,26 @@ function decodeJwtPayload(token) {
 
 function getActiveStorageUserId() {
   try {
+    const raw = localStorage.getItem(LOWA.STORAGE.SESSION_KEY);
+    if (raw) {
+      const session = JSON.parse(raw);
+      const user = session && session.user ? session.user : null;
+      const jwtPayload = decodeJwtPayload(session && session.token ? session.token : '');
+      const idOrEmail =
+        (user && (user.id || user.email)) ||
+        (jwtPayload && (jwtPayload.sub || jwtPayload.email)) ||
+        null;
+
+      if (idOrEmail) {
+        setActiveStorageUserId(idOrEmail);
+        return sanitizeStorageSegment(idOrEmail);
+      }
+    }
+
     const persisted = localStorage.getItem(LOWA_ACTIVE_USER_STORAGE_KEY);
     if (persisted) return sanitizeStorageSegment(persisted);
 
-    const raw = localStorage.getItem(LOWA.STORAGE.SESSION_KEY);
-    if (!raw) return 'guest';
-    const session = JSON.parse(raw);
-    const user = session && session.user ? session.user : null;
-    const jwtPayload = decodeJwtPayload(session && session.token ? session.token : '');
-    const idOrEmail =
-      (user && (user.id || user.email)) ||
-      (jwtPayload && (jwtPayload.sub || jwtPayload.email)) ||
-      'guest';
-
-    if (idOrEmail && idOrEmail !== 'guest') {
-      setActiveStorageUserId(idOrEmail);
-    }
-
-    return sanitizeStorageSegment(idOrEmail);
+    return 'guest';
   } catch (e) {
     return 'guest';
   }
@@ -118,6 +120,31 @@ function scopedStorageSet(baseKey, value, options = {}) {
   const scopedKey = getScopedStorageKey(baseKey, scope);
   localStorage.setItem(scopedKey, value);
 }
+
+window.LOWA_DEBUG_SCOPE = function() {
+  const uid = getActiveStorageUserId();
+  const sessionRaw = localStorage.getItem(LOWA.STORAGE.SESSION_KEY);
+  let sessionInfo = null;
+  try {
+    const session = sessionRaw ? JSON.parse(sessionRaw) : null;
+    sessionInfo = session && session.user ? {
+      id: session.user.id || null,
+      email: session.user.email || null
+    } : null;
+  } catch (e) {
+    sessionInfo = { error: 'parse-failed' };
+  }
+  const info = {
+    activeScope: uid,
+    persistedScope: localStorage.getItem(LOWA_ACTIVE_USER_STORAGE_KEY),
+    sessionUser: sessionInfo,
+    favoritesKey: getScopedStorageKey(LOWA.STORAGE.FAVORITES_KEY),
+    cartKey: getScopedStorageKey('lowa_cart'),
+    themeKey: getScopedStorageKey(LOWA.STORAGE.THEME_KEY)
+  };
+  console.log('LOWA scope debug:', info);
+  return info;
+};
 
 /**
  * Initialiser le client Supabase
