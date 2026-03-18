@@ -1966,12 +1966,17 @@ form .btn{
 }
 
 /* Mobile ecommerce dock (inspired by major marketplace patterns) */
-.mobile-dock{
-  display:none;
+.mobile-dock,
+.mobile-dock[hidden]{
+  display:none !important;
 }
 
 @media (max-width:900px){
-  body{
+  .mobile-dock:not([hidden]){
+    display:grid !important;
+  }
+
+  body.has-mobile-dock{
     padding-bottom:84px;
   }
 
@@ -2072,7 +2077,7 @@ form .btn{
     bottom:7px;
   }
 
-  body{
+  body.has-mobile-dock{
     padding-bottom:82px;
   }
 }

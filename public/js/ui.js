@@ -14,12 +14,25 @@ function initUI() {
 }
 
 function initMobileDock() {
+  const dock = document.querySelector('.mobile-dock');
   const mobileCartBtn = document.getElementById('mobile-cart-btn');
   const mobileCategoriesBtn = document.getElementById('mobile-categories-btn');
   const mobileAccountBtn = document.getElementById('mobile-account-btn');
   const mobileCartCount = document.getElementById('mobile-cart-count');
 
-  if (!mobileCartBtn && !mobileCategoriesBtn && !mobileAccountBtn) return;
+  if (!dock || (!mobileCartBtn && !mobileCategoriesBtn && !mobileAccountBtn)) return;
+
+  const isTouchMobile = window.matchMedia('(max-width: 900px) and (hover: none)').matches ||
+    window.matchMedia('(max-width: 700px)').matches;
+
+  if (isTouchMobile) {
+    dock.hidden = false;
+    document.body.classList.add('has-mobile-dock');
+  } else {
+    dock.hidden = true;
+    document.body.classList.remove('has-mobile-dock');
+    return;
+  }
 
   const desktopCartButton = document.getElementById('cart-button');
   const desktopCartCount = document.getElementById('cart-count');
