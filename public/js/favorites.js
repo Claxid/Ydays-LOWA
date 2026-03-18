@@ -60,12 +60,15 @@ function isFavorite(productId) {
  * Basculer le statut favori
  */
 async function toggleFavorite(productId) {
+  console.log('🔄 toggleFavorite called for product:', productId);
   const idNum = parseInt(productId, 10);
   const index = favorites.indexOf(idNum);
   if (index > -1) {
     favorites.splice(index, 1);
+    console.log('➖ Removed from favorites');
   } else {
     favorites.push(idNum);
+    console.log('➕ Added to favorites');
   }
   favorites = Array.from(new Set(favorites));
   if (typeof scopedStorageSet === 'function') {
@@ -73,8 +76,11 @@ async function toggleFavorite(productId) {
   } else {
     localStorage.setItem(LOWA.STORAGE.FAVORITES_KEY, JSON.stringify(favorites));
   }
+  console.log('💾 Local storage updated, current favorites:', favorites);
 
-  await lowaWriteUserStatePatch({ favorites: favorites });
+  console.log('☁️ Syncing to cloud...');
+  const result = await lowaWriteUserStatePatch({ favorites: favorites });
+  console.log('☁️ Cloud sync result:', result);
 }
 
 /**

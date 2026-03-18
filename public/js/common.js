@@ -146,12 +146,20 @@ function lowaNormalizeUserState(row) {
 
 async function lowaGetAuthUser() {
   const supabaseClient = initSupabase();
-  if (!supabaseClient) return null;
+  if (!supabaseClient) {
+    console.error('❌ Cannot get auth user: Supabase client not initialized');
+    return null;
+  }
   try {
     const { data, error } = await supabaseClient.auth.getUser();
-    if (error || !data || !data.user) return null;
+    if (error || !data || !data.user) {
+      console.warn('⚠️ No authenticated user:', error ? error.message : 'data.user is null');
+      return null;
+    }
+    console.log('✅ Auth user found:', data.user.email);
     return data.user;
   } catch (e) {
+    console.error('❌ Error getting auth user:', e && e.message ? e.message : e);
     return null;
   }
 }
@@ -182,9 +190,18 @@ async function lowaReadUserState() {
 
 async function lowaWriteUserStatePatch(patch) {
   const supabaseClient = initSupabase();
-  if (!supabaseClient) return false;
+  if (!supabaseClient) {
+    console.error('❌ Supabase client initialization failed');
+    return false;
+  }
+  
   const authUser = await lowaGetAuthUser();
-  if (!authUser) return false;
+  if (!authUser) {
+    console.error('❌ User not authenticated. Cannot sync to user_state.');
+    return false;
+  }
+  
+  console.log('📤 Syncing user state for user:', authUser.id);
 
   const existing = (await lowaReadUserState()) || {};
   const merged = Object.assign({}, lowaNormalizeUserState(existing), patch || {});
@@ -204,17 +221,21 @@ async function lowaWriteUserStatePatch(patch) {
   };
 
   try {
+    console.log('📝 Payload to sync:', payload);
     const { error } = await supabaseClient
       .from(LOWA_USER_STATE_TABLE)
       .upsert(payload, { onConflict: 'user_id' });
 
     if (error) {
-      console.warn('Write user_state warning:', error.message || error);
+      console.error('❌ Write user_state error:', error.message || error);
+      console.error('Error details:', error);
       return false;
     }
+    console.log('✅ User state synced successfully');
     return true;
   } catch (e) {
-    console.warn('Write user_state warning:', e && e.message ? e.message : e);
+    console.error('❌ Write user_state exception:', e && e.message ? e.message : e);
+    console.error('Exception details:', e);
     return false;
   }
 }
