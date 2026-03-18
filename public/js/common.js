@@ -29,6 +29,56 @@ const LOWA = {
   }
 };
 
+function sanitizeStorageSegment(value) {
+  return String(value || 'guest')
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, '_')
+    .slice(0, 80);
+}
+
+function getActiveStorageUserId() {
+  try {
+    const raw = localStorage.getItem(LOWA.STORAGE.SESSION_KEY);
+    if (!raw) return 'guest';
+    const session = JSON.parse(raw);
+    const user = session && session.user ? session.user : null;
+    const idOrEmail = (user && (user.id || user.email)) || 'guest';
+    return sanitizeStorageSegment(idOrEmail);
+  } catch (e) {
+    return 'guest';
+  }
+}
+
+function getScopedStorageKey(baseKey, scope = 'user') {
+  if (scope === 'global') return baseKey;
+  return `${baseKey}__${getActiveStorageUserId()}`;
+}
+
+function scopedStorageGet(baseKey, options = {}) {
+  const scope = options.scope || 'user';
+  const migrateLegacy = options.migrateLegacy !== false;
+  const scopedKey = getScopedStorageKey(baseKey, scope);
+  const scopedValue = localStorage.getItem(scopedKey);
+
+  if (scopedValue !== null) return scopedValue;
+
+  if (migrateLegacy) {
+    const legacyValue = localStorage.getItem(baseKey);
+    if (legacyValue !== null) {
+      localStorage.setItem(scopedKey, legacyValue);
+      return legacyValue;
+    }
+  }
+
+  return null;
+}
+
+function scopedStorageSet(baseKey, value, options = {}) {
+  const scope = options.scope || 'user';
+  const scopedKey = getScopedStorageKey(baseKey, scope);
+  localStorage.setItem(scopedKey, value);
+}
+
 /**
  * Initialiser le client Supabase
  */

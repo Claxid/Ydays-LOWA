@@ -4,12 +4,16 @@
  */
 
 let cart = [];
+const CART_STORAGE_KEY = 'lowa_cart';
 
 /**
  * Initialiser le panier
  */
 function initCart() {
-  cart = JSON.parse(localStorage.getItem('cart')) || [];
+  const raw = (typeof scopedStorageGet === 'function')
+    ? scopedStorageGet(CART_STORAGE_KEY)
+    : localStorage.getItem(CART_STORAGE_KEY);
+  cart = raw ? JSON.parse(raw) : [];
   updateCartUI();
   setupCartListeners();
 }
@@ -38,7 +42,11 @@ function updateCartUI() {
   
   const total = cart.reduce((sum, item) => sum + item.price, 0);
   cartTotalSpan.textContent = total.toFixed(2);
-  localStorage.setItem('cart', JSON.stringify(cart));
+  if (typeof scopedStorageSet === 'function') {
+    scopedStorageSet(CART_STORAGE_KEY, JSON.stringify(cart));
+  } else {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+  }
   
   // Sync with database if logged in
   if (currentUser && sessionToken) {

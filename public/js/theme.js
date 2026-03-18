@@ -7,9 +7,10 @@
  * Initialiser le thème
  */
 function initTheme() {
-  const fontSize = localStorage.getItem('lowa_pref_font_size') || 'normal';
-  const spacing = localStorage.getItem('lowa_pref_spacing') || 'normal';
-  const animations = localStorage.getItem('lowa_pref_animations') !== 'false';
+  const fontSize = (typeof scopedStorageGet === 'function' ? scopedStorageGet('lowa_pref_font_size') : localStorage.getItem('lowa_pref_font_size')) || 'normal';
+  const spacing = (typeof scopedStorageGet === 'function' ? scopedStorageGet('lowa_pref_spacing') : localStorage.getItem('lowa_pref_spacing')) || 'normal';
+  const animationsRaw = (typeof scopedStorageGet === 'function' ? scopedStorageGet('lowa_pref_animations') : localStorage.getItem('lowa_pref_animations'));
+  const animations = animationsRaw !== 'false';
   
   setTheme('light');
   applyFontSize(fontSize);
@@ -23,7 +24,11 @@ function initTheme() {
  */
 function setTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem(LOWA.STORAGE.THEME_KEY, theme);
+  if (typeof scopedStorageSet === 'function') {
+    scopedStorageSet(LOWA.STORAGE.THEME_KEY, theme);
+  } else {
+    localStorage.setItem(LOWA.STORAGE.THEME_KEY, theme);
+  }
 }
 
 /**

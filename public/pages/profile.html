@@ -214,6 +214,7 @@
       .admin-actions{display:flex;flex-wrap:wrap;gap:0.6rem;margin-top:0.5rem;}
       .admin-actions .btn{flex:1;min-width:180px;text-align:center;}
     </style>
+    <script src="/public/js/common.js"></script>
     <script src="/public/js/api-config.js"></script>
   </head>
   <body>
@@ -335,9 +336,24 @@
       const API = window.API_BASE || '/api';
       let sessionToken = null;
 
+      function profileScopedGet(baseKey) {
+        if (typeof scopedStorageGet === 'function') {
+          return scopedStorageGet(baseKey);
+        }
+        return localStorage.getItem(baseKey);
+      }
+
+      function profileScopedSet(baseKey, value) {
+        if (typeof scopedStorageSet === 'function') {
+          scopedStorageSet(baseKey, value);
+          return;
+        }
+        localStorage.setItem(baseKey, value);
+      }
+
       // Avatar Management
       function loadAvatar() {
-        const savedAvatar = localStorage.getItem('lowa_avatar');
+        const savedAvatar = profileScopedGet('lowa_avatar');
         if (savedAvatar) {
           const avatarEl = document.getElementById('avatar');
           avatarEl.style.backgroundImage = `url(${savedAvatar})`;
@@ -357,7 +373,7 @@
           const reader = new FileReader();
           reader.onload = (event) => {
             const avatarData = event.target.result;
-            localStorage.setItem('lowa_avatar', avatarData);
+            profileScopedSet('lowa_avatar', avatarData);
             loadAvatar();
           };
           reader.readAsDataURL(file);
@@ -366,7 +382,7 @@
 
       // Theme Management with Auto mode
       function initTheme() {
-        const savedTheme = localStorage.getItem('lowa_theme') || 'light';
+        const savedTheme = profileScopedGet('lowa_theme') || 'light';
         applyTheme(savedTheme);
       }
 
@@ -378,7 +394,7 @@
         } else {
           document.documentElement.setAttribute('data-theme', theme);
         }
-        localStorage.setItem('lowa_theme', theme);
+        profileScopedSet('lowa_theme', theme);
         
         // Update active button
         document.querySelectorAll('.theme-option').forEach(btn => {
@@ -397,7 +413,8 @@
         // Allow use even inside the menu; only skip when typing in inputs/textareas/selects
         if (['input','textarea','select'].includes(tag)) return;
         const order = ['light', 'dark', 'temperate', 'auto'];
-        const currentPref = order.includes(localStorage.getItem('lowa_theme')) ? localStorage.getItem('lowa_theme') : 'light';
+        const savedTheme = profileScopedGet('lowa_theme');
+        const currentPref = order.includes(savedTheme) ? savedTheme : 'light';
         const idx = order.indexOf(currentPref);
         const next = order[(idx + 1) % order.length];
         setTheme(next);
@@ -534,19 +551,19 @@
 
       async function loadPrefs() {
         // Optionally could add GET /user-preferences; for now reflect local storage
-        const consent = localStorage.getItem('lowa_cookie_consent');
+        const consent = profileScopedGet('lowa_cookie_consent');
         if (consent) {
           try { const obj = JSON.parse(consent); document.getElementById('cookie-consent').checked = obj.status === 'accepted'; } catch {}
         }
       }
 
       function loadAdvancedPrefs(){
-        const lang = localStorage.getItem('lowa_pref_lang') || 'fr';
-        const notif = localStorage.getItem('lowa_pref_notif') === 'true';
-        const animations = localStorage.getItem('lowa_pref_animations') !== 'false';
-        const theme = localStorage.getItem('lowa_theme') || 'light';
-        const fontSize = localStorage.getItem('lowa_pref_font_size') || 'normal';
-        const spacing = localStorage.getItem('lowa_pref_spacing') || 'normal';
+        const lang = profileScopedGet('lowa_pref_lang') || 'fr';
+        const notif = profileScopedGet('lowa_pref_notif') === 'true';
+        const animations = profileScopedGet('lowa_pref_animations') !== 'false';
+        const theme = profileScopedGet('lowa_theme') || 'light';
+        const fontSize = profileScopedGet('lowa_pref_font_size') || 'normal';
+        const spacing = profileScopedGet('lowa_pref_spacing') || 'normal';
         
         document.getElementById('pref-lang').value = lang;
         document.getElementById('pref-notif').checked = notif;
@@ -592,12 +609,12 @@
         const fontSize = document.getElementById('pref-font-size').value;
         const spacing = document.getElementById('pref-spacing').value;
         
-        localStorage.setItem('lowa_pref_lang', lang);
-        localStorage.setItem('lowa_pref_notif', notif);
-        localStorage.setItem('lowa_pref_animations', animations);
-        localStorage.setItem('lowa_theme', theme);
-        localStorage.setItem('lowa_pref_font_size', fontSize);
-        localStorage.setItem('lowa_pref_spacing', spacing);
+        profileScopedSet('lowa_pref_lang', String(lang));
+        profileScopedSet('lowa_pref_notif', String(notif));
+        profileScopedSet('lowa_pref_animations', String(animations));
+        profileScopedSet('lowa_theme', String(theme));
+        profileScopedSet('lowa_pref_font_size', String(fontSize));
+        profileScopedSet('lowa_pref_spacing', String(spacing));
         
         // Apply animations preference
         if (!animations) {
@@ -701,6 +718,7 @@
             const session = JSON.parse(localStorage.getItem('lowa_session') || '{}');
             session.user = updatedUser;
             localStorage.setItem('lowa_session', JSON.stringify(session));
+            profileScopedSet('lowa_avatar', base64);
 
             console.log('Photo de profil mise à jour avec succès');
           } catch (err) {

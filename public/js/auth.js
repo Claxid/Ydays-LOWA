@@ -5,6 +5,34 @@
 let currentUser = null;
 let sessionToken = null;
 
+function refreshScopedClientState() {
+  try {
+    if (typeof loadFavoritesFromStorage === 'function') {
+      loadFavoritesFromStorage();
+    }
+
+    if (typeof scopedStorageGet === 'function' && typeof updateCartUI === 'function' && typeof cart !== 'undefined') {
+      const rawCart = scopedStorageGet('lowa_cart');
+      cart = rawCart ? JSON.parse(rawCart) : [];
+      updateCartUI();
+    }
+
+    if (typeof loadFiltersFromStorage === 'function') {
+      loadFiltersFromStorage();
+    }
+
+    if (typeof initTheme === 'function') {
+      initTheme();
+    }
+
+    if (typeof sortAndDisplayProducts === 'function') {
+      sortAndDisplayProducts();
+    }
+  } catch (e) {
+    console.warn('Refresh state warning:', e && e.message ? e.message : e);
+  }
+}
+
 function mapSupabaseUserToProfile(user) {
   const metadata = (user && user.user_metadata) ? user.user_metadata : {};
   return {
@@ -77,6 +105,7 @@ function saveSession(token, user) {
   sessionToken = token;
   currentUser = user;
   localStorage.setItem(LOWA.STORAGE.SESSION_KEY, JSON.stringify({ token, user }));
+  refreshScopedClientState();
   updateUserUI();
 }
 
@@ -87,6 +116,7 @@ function clearSession() {
   sessionToken = null;
   currentUser = null;
   localStorage.removeItem(LOWA.STORAGE.SESSION_KEY);
+  refreshScopedClientState();
   updateUserUI();
 }
 

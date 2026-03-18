@@ -10,7 +10,9 @@ let maxPrice = 1000;
  * Charger les filtres depuis le stockage
  */
 function loadFiltersFromStorage() {
-  const stored = localStorage.getItem(LOWA.STORAGE.FILTER_KEY);
+  const stored = (typeof scopedStorageGet === 'function')
+    ? scopedStorageGet(LOWA.STORAGE.FILTER_KEY)
+    : localStorage.getItem(LOWA.STORAGE.FILTER_KEY);
   if (stored) {
     try {
       const saved = JSON.parse(stored);
@@ -36,7 +38,11 @@ function saveFiltersToStorage() {
     maxPrice: maxPrice,
     sortOrder: sortOrder
   };
-  localStorage.setItem(LOWA.STORAGE.FILTER_KEY, JSON.stringify(toSave));
+  if (typeof scopedStorageSet === 'function') {
+    scopedStorageSet(LOWA.STORAGE.FILTER_KEY, JSON.stringify(toSave));
+  } else {
+    localStorage.setItem(LOWA.STORAGE.FILTER_KEY, JSON.stringify(toSave));
+  }
 }
 
 /**

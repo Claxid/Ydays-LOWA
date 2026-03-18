@@ -10,13 +10,23 @@ let favorites = [];
  */
 function loadFavoritesFromStorage() {
   try {
-    const raw = localStorage.getItem(LOWA.STORAGE.FAVORITES_KEY);
+    const raw = (typeof scopedStorageGet === 'function')
+      ? scopedStorageGet(LOWA.STORAGE.FAVORITES_KEY)
+      : localStorage.getItem(LOWA.STORAGE.FAVORITES_KEY);
     const arr = raw ? JSON.parse(raw) : [];
     favorites = Array.from(new Set(arr.map(v => parseInt(v, 10)).filter(n => Number.isFinite(n))));
-    localStorage.setItem(LOWA.STORAGE.FAVORITES_KEY, JSON.stringify(favorites));
+    if (typeof scopedStorageSet === 'function') {
+      scopedStorageSet(LOWA.STORAGE.FAVORITES_KEY, JSON.stringify(favorites));
+    } else {
+      localStorage.setItem(LOWA.STORAGE.FAVORITES_KEY, JSON.stringify(favorites));
+    }
   } catch (e) {
     favorites = [];
-    localStorage.setItem(LOWA.STORAGE.FAVORITES_KEY, JSON.stringify(favorites));
+    if (typeof scopedStorageSet === 'function') {
+      scopedStorageSet(LOWA.STORAGE.FAVORITES_KEY, JSON.stringify(favorites));
+    } else {
+      localStorage.setItem(LOWA.STORAGE.FAVORITES_KEY, JSON.stringify(favorites));
+    }
   }
 }
 
@@ -40,7 +50,11 @@ function toggleFavorite(productId) {
     favorites.push(idNum);
   }
   favorites = Array.from(new Set(favorites));
-  localStorage.setItem(LOWA.STORAGE.FAVORITES_KEY, JSON.stringify(favorites));
+  if (typeof scopedStorageSet === 'function') {
+    scopedStorageSet(LOWA.STORAGE.FAVORITES_KEY, JSON.stringify(favorites));
+  } else {
+    localStorage.setItem(LOWA.STORAGE.FAVORITES_KEY, JSON.stringify(favorites));
+  }
 }
 
 /**
