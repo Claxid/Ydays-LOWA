@@ -13,9 +13,24 @@ function initCookieBanner() {
   const policyLink = document.getElementById('cookie-policy');
   
   if (!banner || !acceptBtn || !declineBtn) return;
+
+  const cookieGet = () => {
+    if (typeof scopedStorageGet === 'function') {
+      return scopedStorageGet(LOWA.STORAGE.COOKIE_CONSENT_KEY);
+    }
+    return localStorage.getItem(LOWA.STORAGE.COOKIE_CONSENT_KEY);
+  };
+
+  const cookieSet = (value) => {
+    if (typeof scopedStorageSet === 'function') {
+      scopedStorageSet(LOWA.STORAGE.COOKIE_CONSENT_KEY, value);
+      return;
+    }
+    localStorage.setItem(LOWA.STORAGE.COOKIE_CONSENT_KEY, value);
+  };
   
   function checkExistingConsent() {
-    const consent = localStorage.getItem(LOWA.STORAGE.COOKIE_CONSENT_KEY);
+    const consent = cookieGet();
     if (!consent) {
       setTimeout(() => banner.classList.add('show'), 500);
     }
@@ -28,7 +43,7 @@ function initCookieBanner() {
       user_id: currentUser ? currentUser.id : null,
       user_email: currentUser ? currentUser.email : null
     };
-    localStorage.setItem(LOWA.STORAGE.COOKIE_CONSENT_KEY, JSON.stringify(consentData));
+    cookieSet(JSON.stringify(consentData));
     banner.classList.remove('show');
     
     if (currentUser && sessionToken) {
@@ -51,7 +66,7 @@ function initCookieBanner() {
       user_id: currentUser ? currentUser.id : null,
       user_email: currentUser ? currentUser.email : null
     };
-    localStorage.setItem(LOWA.STORAGE.COOKIE_CONSENT_KEY, JSON.stringify(consentData));
+    cookieSet(JSON.stringify(consentData));
     banner.classList.remove('show');
     console.log('Cookies declined');
   });

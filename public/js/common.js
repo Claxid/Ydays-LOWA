@@ -29,6 +29,8 @@ const LOWA = {
   }
 };
 
+const LOWA_SCOPED_STORAGE_VERSION = 'v2';
+
 function sanitizeStorageSegment(value) {
   return String(value || 'guest')
     .toLowerCase()
@@ -51,12 +53,12 @@ function getActiveStorageUserId() {
 
 function getScopedStorageKey(baseKey, scope = 'user') {
   if (scope === 'global') return baseKey;
-  return `${baseKey}__${getActiveStorageUserId()}`;
+  return `${baseKey}__${getActiveStorageUserId()}__${LOWA_SCOPED_STORAGE_VERSION}`;
 }
 
 function scopedStorageGet(baseKey, options = {}) {
   const scope = options.scope || 'user';
-  const migrateLegacy = options.migrateLegacy !== false;
+  const migrateLegacy = options.migrateLegacy === true;
   const scopedKey = getScopedStorageKey(baseKey, scope);
   const scopedValue = localStorage.getItem(scopedKey);
 
