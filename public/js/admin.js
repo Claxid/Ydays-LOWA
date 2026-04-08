@@ -1,5 +1,53 @@
-// Admin Dashboard with API Integration
-const API_BASE_URL = 'http://localhost:8080/api';
+// Admin Dashboard with API Integration + local fallback mode
+const API_BASE_URL = window.API_BASE || 'https://lowa-api.onrender.com/api';
+const ADMIN_LOCAL_PRODUCTS_KEY = 'lowa_admin_local_products';
+const ADMIN_LOCAL_MAINTENANCE_KEY = 'lowa_admin_local_maintenance';
+const ADMIN_LOCAL_DEFAULT_THEME_KEY = 'lowa_admin_local_default_theme';
+
+function getLocalProducts() {
+    try {
+        const raw = localStorage.getItem(ADMIN_LOCAL_PRODUCTS_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function setLocalProducts(products) {
+    localStorage.setItem(ADMIN_LOCAL_PRODUCTS_KEY, JSON.stringify(products || []));
+}
+
+async function loadProductsWithFallback(token) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/products`, {
+            headers: { 'Authorization': token }
+        });
+        if (!response.ok) throw new Error('Remote products fetch failed');
+        const products = await response.json();
+        if (!Array.isArray(products)) throw new Error('Remote products payload invalid');
+        setLocalProducts(products);
+        return products;
+    } catch (apiError) {
+        const localProducts = getLocalProducts();
+        if (localProducts.length > 0) return localProducts;
+
+        const fallbackPaths = ['/public/data/products.json', '/products.json'];
+        for (const path of fallbackPaths) {
+            try {
+                const res = await fetch(path, { cache: 'no-cache' });
+                if (!res.ok) continue;
+                const products = await res.json();
+                if (Array.isArray(products)) {
+                    setLocalProducts(products);
+                    return products;
+                }
+            } catch (e) {}
+        }
+
+        return [];
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
         function invalidateProductsCache() {
@@ -99,17 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadDashboardData() {
         const token = localStorage.getItem('adminToken');
         try {
-            const response = await fetch(`${API_BASE_URL}/products`, {
-                headers: {
-                    'Authorization': token
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to load products');
-            }
-            
-            const products = await response.json();
+            const products = await loadProductsWithFallback(token);
             document.getElementById('products-count').textContent = products.length;
             displayProducts(products);
             
@@ -212,34 +250,55 @@ document.addEventListener('DOMContentLoaded', () => {
             if (productId) {
                 // Update existing product
                 product.id = parseInt(productId);
-                response = await fetch(`${API_BASE_URL}/products`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': token
-                    },
-                    body: JSON.stringify(product)
-                });
+                try {
+                    response = await fetch(`${API_BASE_URL}/products`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': token
+                        },
+                        body: JSON.stringify(product)
+                    });
+                } catch (e) {
+                    response = null;
+                }
             } else {
                 // Create new product
-                response = await fetch(`${API_BASE_URL}/products`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': token
-                    },
-                    body: JSON.stringify(product)
-                });
+                try {
+                    response = await fetch(`${API_BASE_URL}/products`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': token
+                        },
+                        body: JSON.stringify(product)
+                    });
+                } catch (e) {
+                    response = null;
+                }
             }
-            
-            if (response.ok) {
+
+            if (response && response.ok) {
                 productModal.style.display = 'none';
                 invalidateProductsCache();
                 loadDashboardData();
                 alert(productId ? '✅ Produit modifié avec succès' : '✅ Produit ajouté avec succès');
             } else {
-                const error = await response.json();
-                alert('❌ Erreur: ' + (error.error || 'Impossible de sauvegarder le produit'));
+                // Local fallback save
+                const localProducts = getLocalProducts();
+                if (productId) {
+                    const pid = parseInt(productId);
+                    const idx = localProducts.findIndex((p) => Number(p.id) === pid);
+                    if (idx >= 0) localProducts[idx] = { ...localProducts[idx], ...product, id: pid };
+                } else {
+                    const maxId = localProducts.reduce((max, p) => Math.max(max, Number(p.id) || 0), 0);
+                    localProducts.push({ ...product, id: maxId + 1 });
+                }
+                setLocalProducts(localProducts);
+                productModal.style.display = 'none';
+                invalidateProductsCache();
+                loadDashboardData();
+                alert(productId ? '✅ Produit modifié (mode local)' : '✅ Produit ajouté (mode local)');
             }
         } catch (error) {
             console.error('Error saving product:', error);
@@ -269,20 +328,28 @@ document.addEventListener('DOMContentLoaded', () => {
     async function deleteProduct(productId) {
         const token = localStorage.getItem('adminToken');
         try {
-            const response = await fetch(`${API_BASE_URL}/products?id=${productId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': token
-                }
-            });
+            let response = null;
+            try {
+                response = await fetch(`${API_BASE_URL}/products?id=${productId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': token
+                    }
+                });
+            } catch (e) {
+                response = null;
+            }
             
-            if (response.ok) {
+            if (response && response.ok) {
                 alert('✅ Produit supprimé avec succès');
                 invalidateProductsCache();
                 loadDashboardData();
             } else {
-                const error = await response.json();
-                alert('❌ Erreur: ' + (error.error || 'Impossible de supprimer le produit'));
+                const localProducts = getLocalProducts().filter((p) => Number(p.id) !== Number(productId));
+                setLocalProducts(localProducts);
+                invalidateProductsCache();
+                loadDashboardData();
+                alert('✅ Produit supprimé (mode local)');
             }
         } catch (error) {
             console.error('Error deleting product:', error);
@@ -298,21 +365,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const isEnabled = e.target.checked;
         
         try {
-            const response = await fetch(`${API_BASE_URL}/maintenance-mode`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': token
-                },
-                body: JSON.stringify({ enabled: isEnabled })
-            });
+            let response = null;
+            try {
+                response = await fetch(`${API_BASE_URL}/maintenance-mode`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token
+                    },
+                    body: JSON.stringify({ enabled: isEnabled })
+                });
+            } catch (e) {
+                response = null;
+            }
             
-            if (response.ok) {
+            if (response && response.ok) {
                 alert(isEnabled ? '✅ Mode maintenance activé' : '✅ Mode maintenance désactivé');
             } else {
-                const error = await response.json();
-                alert('❌ Erreur: ' + (error.error || 'Impossible de modifier le mode maintenance'));
-                e.target.checked = !isEnabled;
+                localStorage.setItem(ADMIN_LOCAL_MAINTENANCE_KEY, isEnabled ? '1' : '0');
+                alert(isEnabled ? '✅ Mode maintenance activé (mode local)' : '✅ Mode maintenance désactivé (mode local)');
             }
         } catch (error) {
             console.error('Error updating maintenance mode:', error);
@@ -333,9 +404,12 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 maintenanceCheckbox.checked = data.enabled || false;
             })
-            .catch(err => console.error('Failed to load maintenance status:', err));
+            .catch(() => {
+                maintenanceCheckbox.checked = localStorage.getItem(ADMIN_LOCAL_MAINTENANCE_KEY) === '1';
+            });
         } catch (error) {
             console.error('Error loading maintenance status:', error);
+            maintenanceCheckbox.checked = localStorage.getItem(ADMIN_LOCAL_MAINTENANCE_KEY) === '1';
         }
     }
 
@@ -357,9 +431,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok) {
                     const data = await response.json();
                     defaultThemeSelect.value = data.theme || 'light';
+                    localStorage.setItem(ADMIN_LOCAL_DEFAULT_THEME_KEY, defaultThemeSelect.value);
+                } else {
+                    defaultThemeSelect.value = localStorage.getItem(ADMIN_LOCAL_DEFAULT_THEME_KEY) || 'light';
                 }
             } catch (error) {
-                console.error('Error loading default theme:', error);
+                defaultThemeSelect.value = localStorage.getItem(ADMIN_LOCAL_DEFAULT_THEME_KEY) || 'light';
             }
         }
 
@@ -377,26 +454,32 @@ document.addEventListener('DOMContentLoaded', () => {
             saveThemeBtn.textContent = '⏳ Enregistrement...';
 
             try {
-                const response = await fetch(`${API_BASE_URL}/admin/settings/default-theme`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': token
-                    },
-                    body: JSON.stringify({ theme: selectedTheme })
-                });
+                let response = null;
+                try {
+                    response = await fetch(`${API_BASE_URL}/admin/settings/default-theme`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': token
+                        },
+                        body: JSON.stringify({ theme: selectedTheme })
+                    });
+                } catch (e) {
+                    response = null;
+                }
 
-                if (response.ok) {
-                    const data = await response.json();
+                if (response && response.ok) {
+                    await response.json();
                     themeMessage.textContent = `✅ Thème par défaut changé à "${selectedTheme}" avec succès!`;
                     themeMessage.style.color = '#4caf50';
+                    localStorage.setItem(ADMIN_LOCAL_DEFAULT_THEME_KEY, selectedTheme);
                     setTimeout(() => {
                         themeMessage.textContent = '';
                     }, 3000);
                 } else {
-                    const error = await response.json();
-                    themeMessage.textContent = `❌ Erreur: ${error.error || 'Impossible de changer le thème'}`;
-                    themeMessage.style.color = '#d32f2f';
+                    localStorage.setItem(ADMIN_LOCAL_DEFAULT_THEME_KEY, selectedTheme);
+                    themeMessage.textContent = `✅ Thème enregistré en mode local: "${selectedTheme}"`;
+                    themeMessage.style.color = '#4caf50';
                 }
             } catch (error) {
                 console.error('Error saving default theme:', error);
