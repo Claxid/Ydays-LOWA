@@ -334,6 +334,15 @@
 	display: inline-flex;
 	gap: 0.1rem;
 	flex-shrink: 0;
+	line-height: 1;
+}
+
+.review-stars .star {
+	display: inline-block;
+	position: relative;
+	font-size: 1em;
+	line-height: 1;
+	vertical-align: middle;
 }
 
 .review-author {
@@ -385,14 +394,29 @@
 }
 
 .review-stars .star-half {
-	color: transparent;
-	background: linear-gradient(90deg, #ffb800 50%, #d2c8be 50%);
-	-webkit-background-clip: text;
-	background-clip: text;
-	-webkit-text-fill-color: transparent;
-	background-size: 100% 100%;
-	background-repeat: no-repeat;
-	display: inline-block;
+	width: 1em;
+	height: 1em;
+	overflow: hidden;
+	color: #d2c8be;
+}
+
+.review-stars .star-half .star-base,
+.review-stars .star-half .star-fill {
+	position: absolute;
+	inset: 0;
+	display: block;
+	line-height: 1;
+	font-size: 1em;
+}
+
+.review-stars .star-half .star-base {
+	color: #d2c8be;
+}
+
+.review-stars .star-half .star-fill {
+	color: #ffb800;
+	width: 50%;
+	overflow: hidden;
 }
 
 .review-date {

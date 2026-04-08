@@ -244,7 +244,9 @@
             const rating = Math.max(0, Math.min(5, Number(n) || 0));
             return [1, 2, 3, 4, 5].map((i) => {
                 if (rating >= i) return '<span class="star star-full">★</span>';
-                if (rating >= i - 0.5) return '<span class="star star-half">★</span>';
+                if (rating >= i - 0.5) {
+                    return '<span class="star star-half" aria-hidden="true"><span class="star-base">★</span><span class="star-fill">★</span></span>';
+                }
                 return '<span class="star star-empty">★</span>';
             }).join('');
         }
