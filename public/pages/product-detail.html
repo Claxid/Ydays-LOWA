@@ -157,6 +157,24 @@
 
         .product-actions .btn {
             flex: 1;
+            min-height: 46px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .detail-fav-btn {
+            position: static;
+            width: auto;
+            height: auto;
+            border-radius: 8px;
+            opacity: 1;
+            box-shadow: var(--shadow-soft);
+            font-size: 0.95rem;
+            padding: 0.7rem 1rem;
+            top: auto;
+            right: auto;
         }
 
         .product-reviews {
@@ -252,7 +270,7 @@
                 <!-- Gallery -->
                 <div class="product-gallery">
                     <div class="product-main-image">
-                        <img id="mainImage" src="/assets/images/pull-gris.svg" alt="Image principale du produit" />
+                        <img id="mainImage" src="/public/images/pull-gris.svg" alt="Image principale du produit" />
                     </div>
                     <div class="product-thumbnails" id="thumbnails">
                         <!-- Rempli par JavaScript -->
@@ -303,9 +321,9 @@
 
                     <div class="product-actions">
                         <button class="btn primary add-to-cart" data-id="2" data-name="Pull recyclé - Gris" data-price="79.00">
-                            🛒 Ajouter au panier
+                            Ajouter au panier
                         </button>
-                        <button class="btn fav-btn" data-id="2" aria-label="Ajouter aux favoris">Favoris</button>
+                        <button class="btn detail-fav-btn" data-id="2" aria-label="Ajouter aux favoris">Favoris</button>
                     </div>
                 </div>
             </div>
@@ -530,7 +548,7 @@
                     addBtn.dataset.name = product.name;
                     addBtn.dataset.price = product.price;
 
-                    const favBtn = document.querySelector('.fav-btn');
+                    const favBtn = document.querySelector('.detail-fav-btn');
                     favBtn.dataset.id = product.id;
                     if (isFavorite(product.id)) {
                         favBtn.classList.add('active');
@@ -644,7 +662,7 @@
             detailScopedSet(FAVORITES_KEY, JSON.stringify(favorites));
         }
 
-        document.querySelectorAll('.fav-btn').forEach(btn => {
+        document.querySelectorAll('.detail-fav-btn').forEach(btn => {
             const productId = btn.dataset.id;
             if (isFavorite(productId)) {
                 btn.classList.add('active');

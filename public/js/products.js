@@ -139,7 +139,7 @@ function renderAllProducts() {
       <a class="product-link-overlay" href="/public/pages/product-detail.html?id=${encodeURIComponent(product.id)}" aria-label="Voir le détail de ${product.name}"></a>
       <div class="product-image-container">
         <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
-        <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Favoris">Favoris</button>
+        <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Favoris" title="Favoris">❤</button>
       </div>
       <h3>${product.name}</h3>
       <p>${product.description}</p>
@@ -192,7 +192,7 @@ function displayProductsPage() {
       <a class="product-link-overlay" href="/public/pages/product-detail.html?id=${encodeURIComponent(product.id)}" aria-label="Voir le détail de ${product.name}"></a>
       <div class="product-image-container">
         <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
-        <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">Favoris</button>
+        <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">❤</button>
       </div>
       <h3>${product.name}</h3>
       <p>${product.description}</p>
