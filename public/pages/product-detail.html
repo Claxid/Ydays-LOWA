@@ -236,9 +236,13 @@
         let currentProduct = null;
         let reviewsChannel = null;
 
-        function toStars(n) {
-            const rating = Math.max(1, Math.min(5, Number(n) || 0));
-            return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+        function toStarsMarkup(n) {
+            const rating = Math.max(0, Math.min(5, Number(n) || 0));
+            return [1, 2, 3, 4, 5].map((i) => {
+                if (rating >= i) return '<span class="star star-full">★</span>';
+                if (rating >= i - 0.5) return '<span class="star star-half">★</span>';
+                return '<span class="star star-empty">★</span>';
+            }).join('');
         }
 
         function formatRelativeDate(isoDate) {
@@ -281,7 +285,7 @@
                 <div class="review">
                     <div class="review-header">
                         <span>${review.reviewer_name}</span>
-                        <span class="review-stars">${toStars(review.rating)}</span>
+                        <span class="review-stars">${toStarsMarkup(review.rating)}</span>
                     </div>
                     <div class="review-date">${formatRelativeDate(review.created_at)}</div>
                     <div class="review-text">${review.comment}</div>
@@ -361,17 +365,26 @@
                 starButtons.forEach((btn) => {
                     const btnRating = Number(btn.dataset.rating);
                     btn.classList.toggle('active', btnRating <= selected);
+                    btn.classList.toggle('half', selected >= (btnRating - 0.5) && selected < btnRating);
                 });
             }
 
             starButtons.forEach((btn) => {
-                btn.addEventListener('click', () => {
-                    ratingInput.value = btn.dataset.rating;
+                btn.addEventListener('click', (e) => {
+                    const rect = btn.getBoundingClientRect();
+                    const leftHalf = (e.clientX - rect.left) <= rect.width / 2;
+                    const base = Number(btn.dataset.rating);
+                    const value = leftHalf ? (base - 0.5) : base;
+                    ratingInput.value = value.toString();
                     paintStars(ratingInput.value);
                 });
 
-                btn.addEventListener('mouseenter', () => {
-                    paintStars(btn.dataset.rating);
+                btn.addEventListener('mousemove', (e) => {
+                    const rect = btn.getBoundingClientRect();
+                    const leftHalf = (e.clientX - rect.left) <= rect.width / 2;
+                    const base = Number(btn.dataset.rating);
+                    const hoverValue = leftHalf ? (base - 0.5) : base;
+                    paintStars(hoverValue);
                 });
             });
 
@@ -391,7 +404,7 @@
                 const rating = Number(ratingInput.value);
                 const comment = commentInput.value.trim();
                 if (!rating || rating < 1 || rating > 5) {
-                    feedback.textContent = 'Merci de choisir une note entre 1 et 5.';
+                    feedback.textContent = 'Merci de choisir une note entre 1 et 5 (par 0.5).';
                     return;
                 }
                 if (comment.length < 5) {
