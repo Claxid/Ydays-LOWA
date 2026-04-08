@@ -1247,16 +1247,19 @@
                                         '/public/images/Robe_d\'été_Blanc_cassé(2).webp'
                                     ]
                             : [product.image];
+                    const safeGalleryImages = galleryImages.map((imagePath) => (
+                        typeof lowaEncodeImagePath === 'function' ? lowaEncodeImagePath(imagePath) : imagePath
+                    ));
 
                     // Update main image
                     const mainImg = document.getElementById('mainImage');
-                    mainImg.src = galleryImages[0];
+                    mainImg.src = safeGalleryImages[0];
                     mainImg.alt = product.name;
 
                     // Create thumbnails from the product gallery
                     const thumbsContainer = document.getElementById('thumbnails');
                     thumbsContainer.innerHTML = '';
-                    galleryImages.forEach((imgSrc, i) => {
+                    safeGalleryImages.forEach((imgSrc, i) => {
                         const thumb = document.createElement('div');
                         thumb.className = 'product-thumbnail' + (i === 0 ? ' active' : '');
                         thumb.innerHTML = `<img src="${imgSrc}" alt="Image ${i+1}" />`;

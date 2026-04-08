@@ -274,11 +274,12 @@ function renderAllProducts() {
             : isRobeEteBlancCasse(product)
               ? ROBE_ETE_BLANC_CASSE_HOMEPAGE_IMAGE
         : product.image;
+    const safeProductImage = typeof lowaEncodeImagePath === 'function' ? lowaEncodeImagePath(productImage) : productImage;
     return `
     <article class="product" role="listitem" data-id="${product.id}">
       <a class="product-link-overlay" href="/public/pages/product-detail.html?id=${encodeURIComponent(product.id)}" aria-label="Voir le détail de ${product.name}"></a>
       <div class="product-image-container">
-        <img src="${productImage}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
+        <img src="${safeProductImage}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
         <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Favoris" title="Favoris">❤</button>
       </div>
       <h3>${product.name}</h3>
@@ -340,11 +341,12 @@ function displayProductsPage() {
             : isRobeEteBlancCasse(product)
               ? ROBE_ETE_BLANC_CASSE_HOMEPAGE_IMAGE
         : product.image;
+    const safeProductImage = typeof lowaEncodeImagePath === 'function' ? lowaEncodeImagePath(productImage) : productImage;
     return `
     <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${collectionLabels[product.collection] || product.collection}">
       <a class="product-link-overlay" href="/public/pages/product-detail.html?id=${encodeURIComponent(product.id)}" aria-label="Voir le détail de ${product.name}"></a>
       <div class="product-image-container">
-        <img src="${productImage}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
+        <img src="${safeProductImage}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
         <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">❤</button>
       </div>
       <h3>${product.name}</h3>
