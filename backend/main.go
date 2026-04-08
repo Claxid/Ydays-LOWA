@@ -339,8 +339,6 @@ func handleUpdateCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Note: Cart management would need to be added to Neon schema if needed
-	// For now, just return success
 	log.Printf("Cart updated for user %d: %d items", userID, len(items))
 
 	w.WriteHeader(http.StatusOK)

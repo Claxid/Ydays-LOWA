@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+	<title>A propos - LOWA</title>
+	<meta name="description" content="Decouvrez la mission de LOWA : offrir une seconde vie aux invendus des marques responsables et reduire le gaspillage textile." />
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="/public/css/homepage.css" />
+	<link rel="stylesheet" href="/public/css/theme-variables.css" />
+	<link rel="stylesheet" href="/public/css/about.css" />
+</head>
+<body>
+	<header class="site-header">
+		<div class="container header-inner">
+			<a class="brand" href="/index.html">LOWA</a>
+			<button class="burger" id="burger-btn" aria-label="Ouvrir le menu">☰</button>
+			<nav class="main-nav" aria-label="Navigation principale">
+				<a href="/index.html">Accueil</a>
+				<a href="/index.html#products-heading">Produits</a>
+				<a href="/public/pages/about.html" aria-current="page">A propos</a>
+				<a href="mailto:lowa.ynov@gmail.com">Contact</a>
+			</nav>
+			<div class="header-actions">
+				<button id="theme-toggle" class="theme-btn" aria-label="Changer de theme">🌙</button>
+			</div>
+		</div>
+	</header>
+
+	<main class="about-page">
+		<section class="about-hero">
+			<h1>Qui sommes-nous ?</h1>
+			<p>
+				LOWA est nee d'une conviction simple : la mode peut rester desirable sans alimenter la surproduction.
+				Nous donnons une seconde vie aux invendus de marques responsables en les rendant accessibles,
+				transparents et faciles a adopter.
+			</p>
+		</section>
+
+		<section class="stats" aria-label="Chiffres cles">
+			<article class="stat">
+				<strong>3 axes</strong>
+				<span>ethique, qualite, durabilite</span>
+			</article>
+			<article class="stat">
+				<strong>100%</strong>
+				<span>pieces deja produites</span>
+			</article>
+			<article class="stat">
+				<strong>1 mission</strong>
+				<span>reduire le gaspillage textile</span>
+			</article>
+		</section>
+
+		<section class="about-grid">
+			<article class="about-card">
+				<h2>Notre mission</h2>
+				<p>
+					Reconnecter style et responsabilite en valorisant l'existant. Chaque produit propose sur LOWA
+					represente une alternative concrete a la production neuve inutile.
+				</p>
+			</article>
+
+			<article class="about-card">
+				<h2>Nos engagements</h2>
+				<ul>
+					<li>Selection de marques avec demarches responsables.</li>
+					<li>Transparence sur l'origine et les matieres.</li>
+					<li>Experience simple, rapide et claire pour acheter mieux.</li>
+				</ul>
+			</article>
+
+			<article class="about-card">
+				<h2>Pourquoi les invendus ?</h2>
+				<p>
+					Parce qu'ils existent deja. Les remettre en circulation evite des dechets textiles et limite
+					l'impact environnemental sans compromis sur le style.
+				</p>
+			</article>
+
+			<article class="about-card">
+				<h2>Pour qui ?</h2>
+				<p>
+					Pour toutes les personnes qui veulent consommer autrement : moins, mieux, et avec plus de sens.
+					LOWA s'adresse autant aux curieux qu'aux convaincus de la mode durable.
+				</p>
+			</article>
+		</section>
+
+		<section class="about-cta">
+			<p><strong>Une question ?</strong> Ecris-nous a <a href="mailto:lowa.ynov@gmail.com">lowa.ynov@gmail.com</a></p>
+			<a class="btn primary about-cta-link" href="/index.html#products-heading">Voir les produits</a>
+		</section>
+	</main>
+
+	<footer class="site-footer">
+		<div class="container">
+			<p>&copy; <span id="year"></span> LOWA - Tous droits reserves.</p>
+		</div>
+	</footer>
+
+	<script>
+		document.getElementById('year').textContent = new Date().getFullYear();
+
+		const burgerBtn = document.getElementById('burger-btn');
+		const nav = document.querySelector('.main-nav');
+		if (burgerBtn && nav) {
+			burgerBtn.addEventListener('click', () => {
+				nav.classList.toggle('open');
+			});
+		}
+
+		const themeToggle = document.getElementById('theme-toggle');
+		const key = 'lowa_theme';
+		const initialTheme = localStorage.getItem(key) || 'light';
+		document.documentElement.setAttribute('data-theme', initialTheme);
+		themeToggle.textContent = initialTheme === 'dark' ? '☀️' : '🌙';
+
+		themeToggle.addEventListener('click', () => {
+			const current = document.documentElement.getAttribute('data-theme') || 'light';
+			const next = current === 'dark' ? 'light' : 'dark';
+			document.documentElement.setAttribute('data-theme', next);
+			localStorage.setItem(key, next);
+			themeToggle.textContent = next === 'dark' ? '☀️' : '🌙';
+		});
+	</script>
+</body>
+</html>
