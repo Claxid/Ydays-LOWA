@@ -271,6 +271,7 @@
 	font-family: inherit;
 	-webkit-tap-highlight-color: transparent;
 	transition: transform var(--transition-fast), color var(--transition-fast);
+	position: relative;
 }
 
 .star-btn:hover,
@@ -280,14 +281,37 @@
 }
 
 .star-btn.half {
-	color: transparent;
-	background: linear-gradient(90deg, #ffb800 50%, #cfc0b1 50%);
-	-webkit-background-clip: text;
-	background-clip: text;
-	-webkit-text-fill-color: transparent;
-	background-size: 100% 100%;
-	background-repeat: no-repeat;
-	display: inline-block;
+	color: #cfc0b1;
+	overflow: hidden;
+}
+
+.star-btn .star-base,
+.star-btn .star-fill {
+	position: absolute;
+	inset: 0;
+	display: block;
+	line-height: 1;
+	font-size: 1.7rem;
+	text-align: center;
+	pointer-events: none;
+}
+
+.star-btn .star-base {
+	color: #cfc0b1;
+}
+
+.star-btn .star-fill {
+	color: #ffb800;
+	width: 0;
+	overflow: hidden;
+}
+
+.star-btn.active .star-fill {
+	width: 100%;
+}
+
+.star-btn.half .star-fill {
+	width: 50%;
 }
 
 .star-btn:focus-visible {
