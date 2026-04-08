@@ -404,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 themeMessage.style.color = '#d32f2f';
             } finally {
                 saveThemeBtn.disabled = false;
-                saveThemeBtn.textContent = '💾 Enregistrer le thème';
+                saveThemeBtn.textContent = 'Enregistrer le thème';
             }
         });
 

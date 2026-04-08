@@ -104,13 +104,13 @@ function initThemeToggle() {
   const updateThemeEmoji = () => {
     const theme = document.documentElement.getAttribute('data-theme');
     if (theme === 'dark') {
-      themeToggle.textContent = '🌙';
+      themeToggle.textContent = 'Sombre';
     } else if (theme === 'temperate') {
-      themeToggle.textContent = '🍂';
+      themeToggle.textContent = 'Tempéré';
     } else if (theme === 'noel') {
-      themeToggle.textContent = '❄️';
+      themeToggle.textContent = 'Noël';
     } else {
-      themeToggle.textContent = '☀️';
+      themeToggle.textContent = 'Clair';
     }
   };
   

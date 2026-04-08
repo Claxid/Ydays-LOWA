@@ -13,16 +13,14 @@
 <body>
     <header class="site-header">
         <div class="container header-inner">
-            <a class="brand" href="/index.html" aria-label="LOWA - Accueil">
-                <img class="brand-logo" src="/public/images/logo-lowa-horizontal.svg" alt="LOWA" />
-            </a>
-            <button class="burger" id="burger-btn" aria-label="Ouvrir le menu">☰</button>
+            <a class="brand" href="/index.html">LOWA</a>
+            <button class="burger" id="burger-btn" aria-label="Ouvrir le menu">Menu</button>
             <nav class="main-nav">
                 <a href="/index.html">Accueil</a>
                 <a href="/public/pages/profile.html">Mon profil</a>
             </nav>
             <div class="header-actions">
-                <button id="theme-toggle" class="theme-btn" aria-label="Changer de thème">🌙</button>
+                <button id="theme-toggle" class="theme-btn" aria-label="Changer de thème">Theme</button>
                 <button id="cart-button" class="cart-btn">
                     Panier (<span id="cart-count">0</span>)
                 </button>
@@ -33,13 +31,13 @@
     <main>
         <section class="container products-section">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem">
-                <h2>❤️ Mes Favoris</h2>
+                <h2>Mes Favoris</h2>
                 <button id="clear-favorites" class="btn" style="background:transparent;border:2px solid var(--accent);color:var(--accent)">Tout supprimer</button>
             </div>
 
             <div id="favorites-empty" class="products-empty" style="display:none">
                 <p style="font-size:1.2rem;margin-bottom:1rem">Aucun favori pour le moment</p>
-                <p style="color:var(--muted)">Parcourez notre catalogue et cliquez sur ❤️ pour ajouter des produits ici !</p>
+                <p style="color:var(--muted)">Parcourez notre catalogue et cliquez sur Favoris pour ajouter des produits ici !</p>
                 <a href="/index.html" class="btn primary" style="margin-top:1rem;text-decoration:none;display:inline-block">Découvrir les produits</a>
             </div>
 
@@ -161,7 +159,7 @@
             const themeToggle = document.getElementById('theme-toggle');
             const theme = document.documentElement.getAttribute('data-theme');
             if (theme === 'dark') {
-                themeToggle.textContent = '☀️';
+                themeToggle.textContent = 'Clair';
             } else {
                 themeToggle.textContent = '🌆';
             }
@@ -257,15 +255,15 @@
                     return isFinite(n) ? n.toFixed(2) : '0.00';
                 };
                 const collectionLabels = {
-                    'eco': '🌱 Éco',
-                    'recycle': '♻️ Recyclé',
-                    'classiques': '✨ Classique'
+                    'eco': 'Éco',
+                    'recycle': 'Recyclé',
+                    'classiques': 'Classique'
                 };
                 return `
                 <article class="product" data-id="${product.id}" data-collection="${collectionLabels[product.collection] || product.collection}">
                     <div class="product-image-container">
                         <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
-                        <button class="fav-btn active" data-id="${product.id}" aria-label="Retirer des favoris" title="Retirer des favoris">❤️</button>
+                        <button class="fav-btn active" data-id="${product.id}" aria-label="Retirer des favoris" title="Retirer des favoris">Favoris</button>
                     </div>
                     <h3>${product.name}</h3>
                     <p>${product.description}</p>

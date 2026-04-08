@@ -100,13 +100,13 @@ function renderAllProducts() {
   const resultsCount = document.getElementById('results-count');
   const totalCount = document.getElementById('total-count');
   
-  console.log('🎨 Rendu de', products.length, 'produits');
+  console.log('Products rendering', products.length, 'items');
   
   const html = products.map(product => `
     <article class="product" role="listitem" data-id="${product.id}">
       <div class="product-image-container">
         <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
-        <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Favoris">❤️</button>
+        <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Favoris">Favoris</button>
       </div>
       <h3>${product.name}</h3>
       <p>${product.description}</p>
@@ -145,9 +145,9 @@ function displayProductsPage() {
   const paginationContainer = document.getElementById('pagination-container');
   
   const collectionLabels = {
-    'eco': '🌱 Éco',
-    'recycle': '♻️ Recyclé',
-    'classiques': '✨ Classique'
+    'eco': 'Éco',
+    'recycle': 'Recyclé',
+    'classiques': 'Classique'
   };
 
   resultsCount.textContent = Math.min(currentPage * LOWA.PAGINATION.PRODUCTS_PER_PAGE, filteredProducts.length);
@@ -157,7 +157,7 @@ function displayProductsPage() {
     <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${collectionLabels[product.collection] || product.collection}">
       <div class="product-image-container">
         <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
-        <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">❤️</button>
+        <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">Favoris</button>
       </div>
       <h3>${product.name}</h3>
       <p>${product.description}</p>
