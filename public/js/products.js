@@ -10,8 +10,18 @@ let sortOrder = 'default';
 
 const FIRST_PRODUCT_HOMEPAGE_IMAGE = '/public/images/T_shirt BIO_Naturel(0).webp';
 
+function isBioNaturelTshirt(product) {
+  const name = String(product?.name || '').toLowerCase();
+  const image = String(product?.image || '').toLowerCase();
+  return (
+    Number(product?.id) === 1
+    || (name.includes('t-shirt bio') && name.includes('naturel'))
+    || image.includes('tshirt-naturel.svg')
+  );
+}
+
 function normalizeHomepageProductImage(product) {
-  if (!product || Number(product.id) !== 1) return product;
+  if (!product || !isBioNaturelTshirt(product)) return product;
   const normalized = { ...product, image: FIRST_PRODUCT_HOMEPAGE_IMAGE };
   if (!Array.isArray(normalized.images) || normalized.images.length === 0) {
     normalized.images = [
@@ -154,7 +164,7 @@ function renderAllProducts() {
   console.log('Products rendering', products.length, 'items');
   
   const html = products.map(product => {
-    const productImage = Number(product.id) === 1 ? FIRST_PRODUCT_HOMEPAGE_IMAGE : product.image;
+    const productImage = isBioNaturelTshirt(product) ? FIRST_PRODUCT_HOMEPAGE_IMAGE : product.image;
     return `
     <article class="product" role="listitem" data-id="${product.id}">
       <a class="product-link-overlay" href="/public/pages/product-detail.html?id=${encodeURIComponent(product.id)}" aria-label="Voir le détail de ${product.name}"></a>
@@ -210,7 +220,7 @@ function displayProductsPage() {
   totalCount.textContent = filteredProducts.length;
   
   const html = paginated.map(product => {
-    const productImage = Number(product.id) === 1 ? FIRST_PRODUCT_HOMEPAGE_IMAGE : product.image;
+    const productImage = isBioNaturelTshirt(product) ? FIRST_PRODUCT_HOMEPAGE_IMAGE : product.image;
     return `
     <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${collectionLabels[product.collection] || product.collection}">
       <a class="product-link-overlay" href="/public/pages/product-detail.html?id=${encodeURIComponent(product.id)}" aria-label="Voir le détail de ${product.name}"></a>
