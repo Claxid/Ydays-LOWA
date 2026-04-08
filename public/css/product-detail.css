@@ -157,13 +157,13 @@
 
 .product-reviews {
 	margin-top: 3rem;
-	border-top: 2px solid var(--soft-green);
-	padding-top: 2rem;
+	padding: 2rem 0 0;
+	border-top: 1px solid rgba(90, 106, 47, 0.18);
 }
 
 .reviews-title {
-	font-size: 1.5rem;
-	margin-bottom: 1.5rem;
+	font-size: 1.55rem;
+	margin-bottom: 1rem;
 	color: var(--dark);
 }
 
@@ -171,10 +171,12 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 0.5rem;
-	margin-bottom: 1rem;
-	padding: 0.35rem 0.65rem;
+	margin-bottom: 1.2rem;
+	padding: 0.45rem 0.8rem;
 	border-radius: 999px;
-	background: rgba(255, 184, 0, 0.08);
+	background: linear-gradient(135deg, rgba(255, 184, 0, 0.1), rgba(255, 184, 0, 0.04));
+	border: 1px solid rgba(255, 184, 0, 0.2);
+	box-shadow: 0 10px 28px rgba(90, 106, 47, 0.06);
 }
 
 .reviews-average strong {
@@ -182,14 +184,30 @@
 	color: var(--dark);
 }
 
+.reviews-average .review-stars {
+	font-size: 0.95rem;
+}
+
+.reviews-average::before {
+	content: 'Note moyenne';
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
 .review-form {
 	display: grid;
 	grid-template-columns: 180px 1fr;
-	gap: 0.9rem;
-	background: transparent;
-	border-bottom: 1px solid var(--soft-green);
-	padding: 0 0 1rem;
-	margin-bottom: 1.2rem;
+	gap: 1rem 1.1rem;
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.35));
+	backdrop-filter: blur(8px);
+	border: 1px solid rgba(90, 106, 47, 0.14);
+	border-radius: 20px;
+	padding: 1.15rem 1.2rem 1rem;
+	margin-bottom: 1.5rem;
+	box-shadow: 0 18px 40px rgba(90, 106, 47, 0.08);
 }
 
 .review-form-row {
@@ -205,23 +223,28 @@
 .review-form label {
 	font-weight: 600;
 	color: var(--dark);
+	font-size: 0.95rem;
 }
 
 .review-form textarea {
 	padding: 0.7rem;
-	border: 1px solid var(--soft-green);
-	border-radius: 8px;
-	background: #fff;
+	border: 1px solid rgba(90, 106, 47, 0.16);
+	border-radius: 14px;
+	background: rgba(255, 255, 255, 0.88);
 	color: var(--dark);
 	font-family: var(--font-body);
+	min-height: 110px;
+	resize: vertical;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 
 .review-stars-input {
 	display: inline-flex;
-	gap: 0.25rem;
+	gap: 0.18rem;
 	align-items: center;
-	padding: 0.2rem 0;
+	padding: 0.1rem 0;
+	flex-wrap: wrap;
 }
 
 .star-btn {
@@ -229,11 +252,11 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 1.55rem;
-	height: 1.55rem;
-	font-size: 1.55rem;
+	width: 1.8rem;
+	height: 1.8rem;
+	font-size: 1.7rem;
 	line-height: 1;
-	color: #c7b9ab;
+	color: #cfc0b1;
 	cursor: pointer;
 	border: none !important;
 	outline: none !important;
@@ -241,19 +264,24 @@
 	background: transparent !important;
 	appearance: none;
 	-webkit-appearance: none;
+	-moz-appearance: none;
 	padding: 0;
+	margin: 0;
+	border-radius: 0;
+	font-family: inherit;
+	-webkit-tap-highlight-color: transparent;
 	transition: transform var(--transition-fast), color var(--transition-fast);
 }
 
 .star-btn:hover,
 .star-btn.active {
 	color: #ffb800;
-	transform: translateY(-1px) scale(1.05);
+	transform: translateY(-1px) scale(1.08);
 }
 
 .star-btn.half {
 	color: transparent;
-	background: linear-gradient(90deg, #ffb800 50%, #c7b9ab 50%);
+	background: linear-gradient(90deg, #ffb800 50%, #cfc0b1 50%);
 	-webkit-background-clip: text;
 	background-clip: text;
 }
@@ -265,17 +293,19 @@
 }
 
 .review-feedback {
-	margin: 0;
+	grid-column: 1 / -1;
+	margin: -0.15rem 0 0;
 	font-size: 0.9rem;
 	color: var(--muted);
 }
 
 .review {
-	padding: 1rem 0;
-	background: transparent;
-	border-radius: 0;
-	border-bottom: 1px solid var(--soft-green);
-	margin-bottom: 0;
+	padding: 1.05rem 1.1rem;
+	background: rgba(255, 255, 255, 0.62);
+	border: 1px solid rgba(90, 106, 47, 0.1);
+	border-radius: 18px;
+	margin-bottom: 0.85rem;
+	box-shadow: 0 12px 30px rgba(90, 106, 47, 0.06);
 	animation: slideInUp 0.4s ease-out backwards;
 }
 
@@ -287,17 +317,59 @@
 	animation-delay: 0.2s;
 }
 
-.review-header {
+.review-top {
 	display: flex;
 	justify-content: space-between;
-	margin-bottom: 0.45rem;
-	font-weight: 600;
+	align-items: center;
+	gap: 1rem;
+	margin-bottom: 0.8rem;
 }
 
 .review-stars {
 	font-size: 1rem;
 	display: inline-flex;
 	gap: 0.1rem;
+	flex-shrink: 0;
+}
+
+.review-author {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	min-width: 0;
+}
+
+.review-avatar {
+	width: 2.4rem;
+	height: 2.4rem;
+	border-radius: 999px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.82rem;
+	font-weight: 800;
+	letter-spacing: 0.05em;
+	color: var(--dark);
+	background: linear-gradient(135deg, rgba(255, 184, 0, 0.24), rgba(219, 152, 246, 0.16));
+	border: 1px solid rgba(90, 106, 47, 0.08);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+	flex-shrink: 0;
+}
+
+.review-author-meta {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	min-width: 0;
+}
+
+.review-name {
+	font-weight: 700;
+	color: var(--dark);
+	line-height: 1.2;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .review-stars .star-full {
@@ -317,12 +389,41 @@
 
 .review-date {
 	color: var(--muted);
-	font-size: 0.85rem;
+	font-size: 0.82rem;
 }
 
 .review-text {
 	color: var(--dark);
-	line-height: 1.6;
+	line-height: 1.75;
+	margin: 0;
+	padding-left: 3.15rem;
+	position: relative;
+	font-size: 0.98rem;
+	color: rgba(56, 49, 41, 0.95);
+}
+
+.review-text::before {
+	content: '“';
+	position: absolute;
+	left: 0;
+	top: -0.25rem;
+	font-size: 2.5rem;
+	line-height: 1;
+	color: rgba(90, 106, 47, 0.18);
+	font-family: var(--font-heading);
+}
+
+#reviewsContainer {
+	display: grid;
+	gap: 0.85rem;
+}
+
+.review-empty-state {
+	padding: 1rem 1.1rem;
+	border-radius: 14px;
+	background: rgba(255, 255, 255, 0.42);
+	border: 1px dashed rgba(90, 106, 47, 0.2);
+	color: var(--muted);
 }
 
 @media (max-width: 768px) {
@@ -345,5 +446,19 @@
 
 	.review-form {
 		grid-template-columns: 1fr;
+	}
+
+	.review-text {
+		padding-left: 0;
+	}
+
+	.review-text::before {
+		left: -0.1rem;
+		top: -0.35rem;
+	}
+
+	.review-top {
+		align-items: flex-start;
+		flex-direction: column;
 	}
 }
