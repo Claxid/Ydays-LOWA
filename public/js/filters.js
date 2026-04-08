@@ -6,6 +6,16 @@
 let activeFilters = {};
 let maxPrice = 1000;
 
+function scrollToFilteredProducts() {
+  const target = document.getElementById('products-heading') || document.getElementById('products');
+  if (!target) return;
+
+  // Let rendering finish before scrolling so users land on the filtered list.
+  requestAnimationFrame(() => {
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
 /**
  * Charger les filtres depuis le stockage
  */
@@ -154,6 +164,7 @@ function initFilterListeners() {
       
       saveFiltersToStorage();
       sortAndDisplayProducts();
+      scrollToFilteredProducts();
     }
   });
   
