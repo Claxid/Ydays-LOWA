@@ -627,6 +627,20 @@ body{
   height:100%;
 }
 
+.product-link-overlay{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  border-radius:8px;
+}
+
+.product .meta,
+.product .meta .btn,
+.product h3{
+  position:relative;
+  z-index:3;
+}
+
 /* Skeleton loading */
 .skeleton .product-image-container{background:var(--pale-green);}
 .skeleton-line{height:10px;background:var(--soft-green);border-radius:6px;margin:0.5rem 0;position:relative;overflow:hidden;}
