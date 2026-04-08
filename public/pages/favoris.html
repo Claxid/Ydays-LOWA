@@ -280,6 +280,33 @@
 
             attachFavoriteListeners();
             attachCartListeners();
+            attachProductNavigationListeners();
+        }
+
+        function attachProductNavigationListeners() {
+            document.querySelectorAll('#favorites-grid .product').forEach(card => {
+                const productId = card.dataset.id;
+                if (!productId) return;
+
+                card.style.cursor = 'pointer';
+                card.setAttribute('tabindex', '0');
+
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.add-to-cart') || e.target.closest('.fav-btn') || e.target.closest('button') || e.target.closest('a')) {
+                        return;
+                    }
+                    window.location.href = `/public/pages/product-detail.html?id=${encodeURIComponent(productId)}`;
+                });
+
+                card.addEventListener('keydown', (e) => {
+                    if (e.key !== 'Enter' && e.key !== ' ') return;
+                    if (e.target.closest('.add-to-cart') || e.target.closest('.fav-btn') || e.target.closest('button')) {
+                        return;
+                    }
+                    e.preventDefault();
+                    window.location.href = `/public/pages/product-detail.html?id=${encodeURIComponent(productId)}`;
+                });
+            });
         }
 
         function toggleFavorite(productId) {

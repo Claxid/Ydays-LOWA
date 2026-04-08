@@ -276,6 +276,10 @@
 
                     <div class="product-specs">
                         <div class="spec">
+                            <span class="spec-label">Fabricant</span>
+                            <span class="spec-value" id="manufacturer">LOWA Atelier</span>
+                        </div>
+                        <div class="spec">
                             <span class="spec-label">Matière</span>
                             <span class="spec-value" id="material">Polyester recyclé</span>
                         </div>
@@ -437,6 +441,27 @@
 
         // Load product data
         async function loadProductDetail() {
+            const collectionMeta = {
+                eco: {
+                    manufacturer: 'LOWA Atelier Éco',
+                    material: 'Coton biologique certifié',
+                    certificate: 'Éco certifié',
+                    colors: 'Naturel, Sable, Écru'
+                },
+                recycle: {
+                    manufacturer: 'LOWA ReCycle Lab',
+                    material: 'Fibres recyclées haute durabilité',
+                    certificate: 'Recyclé certifié',
+                    colors: 'Gris, Noir, Bleu nuit'
+                },
+                classiques: {
+                    manufacturer: 'LOWA Collection Classique',
+                    material: 'Mélange premium coton et lin',
+                    certificate: 'Traçabilité vérifiée',
+                    colors: 'Blanc, Beige, Marine'
+                }
+            };
+
             try {
                 const paths = [
                     'https://lowa-api.onrender.com/api/products',
@@ -472,6 +497,13 @@
                     document.getElementById('productName').textContent = product.name;
                     document.getElementById('productPrice').textContent = product.price.toFixed(2) + ' €';
                     document.getElementById('productDescription').textContent = product.description;
+
+                    const meta = collectionMeta[product.collection] || collectionMeta.classiques;
+                    document.getElementById('manufacturer').textContent = meta.manufacturer;
+                    document.getElementById('material').textContent = meta.material;
+                    document.getElementById('certificate').textContent = meta.certificate;
+                    const colorsRow = document.querySelector('.spec:nth-child(4) .spec-value');
+                    if (colorsRow) colorsRow.textContent = meta.colors;
                     
                     // Update main image
                     const mainImg = document.getElementById('mainImage');
@@ -497,6 +529,14 @@
                     addBtn.dataset.id = product.id;
                     addBtn.dataset.name = product.name;
                     addBtn.dataset.price = product.price;
+
+                    const favBtn = document.querySelector('.fav-btn');
+                    favBtn.dataset.id = product.id;
+                    if (isFavorite(product.id)) {
+                        favBtn.classList.add('active');
+                    } else {
+                        favBtn.classList.remove('active');
+                    }
                 }
             } catch (error) {
                 console.error('Erreur chargement produit:', error);
@@ -586,17 +626,20 @@
         const FAVORITES_KEY = 'lowa_favorites';
         const rawFavorites = detailScopedGet(FAVORITES_KEY);
         let favorites = rawFavorites ? JSON.parse(rawFavorites) : [];
+        favorites = Array.from(new Set(favorites.map(v => parseInt(v, 10)).filter(n => Number.isFinite(n))));
         
         function isFavorite(productId) {
-            return favorites.includes(productId);
+            const idNum = parseInt(productId, 10);
+            return favorites.includes(idNum);
         }
 
         function toggleFavorite(productId) {
-            const index = favorites.indexOf(productId);
+            const idNum = parseInt(productId, 10);
+            const index = favorites.indexOf(idNum);
             if (index > -1) {
                 favorites.splice(index, 1);
             } else {
-                favorites.push(productId);
+                favorites.push(idNum);
             }
             detailScopedSet(FAVORITES_KEY, JSON.stringify(favorites));
         }

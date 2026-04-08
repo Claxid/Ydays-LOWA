@@ -8,6 +8,38 @@ let filteredProducts = [];
 let currentPage = 1;
 let sortOrder = 'default';
 
+function openProductDetail(productId) {
+  if (!productId) return;
+  window.location.href = `/public/pages/product-detail.html?id=${encodeURIComponent(productId)}`;
+}
+
+function attachProductNavigationListeners() {
+  document.querySelectorAll('.product').forEach((card) => {
+    const productId = card.dataset.id;
+    if (!productId) return;
+
+    card.style.cursor = 'pointer';
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-label', `Voir le détail du produit ${productId}`);
+
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.add-to-cart') || e.target.closest('.fav-btn') || e.target.closest('a') || e.target.closest('button')) {
+        return;
+      }
+      openProductDetail(productId);
+    });
+
+    card.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      if (e.target.closest('.add-to-cart') || e.target.closest('.fav-btn') || e.target.closest('button')) {
+        return;
+      }
+      e.preventDefault();
+      openProductDetail(productId);
+    });
+  });
+}
+
 const FALLBACK_PRODUCTS = [
   {"id":1,"name":"T-shirt BIO - Naturel","price":29.00,"description":"T-shirt en coton biologique certifié. Coupe confortable, coloris naturels.","image":"/public/images/tshirt-naturel.svg","category":"hommes","subcategory":"t-shirts","collection":"eco"},
   {"id":2,"name":"Pull recyclé - Gris","price":79.00,"description":"Pull fabriqué à partir de fibres recyclées. Chaud et durable.","image":"/public/images/pull-gris.svg","category":"hommes","subcategory":"vestes","collection":"recycle"},
@@ -124,6 +156,7 @@ function renderAllProducts() {
   
   attachCartListeners();
   attachFavoriteListeners();
+  attachProductNavigationListeners();
 }
 
 /**
@@ -180,6 +213,7 @@ function displayProductsPage() {
   
   attachCartListeners();
   attachFavoriteListeners();
+  attachProductNavigationListeners();
 }
 
 /**
