@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preload" as="style" href="/public/css/homepage.css?v=20260408" />
     <link rel="stylesheet" href="/public/css/homepage.css?v=20260408" media="all" />
-    <link rel="stylesheet" href="/public/css/product-detail.css?v=20260408c" media="all" />
+    <link rel="stylesheet" href="/public/css/product-detail.css?v=20260408d" media="all" />
 </head>
 <body>
     <header class="site-header">
@@ -129,7 +129,11 @@
                     </div>
                     <div class="review-form-row review-form-row-full">
                         <label for="review-media">Photos / videos (max 2)</label>
-                        <input id="review-media" type="file" accept="image/*,video/*" multiple />
+                        <div class="review-media-picker">
+                            <label for="review-media" class="review-media-btn">Ajouter des fichiers</label>
+                            <span id="review-media-count" class="review-media-count">Aucun fichier selectionne</span>
+                            <input id="review-media" class="review-media-input" type="file" accept="image/*,video/*" multiple />
+                        </div>
                         <p class="review-media-help">Formats acceptes: image et video. Maximum 2 fichiers par avis.</p>
                         <div id="review-media-preview" class="review-media-preview" aria-live="polite"></div>
                     </div>
@@ -305,13 +309,31 @@
             return /\.(mp4|webm|ogg|mov|m4v|avi)(\?.*)?$/i.test(String(url || ''));
         }
 
-        function renderReviewMedia(mediaUrls) {
-            const urls = Array.isArray(mediaUrls) ? mediaUrls.filter(Boolean).slice(0, REVIEW_MEDIA_MAX_FILES) : [];
-            if (!urls.length) return '';
+        function isMediaVideoEntry(entry) {
+            if (!entry) return false;
+            if (typeof entry === 'string') return isVideoUrl(entry);
+            const kind = String(entry.kind || entry.type || '').toLowerCase();
+            if (kind.includes('video')) return true;
+            const mime = String(entry.mime || '').toLowerCase();
+            if (mime.startsWith('video/')) return true;
+            return isVideoUrl(entry.url || entry.publicUrl || '');
+        }
 
-            const cards = urls.map((url, idx) => {
-                const safeUrl = escapeHtml(url);
-                if (isVideoUrl(url)) {
+        function mediaEntryUrl(entry) {
+            if (!entry) return '';
+            if (typeof entry === 'string') return entry;
+            return entry.url || entry.publicUrl || '';
+        }
+
+        function renderReviewMedia(mediaUrls) {
+            const entries = Array.isArray(mediaUrls) ? mediaUrls.filter(Boolean).slice(0, REVIEW_MEDIA_MAX_FILES) : [];
+            if (!entries.length) return '';
+
+            const cards = entries.map((entry, idx) => {
+                const rawUrl = mediaEntryUrl(entry);
+                if (!rawUrl) return '';
+                const safeUrl = escapeHtml(rawUrl);
+                if (isMediaVideoEntry(entry)) {
                     return `
                         <figure class="review-media-card review-media-card-video">
                             <video controls preload="metadata" src="${safeUrl}"></video>
@@ -369,7 +391,7 @@
             const supabaseClient = initSupabase();
             if (!supabaseClient) throw new Error('Supabase indisponible pour l\'upload media.');
 
-            const uploadedUrls = [];
+            const uploadedItems = [];
             for (const file of files) {
                 const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
                 const safeName = sanitizeFileName(file.name);
@@ -393,10 +415,14 @@
                     throw new Error('Impossible de recuperer l\'URL publique du media.');
                 }
 
-                uploadedUrls.push(publicData.publicUrl);
+                uploadedItems.push({
+                    url: publicData.publicUrl,
+                    kind: String(file.type || '').startsWith('video/') ? 'video' : 'image',
+                    mime: String(file.type || '')
+                });
             }
 
-            return uploadedUrls;
+            return uploadedItems;
         }
 
         function starMarkup(state, ariaHidden = true, seed = '') {
@@ -545,12 +571,18 @@
             const commentInput = document.getElementById('review-comment');
             const mediaInput = document.getElementById('review-media');
             const mediaPreview = document.getElementById('review-media-preview');
+            const mediaCount = document.getElementById('review-media-count');
             const feedback = document.getElementById('review-feedback');
             const starButtons = Array.from(document.querySelectorAll('.star-btn'));
 
             function renderSelectedMediaPreview() {
                 if (!mediaInput || !mediaPreview) return;
                 const files = reviewMediaInputFiles(mediaInput);
+                if (mediaCount) {
+                    mediaCount.textContent = files.length
+                        ? `${files.length} fichier${files.length > 1 ? 's' : ''} selectionne${files.length > 1 ? 's' : ''}`
+                        : 'Aucun fichier selectionne';
+                }
                 if (!files.length) {
                     mediaPreview.innerHTML = '';
                     return;
@@ -693,7 +725,7 @@
                         .eq('user_id', userId)
                         .maybeSingle();
                     if (existing && Array.isArray(existing.media_urls)) {
-                        existingMediaUrls = existing.media_urls;
+                        existingMediaUrls = existing.media_urls.slice(0, REVIEW_MEDIA_MAX_FILES);
                     }
                 } catch (e) {}
 
@@ -737,6 +769,7 @@
                         ratingInput.value = '';
                         if (mediaInput) mediaInput.value = '';
                         if (mediaPreview) mediaPreview.innerHTML = '';
+                        if (mediaCount) mediaCount.textContent = 'Aucun fichier selectionne';
                         paintStars('');
                         await refreshReviewsFromDbOrFallback();
                         return;
@@ -751,6 +784,7 @@
                 ratingInput.value = '';
                 if (mediaInput) mediaInput.value = '';
                 if (mediaPreview) mediaPreview.innerHTML = '';
+                if (mediaCount) mediaCount.textContent = 'Aucun fichier selectionne';
                 paintStars('');
                 await refreshReviewsFromDbOrFallback();
             });
