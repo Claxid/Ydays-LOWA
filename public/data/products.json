@@ -49,7 +49,12 @@
     "name": "Veste en Lin - Beige",
     "price": 89.0,
     "description": "Veste légère en lin naturel, parfaite pour la mi-saison. Coupe ajustée.",
-      "image": "/public/images/veste-lin-beige.svg",
+      "image": "/public/images/Veste_en_Lin_Beige(0).webp",
+    "images": [
+      "/public/images/Veste_en_Lin_Beige(0).webp",
+      "/public/images/Veste_en_Lin_Beige(1).webp",
+      "/public/images/Veste_en_Lin_Beige(2).avif"
+    ],
     "category": "femmes",
     "subcategory": "vestes",
     "collection": "classiques"
