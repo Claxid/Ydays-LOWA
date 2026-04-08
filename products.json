@@ -36,11 +36,11 @@
     "name": "Pantalon éco - Kaki",
     "price": 59.00,
     "description": "Pantalon en tissu certifié avec renforts minimalistes.",
-    "image": "/images/Pantalon_éco_Kaki(0).webp",
+    "image": "/images/Pantalon_éco_Kaki(0).jpg",
     "images": [
-      "/images/Pantalon_éco_Kaki(0).webp",
-      "/images/Pantalon_éco_Kaki(1).webp",
-      "/images/Pantalon_éco_Kaki(2).webp"
+      "/images/Pantalon_éco_Kaki(0).jpg",
+      "/images/Pantalon_éco_Kaki(1).jpg",
+      "/images/Pantalon_éco_Kaki(2).jpg"
     ],
     "category": "hommes",
     "subcategory": "pantalons",
