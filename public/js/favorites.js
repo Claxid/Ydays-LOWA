@@ -76,7 +76,7 @@ async function toggleFavorite(productId) {
   } else {
     localStorage.setItem(LOWA.STORAGE.FAVORITES_KEY, JSON.stringify(favorites));
   }
-  console.log('💾 Local storage updated, current favorites:', favorites);
+  console.log('Local storage updated, current favorites:', favorites);
 
   console.log('☁️ Syncing to cloud...');
   const result = await lowaWriteUserStatePatch({ favorites: favorites });
