@@ -284,6 +284,10 @@
 	background: linear-gradient(90deg, #ffb800 50%, #cfc0b1 50%);
 	-webkit-background-clip: text;
 	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	display: inline-block;
 }
 
 .star-btn:focus-visible {
@@ -385,6 +389,10 @@
 	background: linear-gradient(90deg, #ffb800 50%, #d2c8be 50%);
 	-webkit-background-clip: text;
 	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+	display: inline-block;
 }
 
 .review-date {
