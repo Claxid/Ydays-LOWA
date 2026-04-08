@@ -256,6 +256,18 @@
         const REVIEW_MAX_VIDEO_BYTES = 20 * 1024 * 1024;
         const REVIEW_NSFW_BLOCK_THRESHOLD = 0.68;
         const REVIEW_FILENAME_BLOCKLIST = /(porn|porno|sex|sexe|nude|nudity|hentai|gore|blood|murder|kill|violence|rape|xxx|nsfw)/i;
+        const REVIEW_TFJS_SCRIPT_CANDIDATES = [
+            'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js',
+            'https://unpkg.com/@tensorflow/tfjs@4.22.0/dist/tf.min.js'
+        ];
+        const REVIEW_NSFW_SCRIPT_CANDIDATES = [
+            'https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js',
+            'https://unpkg.com/nsfwjs@2.4.2/dist/nsfwjs.min.js'
+        ];
+        const REVIEW_NSFW_MODEL_URL_CANDIDATES = [
+            'https://cdn.jsdelivr.net/gh/infinitered/nsfwjs@master/public/',
+            'https://raw.githubusercontent.com/infinitered/nsfwjs/master/public/'
+        ];
         let reviewModerationModelPromise = null;
 
         function toStarsMarkup(n) {
@@ -416,15 +428,42 @@
             });
         }
 
+        async function loadFirstAvailableScript(urls) {
+            let lastError = null;
+            for (const url of urls) {
+                try {
+                    await loadExternalScript(url);
+                    return;
+                } catch (err) {
+                    lastError = err;
+                }
+            }
+            throw lastError || new Error('Aucun script de moderation charge.');
+        }
+
         async function getReviewModerationModel() {
             if (!reviewModerationModelPromise) {
                 reviewModerationModelPromise = (async () => {
-                    await loadExternalScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js');
-                    await loadExternalScript('https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js');
+                    await loadFirstAvailableScript(REVIEW_TFJS_SCRIPT_CANDIDATES);
+                    await loadFirstAvailableScript(REVIEW_NSFW_SCRIPT_CANDIDATES);
                     if (!window.nsfwjs || typeof window.nsfwjs.load !== 'function') {
                         throw new Error('Moderation indisponible: modele NSFW non charge.');
                     }
-                    return window.nsfwjs.load();
+
+                    let lastError = null;
+                    for (const modelUrl of REVIEW_NSFW_MODEL_URL_CANDIDATES) {
+                        try {
+                            return await window.nsfwjs.load(modelUrl);
+                        } catch (err) {
+                            lastError = err;
+                        }
+                    }
+                    try {
+                        return await window.nsfwjs.load();
+                    } catch (err) {
+                        const root = lastError || err;
+                        throw new Error(`Moderation indisponible: chargement modele echoue (${String(root && root.message ? root.message : root)})`);
+                    }
                 })();
             }
             return reviewModerationModelPromise;
@@ -528,7 +567,12 @@
         async function moderateReviewMediaFiles(files) {
             if (!files.length) return { ok: true };
 
-            const model = await getReviewModerationModel();
+            let model = null;
+            try {
+                model = await getReviewModerationModel();
+            } catch (err) {
+                console.warn('Moderation IA indisponible, continuation en mode degrade.', err);
+            }
 
             for (const file of files) {
                 const fileName = String(file.name || '');
@@ -546,9 +590,9 @@
                 const isVideo = String(file.type || '').startsWith('video/');
                 let score = 0;
 
-                if (isImage) {
+                if (isImage && model) {
                     score = await classifyImageForModeration(file, model);
-                } else if (isVideo) {
+                } else if (isVideo && model) {
                     score = await classifyVideoForModeration(file, model);
                 }
 
@@ -557,7 +601,15 @@
                 }
             }
 
-            return { ok: true };
+            if (!model) {
+                return {
+                    ok: true,
+                    degraded: true,
+                    message: 'Controle IA temporairement indisponible. Verification de base effectuee, envoi autorise.'
+                };
+            }
+
+            return { ok: true, degraded: false };
         }
 
         async function uploadReviewMediaFiles(files, userId, productId) {
@@ -889,16 +941,13 @@
                 try {
                     if (selectedFiles.length) {
                         setSubmitLoading(true, 'Verification de securite des fichiers...');
-                        let moderationResult;
-                        try {
-                            moderationResult = await moderateReviewMediaFiles(selectedFiles);
-                        } catch (moderationError) {
-                            feedback.textContent = `Moderation media indisponible: ${String(moderationError && moderationError.message ? moderationError.message : moderationError)}`;
-                            return;
-                        }
+                        const moderationResult = await moderateReviewMediaFiles(selectedFiles);
                         if (!moderationResult.ok) {
                             feedback.textContent = moderationResult.message || 'Media bloque par moderation.';
                             return;
+                        }
+                        if (moderationResult.degraded && moderationResult.message) {
+                            feedback.textContent = moderationResult.message;
                         }
                     }
 
