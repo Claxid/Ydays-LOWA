@@ -30,8 +30,7 @@ const LOWA = {
 };
 
 const LOWA_ADMIN_ENTRY_KEY = 'lowa_admin_entry';
-const LOWA_ADMIN_KEY_SEQUENCE = ['m', 'ù'];
-let lowaAdminShortcutState = { step: 0, timer: null };
+let lowaAdminShortcutState = { step: 0, timer: null, startedAt: 0 };
 
 const LOWA_SCOPED_STORAGE_VERSION = 'v2';
 const LOWA_ACTIVE_USER_STORAGE_KEY = 'lowa_active_user_scope';
@@ -136,6 +135,27 @@ function isTypingTarget(target) {
   return ['input', 'textarea', 'select'].includes(tag) || (target && target.isContentEditable);
 }
 
+function matchesAdminSecondaryKey(event) {
+  const key = String(event.key || '').toLowerCase();
+  const code = String(event.code || '').toLowerCase();
+  return (
+    key === 'ù' ||
+    key === '%' ||
+    key === 'dead' ||
+    code === 'quote' ||
+    code === 'semicolon' ||
+    code === 'bracketright'
+  );
+}
+
+function openAdminFromShortcut() {
+  clearTimeout(lowaAdminShortcutState.timer);
+  lowaAdminShortcutState.step = 0;
+  lowaAdminShortcutState.startedAt = 0;
+  sessionStorage.setItem(LOWA_ADMIN_ENTRY_KEY, '1');
+  window.location.href = '/admin.html';
+}
+
 function registerAdminKeyboardShortcut() {
   document.addEventListener('keydown', (event) => {
     if (isTypingTarget(event.target)) return;
@@ -143,29 +163,30 @@ function registerAdminKeyboardShortcut() {
     const key = String(event.key || '').toLowerCase();
 
     if (lowaAdminShortcutState.step === 0) {
-      if (event.ctrlKey && key === LOWA_ADMIN_KEY_SEQUENCE[0]) {
+      if (event.ctrlKey && key === 'm') {
         lowaAdminShortcutState.step = 1;
+        lowaAdminShortcutState.startedAt = Date.now();
         clearTimeout(lowaAdminShortcutState.timer);
         lowaAdminShortcutState.timer = setTimeout(() => {
           lowaAdminShortcutState.step = 0;
+          lowaAdminShortcutState.startedAt = 0;
         }, 1500);
         event.preventDefault();
       }
       return;
     }
 
-    if (lowaAdminShortcutState.step === 1 && key === LOWA_ADMIN_KEY_SEQUENCE[1]) {
-      clearTimeout(lowaAdminShortcutState.timer);
-      lowaAdminShortcutState.step = 0;
-      sessionStorage.setItem(LOWA_ADMIN_ENTRY_KEY, '1');
-      window.location.href = '/admin.html';
+    const inTimeWindow = Date.now() - (lowaAdminShortcutState.startedAt || 0) < 2000;
+    if (lowaAdminShortcutState.step === 1 && inTimeWindow && matchesAdminSecondaryKey(event)) {
+      openAdminFromShortcut();
       event.preventDefault();
       return;
     }
 
-    if (key !== LOWA_ADMIN_KEY_SEQUENCE[0]) {
+    if (key !== 'm') {
       clearTimeout(lowaAdminShortcutState.timer);
       lowaAdminShortcutState.step = 0;
+      lowaAdminShortcutState.startedAt = 0;
     }
   }, true);
 }
