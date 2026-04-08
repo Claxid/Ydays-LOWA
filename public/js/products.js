@@ -8,6 +8,25 @@ let filteredProducts = [];
 let currentPage = 1;
 let sortOrder = 'default';
 
+const FIRST_PRODUCT_HOMEPAGE_IMAGE = '/public/images/T_shirt BIO_Naturel(0).webp';
+
+function normalizeHomepageProductImage(product) {
+  if (!product || Number(product.id) !== 1) return product;
+  const normalized = { ...product, image: FIRST_PRODUCT_HOMEPAGE_IMAGE };
+  if (!Array.isArray(normalized.images) || normalized.images.length === 0) {
+    normalized.images = [
+      '/public/images/T_shirt BIO_Naturel(0).webp',
+      '/public/images/T_shirt BIO_Naturel(1).webp',
+      '/public/images/T_shirt BIO_Naturel(2).webp'
+    ];
+  }
+  return normalized;
+}
+
+function normalizeHomepageProducts(items) {
+  return (items || []).map(normalizeHomepageProductImage);
+}
+
 function openProductDetail(productId) {
   if (!productId) return;
   window.location.href = `/public/pages/product-detail.html?id=${encodeURIComponent(productId)}`;
@@ -89,7 +108,7 @@ async function loadProducts() {
       
       if (data && data.length > 0) {
         console.log('✅ Supabase returned', data.length, 'products');
-        products = data;
+        products = normalizeHomepageProducts(data);
         filteredProducts = [...products];
         renderAllProducts();
         localStorage.setItem(LOWA.STORAGE.CACHE_KEY, JSON.stringify(products));
@@ -108,7 +127,7 @@ async function loadProducts() {
   if (hasFreshCache && !apiSuccess) {
     try {
       console.log('📦 Fallback to cache');
-      products = JSON.parse(cached);
+      products = normalizeHomepageProducts(JSON.parse(cached));
       filteredProducts = [...products];
       renderAllProducts();
       return;
@@ -119,7 +138,7 @@ async function loadProducts() {
 
   // Last resort
   console.warn('📍 Using hardcoded fallback');
-  products = [...FALLBACK_PRODUCTS];
+  products = normalizeHomepageProducts([...FALLBACK_PRODUCTS]);
   filteredProducts = [...products];
   renderAllProducts();
 }
@@ -134,11 +153,13 @@ function renderAllProducts() {
   
   console.log('Products rendering', products.length, 'items');
   
-  const html = products.map(product => `
+  const html = products.map(product => {
+    const productImage = Number(product.id) === 1 ? FIRST_PRODUCT_HOMEPAGE_IMAGE : product.image;
+    return `
     <article class="product" role="listitem" data-id="${product.id}">
       <a class="product-link-overlay" href="/public/pages/product-detail.html?id=${encodeURIComponent(product.id)}" aria-label="Voir le détail de ${product.name}"></a>
       <div class="product-image-container">
-        <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
+        <img src="${productImage}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
         <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Favoris" title="Favoris">❤</button>
       </div>
       <h3>${product.name}</h3>
@@ -148,7 +169,8 @@ function renderAllProducts() {
         <button class="btn primary add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">Ajouter</button>
       </div>
     </article>
-  `).join('');
+  `;
+  }).join('');
   
   productsGrid.innerHTML = html;
   resultsCount.textContent = products.length;
@@ -187,11 +209,13 @@ function displayProductsPage() {
   resultsCount.textContent = Math.min(currentPage * LOWA.PAGINATION.PRODUCTS_PER_PAGE, filteredProducts.length);
   totalCount.textContent = filteredProducts.length;
   
-  const html = paginated.map(product => `
+  const html = paginated.map(product => {
+    const productImage = Number(product.id) === 1 ? FIRST_PRODUCT_HOMEPAGE_IMAGE : product.image;
+    return `
     <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${collectionLabels[product.collection] || product.collection}">
       <a class="product-link-overlay" href="/public/pages/product-detail.html?id=${encodeURIComponent(product.id)}" aria-label="Voir le détail de ${product.name}"></a>
       <div class="product-image-container">
-        <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
+        <img src="${productImage}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
         <button class="fav-btn ${isFavorite(product.id) ? 'active' : ''}" data-id="${product.id}" aria-label="Ajouter aux favoris" title="Ajouter aux favoris">❤</button>
       </div>
       <h3>${product.name}</h3>
@@ -201,7 +225,8 @@ function displayProductsPage() {
         <button class="btn primary add-to-cart" data-id="${product.id}" data-name="${product.name}" data-price="${product.price}">Ajouter</button>
       </div>
     </article>
-  `).join('');
+  `;
+  }).join('');
   
   if (currentPage === 1) {
     productsGrid.innerHTML = html;
