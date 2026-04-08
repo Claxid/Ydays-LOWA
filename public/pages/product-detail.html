@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="icon" type="image/svg+xml" href="/public/images/favicon.svg" />
+    <link rel="apple-touch-icon" href="/public/images/logo.png" />
     <title>Détail Produit — LOWA</title>
     <meta name="description" content="Découvrez tous les détails du produit LOWA : matériaux, dimensions, avis clients." />
     <meta name="robots" content="index, follow" />
@@ -11,7 +13,7 @@
     <!-- Google Fonts - Typography LOWA -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preload" as="style" href="/public/css/homepage.css" />
     <link rel="stylesheet" href="/public/css/homepage.css" media="all" />
     <link rel="stylesheet" href="/public/css/product-detail.css" media="all" />
@@ -19,7 +21,9 @@
 <body>
     <header class="site-header">
         <div class="container header-inner">
-            <a class="brand" href="/index.html">LOWA</a>
+            <a class="brand" href="/index.html" aria-label="LOWA - Accueil">
+                <img class="brand-logo" src="/public/images/logo.png" alt="LOWA" />
+            </a>
             <button class="burger" id="burger-btn" aria-label="Ouvrir le menu">Menu</button>
             <nav class="main-nav">
                 <a href="/index.html">Accueil</a>
@@ -65,6 +69,10 @@
                     </div>
 
                     <div class="product-specs">
+                        <div class="spec">
+                            <span class="spec-label">Fabricant</span>
+                            <span class="spec-value" id="manufacturer">LOWA Atelier</span>
+                        </div>
                         <div class="spec">
                             <span class="spec-label">Matière</span>
                             <span class="spec-value" id="material">Polyester recyclé</span>
@@ -227,6 +235,27 @@
 
         // Load product data
         async function loadProductDetail() {
+            const collectionMeta = {
+                eco: {
+                    manufacturer: 'LOWA Atelier Éco',
+                    material: 'Coton biologique certifié',
+                    certificate: 'Éco certifié',
+                    colors: 'Naturel, Sable, Écru'
+                },
+                recycle: {
+                    manufacturer: 'LOWA ReCycle Lab',
+                    material: 'Fibres recyclées haute durabilité',
+                    certificate: 'Recyclé certifié',
+                    colors: 'Gris, Noir, Bleu nuit'
+                },
+                classiques: {
+                    manufacturer: 'LOWA Collection Classique',
+                    material: 'Mélange premium coton et lin',
+                    certificate: 'Traçabilité vérifiée',
+                    colors: 'Blanc, Beige, Marine'
+                }
+            };
+
             try {
                 const paths = [
                     'https://lowa-api.onrender.com/api/products',
@@ -262,6 +291,13 @@
                     document.getElementById('productName').textContent = product.name;
                     document.getElementById('productPrice').textContent = product.price.toFixed(2) + ' €';
                     document.getElementById('productDescription').textContent = product.description;
+
+                    const meta = collectionMeta[product.collection] || collectionMeta.classiques;
+                    document.getElementById('manufacturer').textContent = meta.manufacturer;
+                    document.getElementById('material').textContent = meta.material;
+                    document.getElementById('certificate').textContent = meta.certificate;
+                    const colorsRow = document.querySelector('.spec:nth-child(4) .spec-value');
+                    if (colorsRow) colorsRow.textContent = meta.colors;
                     
                     // Update main image
                     const mainImg = document.getElementById('mainImage');
@@ -287,6 +323,14 @@
                     addBtn.dataset.id = product.id;
                     addBtn.dataset.name = product.name;
                     addBtn.dataset.price = product.price;
+
+                    const favBtn = document.querySelector('.fav-btn');
+                    favBtn.dataset.id = product.id;
+                    if (isFavorite(product.id)) {
+                        favBtn.classList.add('active');
+                    } else {
+                        favBtn.classList.remove('active');
+                    }
                 }
             } catch (error) {
                 console.error('Erreur chargement produit:', error);
@@ -376,17 +420,20 @@
         const FAVORITES_KEY = 'lowa_favorites';
         const rawFavorites = detailScopedGet(FAVORITES_KEY);
         let favorites = rawFavorites ? JSON.parse(rawFavorites) : [];
+        favorites = Array.from(new Set(favorites.map(v => parseInt(v, 10)).filter(n => Number.isFinite(n))));
         
         function isFavorite(productId) {
-            return favorites.includes(productId);
+            const idNum = parseInt(productId, 10);
+            return favorites.includes(idNum);
         }
 
         function toggleFavorite(productId) {
-            const index = favorites.indexOf(productId);
+            const idNum = parseInt(productId, 10);
+            const index = favorites.indexOf(idNum);
             if (index > -1) {
                 favorites.splice(index, 1);
             } else {
-                favorites.push(productId);
+                favorites.push(idNum);
             }
             detailScopedSet(FAVORITES_KEY, JSON.stringify(favorites));
         }

@@ -2,59 +2,60 @@
 
 :root {
   /* Typography */
-  --font-primary: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-primary: 'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-secondary: 'Lora', 'Georgia', serif;
-  --font-body: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-body: 'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
   
   /* Color Palette */
   --palette-beige: #E2D8D1;
-  --palette-violet: #c570da;
-  --palette-kaki: #98a869;
-  --palette-ocre: #B37A57;
-  --palette-marron: #4c423c;
+  --palette-violet: #DB98F6;
+  --palette-kaki: #98A869;
+  --palette-olive: #5A6A2F;
+  --palette-sand: #E8EDC4;
+  --palette-marron: #3e4530;
   
   /* Light Mode (default) */
   --theme-bg: #E2D8D1;
-  --theme-surface: #E2D8D1;
-  --theme-text: #4c423c;
-  --theme-text-muted: #8a7c73;
-  --theme-border: #dcd4cb;
-  --theme-accent: #c570da;
-  --theme-accent-light: rgba(197,112,218,0.14);
-  --theme-input-bg: #E2D8D1;
-  --theme-input-border: #dcd4cb;
-  --theme-kaki: #98a869;
-  --theme-ocre: #B37A57;
+  --theme-surface: #f0ece6;
+  --theme-text: #3e4530;
+  --theme-text-muted: #728058;
+  --theme-border: #cfd4ba;
+  --theme-accent: #DB98F6;
+  --theme-accent-light: rgba(219,152,246,0.18);
+  --theme-input-bg: #f6f4ee;
+  --theme-input-border: #cfd4ba;
+  --theme-kaki: #98A869;
+  --theme-ocre: #5A6A2F;
 }
 
 /* Dark Mode */
 html[data-theme="dark"] {
-  --theme-bg: #2f2730;
-  --theme-surface: #2f2730;
-  --theme-text: #E2D8D1;
-  --theme-text-muted: #b296aa;
-  --theme-border: #44394a;
-  --theme-accent: #c570da;
-  --theme-accent-light: rgba(197,112,218,0.2);
-  --theme-input-bg: #2f2730;
-  --theme-input-border: #44394a;
-  --theme-kaki: #6b7d4f;
-  --theme-ocre: #d4a574;
+  --theme-bg: #2f3423;
+  --theme-surface: #3a402b;
+  --theme-text: #E8EDC4;
+  --theme-text-muted: #c8d0a2;
+  --theme-border: #545f3c;
+  --theme-accent: #DB98F6;
+  --theme-accent-light: rgba(219,152,246,0.24);
+  --theme-input-bg: #303724;
+  --theme-input-border: #545f3c;
+  --theme-kaki: #98A869;
+  --theme-ocre: #E8EDC4;
 }
 
 /* Temperate Mode */
 html[data-theme="temperate"] {
-  --theme-bg: #e8dfd6;
-  --theme-surface: #e8dfd6;
-  --theme-text: #4c423c;
-  --theme-text-muted: #8c705c;
-  --theme-border: #d8cbbf;
-  --theme-accent: #B37A57;
-  --theme-accent-light: rgba(179,122,87,0.16);
-  --theme-input-bg: #e8dfd6;
-  --theme-input-border: #d8cbbf;
-  --theme-kaki: #98a869;
-  --theme-ocre: #B37A57;
+  --theme-bg: #E8EDC4;
+  --theme-surface: #f1f4d8;
+  --theme-text: #4a5726;
+  --theme-text-muted: #7d8953;
+  --theme-border: #c8d19f;
+  --theme-accent: #5A6A2F;
+  --theme-accent-light: rgba(90,106,47,0.15);
+  --theme-input-bg: #f5f8e1;
+  --theme-input-border: #c8d19f;
+  --theme-kaki: #98A869;
+  --theme-ocre: #5A6A2F;
 }
 
 /* Noel Mode */

@@ -3,11 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/public/images/favicon.svg" />
+    <link rel="apple-touch-icon" href="/public/images/logo.png" />
     <title>Profil — LOWA</title>
     <!-- Google Fonts - Typography LOWA -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preload" as="style" href="/public/css/homepage.css" />
     <link rel="stylesheet" href="/public/css/homepage.css" />
     <style>
@@ -220,9 +222,11 @@
   <body>
     <header class="site-header">
       <div class="container header-inner">
-        <a class="brand" href="/">LOWA</a>
+        <a class="brand" href="/index.html" aria-label="LOWA - Accueil">
+          <img class="brand-logo" src="/public/images/logo.png" alt="LOWA" />
+        </a>
         <nav class="main-nav">
-          <a href="/">Accueil</a>
+          <a href="/index.html">Accueil</a>
         </nav>
         <div class="header-actions">
           <button id="logout-btn" class="btn">Déconnexion</button>

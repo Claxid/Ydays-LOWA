@@ -3,17 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/public/images/favicon.svg" />
+    <link rel="apple-touch-icon" href="/public/images/logo.png" />
     <title>Mes Favoris — LOWA</title>
     <!-- Google Fonts - Typography LOWA -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/public/css/homepage.css">
 </head>
 <body>
     <header class="site-header">
         <div class="container header-inner">
-            <a class="brand" href="/index.html">LOWA</a>
+            <a class="brand" href="/index.html" aria-label="LOWA - Accueil">
+                <img class="brand-logo" src="/public/images/logo.png" alt="LOWA" />
+            </a>
             <button class="burger" id="burger-btn" aria-label="Ouvrir le menu">Menu</button>
             <nav class="main-nav">
                 <a href="/index.html">Accueil</a>
@@ -261,6 +265,7 @@
                 };
                 return `
                 <article class="product" data-id="${product.id}" data-collection="${collectionLabels[product.collection] || product.collection}">
+                    <a class="product-link-overlay" href="/public/pages/product-detail.html?id=${encodeURIComponent(product.id)}" aria-label="Voir le détail de ${product.name}"></a>
                     <div class="product-image-container">
                         <img src="${product.image}" alt="${product.name}" loading="lazy" width="280" height="280" onerror="window.lowaImgFallback(this)" />
                         <button class="fav-btn active" data-id="${product.id}" aria-label="Retirer des favoris" title="Retirer des favoris">Favoris</button>
@@ -276,6 +281,33 @@
 
             attachFavoriteListeners();
             attachCartListeners();
+            attachProductNavigationListeners();
+        }
+
+        function attachProductNavigationListeners() {
+            document.querySelectorAll('#favorites-grid .product').forEach(card => {
+                const productId = card.dataset.id;
+                if (!productId) return;
+
+                card.style.cursor = 'pointer';
+                card.setAttribute('tabindex', '0');
+
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.add-to-cart') || e.target.closest('.fav-btn') || e.target.closest('button') || e.target.closest('a')) {
+                        return;
+                    }
+                    window.location.href = `/public/pages/product-detail.html?id=${encodeURIComponent(productId)}`;
+                });
+
+                card.addEventListener('keydown', (e) => {
+                    if (e.key !== 'Enter' && e.key !== ' ') return;
+                    if (e.target.closest('.add-to-cart') || e.target.closest('.fav-btn') || e.target.closest('button')) {
+                        return;
+                    }
+                    e.preventDefault();
+                    window.location.href = `/public/pages/product-detail.html?id=${encodeURIComponent(productId)}`;
+                });
+            });
         }
 
         function toggleFavorite(productId) {

@@ -1,27 +1,27 @@
 /* Google Fonts Import - Typographie LOWA */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Lora:wght@400;500;600;700&display=swap');
 
 /* Styles de base pour LOWA — minimal, responsive */
 :root{
   /* Polices typographie */
-  --font-primary: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-primary: 'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-secondary: 'Lora', 'Georgia', serif;
-  --font-body: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-body: 'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
   
   /* Palette de base (mêmes valeurs que le thème clair) */
-  --accent:#c570da;     /* violet riche */
-  --dark:#4c423c;       /* marron foncé texte */
-  --muted:#8a7c73;      /* texte secondaire */
+  --accent:#DB98F6;     /* lilas de la charte */
+  --dark:#3e4530;       /* olive foncé texte */
+  --muted:#728058;      /* texte secondaire */
   --bg:#E2D8D1;         /* fond beige doux */
   --container:1400px;
-  --kaki:#98a869;       /* kaki de la charte, utilisé pour certains accents doux */
-  --pastel-pink:#d4ead4;
-  --pastel-green:#c9d3a3; /* kaki clair pour bordures/fonds légers */
-  --pale-green:#E2D8D1;   /* fond carte très clair */
-  --soft-green:#E2D8D1;   /* surface douce intermédiaire */
-  --shadow-soft: 0 2px 8px rgba(76,66,60,.08);
-  --shadow-medium: 0 4px 16px rgba(76,66,60,.12);
-  --shadow-large: 0 12px 40px rgba(76,66,60,.14);
+  --kaki:#98A869;
+  --pastel-pink:#E8EDC4;
+  --pastel-green:#98A869;
+  --pale-green:#f2efe9;
+  --soft-green:#E8EDC4;
+  --shadow-soft: 0 2px 8px rgba(62,69,48,.08);
+  --shadow-medium: 0 4px 16px rgba(62,69,48,.12);
+  --shadow-large: 0 12px 40px rgba(62,69,48,.14);
   --dropdown-shift: 40px;
   --transition-fast: 0.15s ease;
   --transition-medium: 0.3s ease;
@@ -53,36 +53,36 @@
 /* THEME LIGHT (défaut) - Palette beige/violet/kaki nuances douces */
 [data-theme="light"]{
   --bg:#E2D8D1;         /* beige doux fond principal */
-  --accent:#c570da;     /* violet riche */
-  --dark:#4c423c;       /* marron foncé pour le texte */
-  --muted:#8a7c73;      /* texte secondaire atténué */
-  --pastel-green:#98a869; /* vert sauge kaki */
-  --pale-green:#f2ece7;   /* fond carte très clair */
-  --soft-green:#dcd4cb;   /* surface douce intermédiaire */
-  --ocre:#B37A57;       /* ocre chaud */
+  --accent:#DB98F6;
+  --dark:#3e4530;
+  --muted:#728058;
+  --pastel-green:#98A869;
+  --pale-green:#f2efe9;
+  --soft-green:#E8EDC4;
+  --ocre:#5A6A2F;
 }
 
 /* THEME CREPUSCULE - Palette sombre avec violet et accents chaleureux */
 [data-theme="dark"]{
-  --bg:#2f2730;         /* fond sombre violine */
-  --accent:#c570da;     /* violet riche (même que light pour cohérence) */
-  --dark:#E2D8D1;       /* texte beige clair pour contraste */
-  --muted:#b296aa;      /* texte secondaire */
-  --pastel-green:#6b7d4f; /* vert sauge assombri */
-  --pale-green:#3a3038;   /* fond cartes sombre */
-  --soft-green:#40363f;   /* surface intermédiaire */
-  --ocre:#d4a574;       /* ocre clair pour contraste */
+  --bg:#2f3423;
+  --accent:#DB98F6;
+  --dark:#E8EDC4;
+  --muted:#c8d0a2;
+  --pastel-green:#98A869;
+  --pale-green:#3a402b;
+  --soft-green:#545f3c;
+  --ocre:#E8EDC4;
 }
 
 /* THEME TEMPERATE - Palette boisée avec ocre et vert sauge */
 [data-theme="temperate"]{
-  --bg:#e8dfd6;         /* beige boisé */
-  --accent:#B37A57;     /* ocre chaud comme couleur principale */
-  --dark:#4c423c;       /* marron foncé pour le texte */
-  --muted:#8c705c;      /* texte secondaire */
-  --pastel-green:#98a869; /* vert sauge kaki */
-  --pale-green:#ebe2d8;   /* fond cartes clair */
-  --soft-green:#d8cbbf;   /* surface douce */
+  --bg:#E8EDC4;
+  --accent:#5A6A2F;
+  --dark:#4a5726;
+  --muted:#7d8953;
+  --pastel-green:#98A869;
+  --pale-green:#eff3d2;
+  --soft-green:#d4ddb0;
 }
 
 /* THEME NOEL - Palette festive avec couleurs de Noël et palette de base */
@@ -194,9 +194,9 @@ body{
 .brand:hover{ color:var(--accent);transform:scale(1.05) }
 .brand-logo{
   display:block;
-  height:34px;
+  height:82px;
   width:auto;
-  max-width:170px;
+  max-width:420px;
 }
 
 /* Navigation */
@@ -383,6 +383,7 @@ body{
 }
 
 .hero-title {
+  font-family: var(--font-secondary);
   font-size: 4rem;
   margin-bottom: 1rem;
   color: var(--dark);
@@ -536,7 +537,7 @@ body{
   min-width:280px;
   max-width:100%;
   padding:0.75rem 1rem;
-  border:1px solid #ddd;
+  border:1px solid var(--pastel-green);
   border-radius:8px;
   font-size:0.95rem;
   transition:all var(--transition-fast);
@@ -544,16 +545,16 @@ body{
   box-shadow:0 1px 3px rgba(0,0,0,0.1);
 }
 .search-bar input[type="search"]::placeholder{
-  color:#999;
+  color:var(--muted);
 }
 .search-bar input[type="search"]:focus{
   outline:none;
   border-color:var(--accent);
-  box-shadow:0 0 0 2px rgba(197,112,218,0.2), 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow:0 0 0 2px rgba(219,152,246,0.25), 0 1px 3px rgba(0,0,0,0.1);
 }
 .search-bar #reset-filters-search{
   padding:0.75rem 1.2rem;
-  border:1px solid #ddd;
+  border:1px solid var(--pastel-green);
   background:#fff;
   color:var(--dark);
   border-radius:8px;
@@ -626,6 +627,20 @@ body{
   height:100%;
 }
 
+.product-link-overlay{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  border-radius:8px;
+}
+
+.product .meta,
+.product .meta .btn,
+.product h3{
+  position:relative;
+  z-index:3;
+}
+
 /* Skeleton loading */
 .skeleton .product-image-container{background:var(--pale-green);}
 .skeleton-line{height:10px;background:var(--soft-green);border-radius:6px;margin:0.5rem 0;position:relative;overflow:hidden;}
@@ -657,7 +672,7 @@ body{
   border-radius:0;
   overflow:hidden;
   margin-bottom:0;
-  background:#f5f5f5;
+  background:var(--pale-green);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -778,7 +793,7 @@ body{
   width: 0;
   height: 0;
   border-radius: 50%;
-  background: rgba(197, 112, 218, 0.4);
+  background: rgba(219, 152, 246, 0.4);
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
@@ -791,12 +806,12 @@ body{
   border-color:var(--accent);
   color:var(--accent);
   transform:translateY(-3px);
-  box-shadow:0 8px 20px rgba(197,112,218,.25);
+  box-shadow:0 8px 20px rgba(219,152,246,.28);
 }
 
 .btn.primary{
   background:var(--accent);
-  color:#fff;
+  color:#2f3423;
   border-color:var(--accent);
 }
 
@@ -809,7 +824,7 @@ body{
 
 .btn.primary:active{
   transform:translateY(-1px);
-  box-shadow:0 4px 12px rgba(197,112,218,.25);
+  box-shadow:0 4px 12px rgba(219,152,246,.28);
 }
 
 .btn.active{
@@ -1268,7 +1283,7 @@ body{
 @media (max-width:400px){
   h1{ font-size:1.8rem }
   .brand{ font-size:1.2rem }
-  .brand-logo{ height:30px; max-width:150px }
+  .brand-logo{ height:52px; max-width:250px }
   .product-price{ font-size:1.15rem }
 }
 
@@ -1858,7 +1873,7 @@ form .btn{
     justify-content:space-between;
   }
 
-  .brand-logo{ height:30px; max-width:150px; }
+  .brand-logo{ height:58px; max-width:280px; }
 
   .hero{ display:none; }
 
