@@ -107,6 +107,10 @@
             <!-- Reviews Section -->
             <div class="product-reviews">
                 <h2 class="reviews-title">Avis clients</h2>
+                <div id="reviews-average" class="reviews-average" hidden>
+                    <span id="reviews-average-stars" class="review-stars"></span>
+                    <strong id="reviews-average-value">0.0/5</strong>
+                </div>
                 <form id="review-form" class="review-form" aria-label="Publier un avis">
                     <div class="review-form-row">
                         <label for="review-rating-value">Note</label>
@@ -272,15 +276,23 @@
             const reviewsContainer = document.getElementById('reviewsContainer');
             const reviewCount = document.getElementById('reviewCount');
             const empty = document.getElementById('reviews-empty');
+            const averageWrap = document.getElementById('reviews-average');
+            const averageStars = document.getElementById('reviews-average-stars');
+            const averageValue = document.getElementById('reviews-average-value');
             reviewCount.textContent = `(${reviews.length} avis)`;
 
             if (!reviews.length) {
                 reviewsContainer.innerHTML = '';
                 empty.hidden = false;
+                averageWrap.hidden = true;
                 return;
             }
 
             empty.hidden = true;
+            const avg = reviews.reduce((sum, r) => sum + (Number(r.rating) || 0), 0) / reviews.length;
+            averageWrap.hidden = false;
+            averageStars.innerHTML = toStarsMarkup(avg);
+            averageValue.textContent = `${avg.toFixed(1)}/5`;
             reviewsContainer.innerHTML = reviews.map((review) => `
                 <div class="review">
                     <div class="review-header">
@@ -424,6 +436,11 @@
                     userId = data && data.user ? data.user.id : null;
                 } catch (err) {}
 
+                if (!userId) {
+                    feedback.textContent = 'Session Supabase non détectée. Reconnectez-vous pour publier votre avis.';
+                    return;
+                }
+
                 const payload = {
                     product_id: Number(currentProduct.id),
                     user_id: userId,
@@ -432,7 +449,9 @@
                     comment
                 };
 
-                const { error } = await supabaseClient.from('product_reviews').insert(payload);
+                const { error } = await supabaseClient
+                    .from('product_reviews')
+                    .upsert(payload, { onConflict: 'product_id,user_id' });
                 if (error) {
                     const message = String(error.message || '');
                     if (message.includes('invalid input syntax for type integer')) {
@@ -443,7 +462,7 @@
                     return;
                 }
 
-                feedback.textContent = 'Avis publié. Merci !';
+                feedback.textContent = 'Avis enregistré (créé ou mis à jour). Merci !';
                 form.reset();
                 ratingInput.value = '';
                 paintStars('');

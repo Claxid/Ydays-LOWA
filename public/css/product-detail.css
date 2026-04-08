@@ -167,6 +167,21 @@
 	color: var(--dark);
 }
 
+.reviews-average {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 1rem;
+	padding: 0.35rem 0.65rem;
+	border-radius: 999px;
+	background: rgba(255, 184, 0, 0.08);
+}
+
+.reviews-average strong {
+	font-size: 0.95rem;
+	color: var(--dark);
+}
+
 .review-form {
 	display: grid;
 	grid-template-columns: 180px 1fr;
@@ -220,6 +235,12 @@
 	line-height: 1;
 	color: #c7b9ab;
 	cursor: pointer;
+	border: none !important;
+	outline: none !important;
+	box-shadow: none !important;
+	background: transparent !important;
+	appearance: none;
+	-webkit-appearance: none;
 	padding: 0;
 	transition: transform var(--transition-fast), color var(--transition-fast);
 }
