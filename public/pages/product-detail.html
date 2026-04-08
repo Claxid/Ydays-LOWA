@@ -294,7 +294,7 @@
         function starMarkup(state, ariaHidden = true) {
             const starPath = 'M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z';
             if (state === 'half') {
-                return `<svg class="star star-half" viewBox="0 0 24 24"${ariaHidden ? ' aria-hidden="true"' : ''} focusable="false"><path class="star-base" fill="#d2c8be" d="${starPath}"></path><path class="star-fill" fill="#ffb800" d="${starPath}"></path></svg>`;
+                return `<span class="star star-half"${ariaHidden ? ' aria-hidden="true"' : ''}><svg class="star-base" viewBox="0 0 24 24" focusable="false"><path fill="#d2c8be" d="${starPath}"></path></svg><span class="star-half-fill"><svg class="star-fill" viewBox="0 0 24 24" focusable="false"><path fill="#ffb800" d="${starPath}"></path></svg></span></span>`;
             }
             if (state === 'full') {
                 return `<svg class="star star-full" viewBox="0 0 24 24"${ariaHidden ? ' aria-hidden="true"' : ''} focusable="false"><path fill="#ffb800" d="${starPath}"></path></svg>`;

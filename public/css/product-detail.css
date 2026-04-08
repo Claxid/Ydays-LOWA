@@ -294,6 +294,53 @@
 	pointer-events: none;
 }
 
+.star-btn .star path {
+	vector-effect: non-scaling-stroke;
+}
+
+.star-btn .star-full path {
+	fill: #ffb800;
+}
+
+.star-btn .star-empty path {
+	fill: #d2c8be;
+}
+
+.star-btn .star-half {
+	position: relative;
+	display: block;
+	width: 1.2rem;
+	height: 1.2rem;
+}
+
+.star-btn .star-half .star-base,
+.star-btn .star-half .star-fill {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+.star-btn .star-half .star-half-fill {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 50%;
+	height: 100%;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.star-btn .star-half .star-fill path {
+	fill: #ffb800;
+}
+
+.star-btn .star-half .star-base path {
+	fill: #d2c8be;
+}
+
 .star-btn:focus-visible {
 	outline: 2px solid rgba(255, 184, 0, 0.45);
 	outline-offset: 2px;
@@ -411,25 +458,51 @@
 	pointer-events: none;
 }
 
-.review-stars .star-full {
+.review-stars .star path {
+	vector-effect: non-scaling-stroke;
+}
+
+.review-stars .star-full path {
 	fill: #ffb800;
 }
 
-.review-stars .star-empty {
+.review-stars .star-empty path {
 	fill: #d2c8be;
 }
 
 .review-stars .star-half {
-	fill: #d2c8be;
+	position: relative;
+	display: block;
+	width: 0.95rem;
+	height: 0.95rem;
 }
 
-.review-stars .star-half .star-base {
-	fill: #d2c8be;
-}
-
+.review-stars .star-half .star-base,
 .review-stars .star-half .star-fill {
+	position: absolute;
+	inset: 0;
+	display: block;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+.review-stars .star-half .star-half-fill {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 50%;
+	height: 100%;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.review-stars .star-half .star-fill path {
 	fill: #ffb800;
-	clip-path: inset(0 50% 0 0);
+}
+
+.review-stars .star-half .star-base path {
+	fill: #d2c8be;
 }
 #reviewsContainer {
 	display: grid;
