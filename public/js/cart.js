@@ -109,7 +109,7 @@ function setupCartListeners() {
   const closeCartBtn = document.getElementById('close-cart');
   const cartModal = document.getElementById('cart-modal');
   const clearCartBtn = document.getElementById('clear-cart');
-  const checkoutBtn = document.getElementById('checkout');
+  const checkoutBtn = document.getElementById('checkout-link');
   
   if (!cartButton || !closeCartBtn || !cartModal) return;
   
@@ -135,13 +135,13 @@ function setupCartListeners() {
   }
   
   if (checkoutBtn) {
-    checkoutBtn.addEventListener('click', () => {
+    checkoutBtn.addEventListener('click', (e) => {
       if (cart.length === 0) {
+        e.preventDefault();
         alert('Votre panier est vide');
         return;
       }
       cartModal.setAttribute('aria-hidden', 'true');
-      window.location.href = '/public/pages/paypal-checkout.html';
     });
   }
 }
