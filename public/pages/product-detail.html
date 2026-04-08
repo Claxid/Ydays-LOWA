@@ -14,9 +14,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="preload" as="style" href="/public/css/homepage.css" />
-    <link rel="stylesheet" href="/public/css/homepage.css" media="all" />
-    <link rel="stylesheet" href="/public/css/product-detail.css" media="all" />
+    <link rel="preload" as="style" href="/public/css/homepage.css?v=20260408" />
+    <link rel="stylesheet" href="/public/css/homepage.css?v=20260408" media="all" />
+    <link rel="stylesheet" href="/public/css/product-detail.css?v=20260408" media="all" />
 </head>
 <body>
     <header class="site-header">
@@ -291,10 +291,11 @@
             return `${first}${second}`.toUpperCase();
         }
 
-        function starMarkup(state, ariaHidden = true) {
+        function starMarkup(state, ariaHidden = true, seed = '') {
             const starPath = 'M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z';
             if (state === 'half') {
-                return `<span class="star star-half"${ariaHidden ? ' aria-hidden="true"' : ''}><svg class="star-base" viewBox="0 0 24 24" focusable="false"><path fill="#d2c8be" d="${starPath}"></path></svg><span class="star-half-fill"><svg class="star-fill" viewBox="0 0 24 24" focusable="false"><path fill="#ffb800" d="${starPath}"></path></svg></span></span>`;
+                const gradientId = `star-half-${String(seed || 'default').replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+                return `<svg class="star star-half" viewBox="0 0 24 24"${ariaHidden ? ' aria-hidden="true"' : ''} focusable="false"><defs><linearGradient id="${gradientId}" x1="0" y1="0" x2="1" y2="0"><stop offset="50%" stop-color="#ffb800"></stop><stop offset="50%" stop-color="#d2c8be"></stop></linearGradient></defs><path fill="url(#${gradientId})" d="${starPath}"></path></svg>`;
             }
             if (state === 'full') {
                 return `<svg class="star star-full" viewBox="0 0 24 24"${ariaHidden ? ' aria-hidden="true"' : ''} focusable="false"><path fill="#ffb800" d="${starPath}"></path></svg>`;
@@ -302,17 +303,17 @@
             return `<svg class="star star-empty" viewBox="0 0 24 24"${ariaHidden ? ' aria-hidden="true"' : ''} focusable="false"><path fill="#d2c8be" d="${starPath}"></path></svg>`;
         }
 
-        function renderStarSequence(value, includeText = false) {
+        function renderStarSequence(value, includeText = false, seed = 'review') {
             const rating = Math.max(0, Math.min(5, Number(value) || 0));
             return [1, 2, 3, 4, 5].map((i) => {
-                if (rating >= i) return starMarkup('full', !includeText);
-                if (rating >= i - 0.5) return starMarkup('half', !includeText);
-                return starMarkup('empty', !includeText);
+                if (rating >= i) return starMarkup('full', !includeText, `${seed}-${i}`);
+                if (rating >= i - 0.5) return starMarkup('half', !includeText, `${seed}-${i}`);
+                return starMarkup('empty', !includeText, `${seed}-${i}`);
             }).join('');
         }
 
-        function renderStarButton(state) {
-            return starMarkup(state, true);
+        function renderStarButton(state, seed) {
+            return starMarkup(state, true, seed);
         }
 
         function renderReviews(reviews) {
@@ -334,7 +335,7 @@
             empty.hidden = true;
             const avg = reviews.reduce((sum, r) => sum + (Number(r.rating) || 0), 0) / reviews.length;
             averageWrap.hidden = false;
-            averageStars.innerHTML = renderStarSequence(avg);
+            averageStars.innerHTML = renderStarSequence(avg, false, `avg-${currentProduct?.id || 'product'}`);
             averageValue.textContent = `${avg.toFixed(1)}/5`;
             reviewsContainer.innerHTML = reviews.map((review) => `
                 <div class="review">
@@ -346,7 +347,7 @@
                                 <span class="review-date">${escapeHtml(formatRelativeDate(review.created_at))}</span>
                             </div>
                         </div>
-                        <span class="review-stars" aria-label="Note ${Number(review.rating || 0).toFixed(1)} sur 5">${renderStarSequence(review.rating)}</span>
+                        <span class="review-stars" aria-label="Note ${Number(review.rating || 0).toFixed(1)} sur 5">${renderStarSequence(review.rating, false, `review-${review.id || review.created_at}`)}</span>
                     </div>
                     <p class="review-text">${escapeHtml(review.comment)}</p>
                 </div>
@@ -427,7 +428,7 @@
                     let state = 'empty';
                     if (selected >= btnRating) state = 'full';
                     else if (selected >= (btnRating - 0.5)) state = 'half';
-                    btn.innerHTML = renderStarButton(state);
+                    btn.innerHTML = renderStarButton(state, `btn-${btnRating}`);
                     btn.dataset.state = state;
                 });
             }
