@@ -170,27 +170,36 @@
 .reviews-average {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.5rem;
-	margin-bottom: 1.2rem;
-	padding: 0.45rem 0.8rem;
+	gap: 0.4rem;
+	margin-bottom: 1.1rem;
+	padding: 0.35rem 0.7rem;
 	border-radius: 999px;
-	background: linear-gradient(135deg, rgba(255, 184, 0, 0.1), rgba(255, 184, 0, 0.04));
-	border: 1px solid rgba(255, 184, 0, 0.2);
-	box-shadow: 0 10px 28px rgba(90, 106, 47, 0.06);
+	background: linear-gradient(135deg, rgba(255, 184, 0, 0.08), rgba(255, 184, 0, 0.03));
+	border: 1px solid rgba(255, 184, 0, 0.18);
+	box-shadow: 0 8px 20px rgba(90, 106, 47, 0.04);
 }
 
 .reviews-average strong {
-	font-size: 0.95rem;
+	font-size: 0.88rem;
+	font-weight: 800;
 	color: var(--dark);
 }
 
 .reviews-average .review-stars {
-	font-size: 0.95rem;
+	font-size: 0.82rem;
+	gap: 0.05rem;
+	line-height: 1;
+	align-items: center;
+}
+
+.reviews-average .review-stars .star {
+	font-size: 1em;
+	line-height: 1;
 }
 
 .reviews-average::before {
 	content: 'Note moyenne';
-	font-size: 0.78rem;
+	font-size: 0.74rem;
 	font-weight: 700;
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
@@ -254,7 +263,7 @@
 	justify-content: center;
 	width: 1.8rem;
 	height: 1.8rem;
-	font-size: 1.7rem;
+	font-size: 1.45rem;
 	line-height: 1;
 	color: #cfc0b1;
 	cursor: pointer;
@@ -270,48 +279,31 @@
 	border-radius: 0;
 	font-family: inherit;
 	-webkit-tap-highlight-color: transparent;
-	transition: transform var(--transition-fast), color var(--transition-fast);
+	transition: transform var(--transition-fast), color var(--transition-fast), text-shadow var(--transition-fast);
 	position: relative;
 }
 
 .star-btn:hover,
 .star-btn.active {
 	color: #ffb800;
-	transform: translateY(-1px) scale(1.08);
+	transform: translateY(-1px) scale(1.04);
+	text-shadow: 0 0 0.01px rgba(255, 184, 0, 0.2);
 }
 
 .star-btn.half {
 	color: #cfc0b1;
-	overflow: hidden;
+	text-shadow: none;
 }
 
-.star-btn .star-base,
-.star-btn .star-fill {
+.star-btn.half::after {
+	content: '★';
 	position: absolute;
-	inset: 0;
-	display: block;
-	line-height: 1;
-	font-size: 1.7rem;
-	text-align: center;
-	pointer-events: none;
-}
-
-.star-btn .star-base {
-	color: #cfc0b1;
-}
-
-.star-btn .star-fill {
-	color: #ffb800;
-	width: 0;
-	overflow: hidden;
-}
-
-.star-btn.active .star-fill {
-	width: 100%;
-}
-
-.star-btn.half .star-fill {
+	left: 0;
+	top: 0;
 	width: 50%;
+	overflow: hidden;
+	color: #ffb800;
+	pointer-events: none;
 }
 
 .star-btn:focus-visible {
