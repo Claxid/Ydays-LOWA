@@ -9,6 +9,7 @@ let currentPage = 1;
 let sortOrder = 'default';
 
 const FIRST_PRODUCT_HOMEPAGE_IMAGE = '/public/images/T_shirt BIO_Naturel(0).webp';
+const PULL_RECYCLE_GRIS_HOMEPAGE_IMAGE = '/public/images/Pull_recycle_Gris(0).webp';
 
 function isBioNaturelTshirt(product) {
   const name = String(product?.name || '').toLowerCase();
@@ -20,16 +21,45 @@ function isBioNaturelTshirt(product) {
   );
 }
 
+function isPullRecycleGris(product) {
+  const name = String(product?.name || '').toLowerCase();
+  const image = String(product?.image || '').toLowerCase();
+  return (
+    Number(product?.id) === 2
+    || (name.includes('pull recycl') && name.includes('gris'))
+    || image.includes('pull-gris.svg')
+  );
+}
+
 function normalizeHomepageProductImage(product) {
-  if (!product || !isBioNaturelTshirt(product)) return product;
-  const normalized = { ...product, image: FIRST_PRODUCT_HOMEPAGE_IMAGE };
-  if (!Array.isArray(normalized.images) || normalized.images.length === 0) {
-    normalized.images = [
-      '/public/images/T_shirt BIO_Naturel(0).webp',
-      '/public/images/T_shirt BIO_Naturel(1).webp',
-      '/public/images/T_shirt BIO_Naturel(2).webp'
-    ];
+  if (!product) return product;
+
+  const normalized = { ...product };
+
+  if (isBioNaturelTshirt(product)) {
+    normalized.image = FIRST_PRODUCT_HOMEPAGE_IMAGE;
+    if (!Array.isArray(normalized.images) || normalized.images.length === 0) {
+      normalized.images = [
+        '/public/images/T_shirt BIO_Naturel(0).webp',
+        '/public/images/T_shirt BIO_Naturel(1).webp',
+        '/public/images/T_shirt BIO_Naturel(2).webp'
+      ];
+    }
+    return normalized;
   }
+
+  if (isPullRecycleGris(product)) {
+    normalized.image = PULL_RECYCLE_GRIS_HOMEPAGE_IMAGE;
+    if (!Array.isArray(normalized.images) || normalized.images.length === 0) {
+      normalized.images = [
+        '/public/images/Pull_recycle_Gris(0).webp',
+        '/public/images/Pull_recycle_Gris(1).webp',
+        '/public/images/Pull_recycle_Gris(2).webp'
+      ];
+    }
+    return normalized;
+  }
+
   return normalized;
 }
 
@@ -71,7 +101,7 @@ function attachProductNavigationListeners() {
 
 const FALLBACK_PRODUCTS = [
   {"id":1,"name":"T-shirt BIO - Naturel","price":29.00,"description":"T-shirt en coton biologique certifié. Coupe confortable, coloris naturels.","image":"/public/images/T_shirt BIO_Naturel(0).webp","images":["/public/images/T_shirt BIO_Naturel(0).webp","/public/images/T_shirt BIO_Naturel(1).webp","/public/images/T_shirt BIO_Naturel(2).webp"],"category":"hommes","subcategory":"t-shirts","collection":"eco"},
-  {"id":2,"name":"Pull recyclé - Gris","price":79.00,"description":"Pull fabriqué à partir de fibres recyclées. Chaud et durable.","image":"/public/images/pull-gris.svg","category":"hommes","subcategory":"vestes","collection":"recycle"},
+  {"id":2,"name":"Pull recyclé - Gris","price":79.00,"description":"Pull fabriqué à partir de fibres recyclées. Chaud et durable.","image":"/public/images/Pull_recycle_Gris(0).webp","images":["/public/images/Pull_recycle_Gris(0).webp","/public/images/Pull_recycle_Gris(1).webp","/public/images/Pull_recycle_Gris(2).webp"],"category":"hommes","subcategory":"vestes","collection":"recycle"},
   {"id":3,"name":"Pantalon éco - Kaki","price":59.00,"description":"Pantalon en tissu certifié avec renforts minimalistes.","image":"/public/images/pantalon-kaki.svg","category":"hommes","subcategory":"pantalons","collection":"eco"},
   {"id":4,"name":"Veste en Lin - Beige","price":89.00,"description":"Veste légère en lin naturel, parfaite pour la mi-saison. Coupe ajustée.","image":"/public/images/veste-lin-beige.svg","category":"femmes","subcategory":"vestes","collection":"classiques"},
   {"id":5,"name":"Robe d'été - Blanc cassé","price":65.00,"description":"Robe fluide en coton bio, idéale pour l'été. Fabrication locale.","image":"/public/images/robe-ete.svg","category":"femmes","subcategory":"robes","collection":"eco"},
@@ -164,7 +194,11 @@ function renderAllProducts() {
   console.log('Products rendering', products.length, 'items');
   
   const html = products.map(product => {
-    const productImage = isBioNaturelTshirt(product) ? FIRST_PRODUCT_HOMEPAGE_IMAGE : product.image;
+    const productImage = isBioNaturelTshirt(product)
+      ? FIRST_PRODUCT_HOMEPAGE_IMAGE
+      : isPullRecycleGris(product)
+        ? PULL_RECYCLE_GRIS_HOMEPAGE_IMAGE
+        : product.image;
     return `
     <article class="product" role="listitem" data-id="${product.id}">
       <a class="product-link-overlay" href="/public/pages/product-detail.html?id=${encodeURIComponent(product.id)}" aria-label="Voir le détail de ${product.name}"></a>
@@ -220,7 +254,11 @@ function displayProductsPage() {
   totalCount.textContent = filteredProducts.length;
   
   const html = paginated.map(product => {
-    const productImage = isBioNaturelTshirt(product) ? FIRST_PRODUCT_HOMEPAGE_IMAGE : product.image;
+    const productImage = isBioNaturelTshirt(product)
+      ? FIRST_PRODUCT_HOMEPAGE_IMAGE
+      : isPullRecycleGris(product)
+        ? PULL_RECYCLE_GRIS_HOMEPAGE_IMAGE
+        : product.image;
     return `
     <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${collectionLabels[product.collection] || product.collection}">
       <a class="product-link-overlay" href="/public/pages/product-detail.html?id=${encodeURIComponent(product.id)}" aria-label="Voir le détail de ${product.name}"></a>

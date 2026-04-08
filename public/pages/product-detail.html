@@ -1202,6 +1202,9 @@
                     
                     const isFirstTshirt = Number(product.id) === 1
                         || String(product.image || '').includes('tshirt-naturel.svg');
+                    const isPullRecycleGris = Number(product.id) === 2
+                        || String(product.image || '').includes('pull-gris.svg')
+                        || String(product.name || '').toLowerCase().includes('pull recyclé - gris');
                     const galleryImages = (Array.isArray(product.images) && product.images.length > 0)
                         ? product.images
                         : isFirstTshirt
@@ -1210,6 +1213,12 @@
                                 '/public/images/T_shirt BIO_Naturel(1).webp',
                                 '/public/images/T_shirt BIO_Naturel(2).webp'
                             ]
+                            : isPullRecycleGris
+                                ? [
+                                    '/public/images/Pull_recycle_Gris(0).webp',
+                                    '/public/images/Pull_recycle_Gris(1).webp',
+                                    '/public/images/Pull_recycle_Gris(2).webp'
+                                ]
                             : [product.image];
 
                     // Update main image
