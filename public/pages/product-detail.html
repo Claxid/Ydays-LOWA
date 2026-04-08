@@ -109,15 +109,15 @@
                 <h2 class="reviews-title">Avis clients</h2>
                 <form id="review-form" class="review-form" aria-label="Publier un avis">
                     <div class="review-form-row">
-                        <label for="review-rating">Note</label>
-                        <select id="review-rating" required>
-                            <option value="">Choisir</option>
-                            <option value="5">5 - Excellent</option>
-                            <option value="4">4 - Très bien</option>
-                            <option value="3">3 - Correct</option>
-                            <option value="2">2 - Moyen</option>
-                            <option value="1">1 - Décevant</option>
-                        </select>
+                        <label for="review-rating-value">Note</label>
+                        <input id="review-rating-value" type="hidden" value="" required />
+                        <div class="review-stars-input" role="radiogroup" aria-label="Choisir une note">
+                            <button type="button" class="star-btn" data-rating="1" aria-label="1 étoile">★</button>
+                            <button type="button" class="star-btn" data-rating="2" aria-label="2 étoiles">★</button>
+                            <button type="button" class="star-btn" data-rating="3" aria-label="3 étoiles">★</button>
+                            <button type="button" class="star-btn" data-rating="4" aria-label="4 étoiles">★</button>
+                            <button type="button" class="star-btn" data-rating="5" aria-label="5 étoiles">★</button>
+                        </div>
                     </div>
                     <div class="review-form-row review-form-row-full">
                         <label for="review-comment">Votre avis</label>
@@ -351,9 +351,34 @@
 
         function initReviewForm() {
             const form = document.getElementById('review-form');
-            const ratingInput = document.getElementById('review-rating');
+            const ratingInput = document.getElementById('review-rating-value');
             const commentInput = document.getElementById('review-comment');
             const feedback = document.getElementById('review-feedback');
+            const starButtons = Array.from(document.querySelectorAll('.star-btn'));
+
+            function paintStars(value) {
+                const selected = Number(value) || 0;
+                starButtons.forEach((btn) => {
+                    const btnRating = Number(btn.dataset.rating);
+                    btn.classList.toggle('active', btnRating <= selected);
+                });
+            }
+
+            starButtons.forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    ratingInput.value = btn.dataset.rating;
+                    paintStars(ratingInput.value);
+                });
+
+                btn.addEventListener('mouseenter', () => {
+                    paintStars(btn.dataset.rating);
+                });
+            });
+
+            const starsContainer = document.querySelector('.review-stars-input');
+            starsContainer?.addEventListener('mouseleave', () => {
+                paintStars(ratingInput.value);
+            });
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -402,6 +427,8 @@
 
                 feedback.textContent = 'Avis publié. Merci !';
                 form.reset();
+                ratingInput.value = '';
+                paintStars('');
                 await refreshReviewsFromDbOrFallback();
             });
         }
