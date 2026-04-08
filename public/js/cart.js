@@ -140,11 +140,8 @@ function setupCartListeners() {
         alert('Votre panier est vide');
         return;
       }
-      const total = document.getElementById('cart-total').textContent;
-      alert(`Commande de ${cart.length} article(s) pour ${total} €\nRedirection vers le paiement...`);
-      cart = [];
-      updateCartUI();
       cartModal.setAttribute('aria-hidden', 'true');
+      window.location.href = '/public/pages/paypal-checkout.html';
     });
   }
 }

@@ -153,19 +153,66 @@ html[data-theme] .dropdown-content a:hover {
 
 /* Theme Toggle Button */
 .theme-btn {
-  background: transparent;
-  border: none;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(90, 106, 47, 0.16);
   color: var(--theme-text);
-  font-size: 1.2rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 6px;
-  transition: all 0.2s ease;
+  padding: 0.65rem 0.95rem;
+  border-radius: 999px;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
   display: flex;
   align-items: center;
+  gap: 0.45rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
 }
 
 .theme-btn:hover {
-  background: var(--theme-accent-light);
-  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.32);
+  border-color: rgba(90, 106, 47, 0.24);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+}
+
+.theme-btn:active {
+  transform: translateY(1px);
+}
+
+.theme-selector {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.theme-option {
+  appearance: none;
+  border: 1px solid rgba(90, 106, 47, 0.16);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--theme-text);
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.theme-option:hover {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(90, 106, 47, 0.24);
+}
+
+.theme-option.active {
+  background: linear-gradient(135deg, rgba(90, 106, 47, 0.12), rgba(152, 168, 105, 0.18));
+  border-color: rgba(90, 106, 47, 0.28);
+  box-shadow: 0 10px 24px rgba(90, 106, 47, 0.1);
+}
+
+.theme-option:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 520px) {
+  .theme-selector {
+    grid-template-columns: 1fr;
+  }
 }

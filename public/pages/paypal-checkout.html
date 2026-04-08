@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="icon" type="image/svg+xml" href="/public/images/favicon.svg" />
+  <link rel="apple-touch-icon" href="/public/images/logo.png" />
+  <title>Paiement PayPal — LOWA</title>
+  <meta name="description" content="Finalisez votre commande LOWA avec PayPal." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/homepage.css" />
+  <link rel="stylesheet" href="/public/css/theme-variables.css" />
+  <link rel="stylesheet" href="/public/css/paypal-checkout.css" />
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="/public/js/common.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/index.html" aria-label="LOWA - Accueil">
+        <img class="brand-logo" src="/public/images/logo.png" alt="LOWA" />
+      </a>
+      <nav class="main-nav">
+        <a href="/index.html">Accueil</a>
+        <a href="/public/pages/favoris.html">Favoris</a>
+        <a href="/public/pages/profile.html">Mon profil</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="checkout-page">
+    <section class="checkout-hero container">
+      <div class="checkout-copy">
+        <p class="eyebrow">Paiement sécurisé</p>
+        <h1>Finaliser la commande avec PayPal</h1>
+        <p>Vérifiez votre panier, puis validez le paiement via PayPal.</p>
+        <a class="back-link" href="/index.html">← Retour aux produits</a>
+      </div>
+    </section>
+
+    <section class="container checkout-grid">
+      <article class="checkout-card">
+        <h2>Récapitulatif</h2>
+        <div id="order-items" class="order-items"></div>
+        <div class="order-footer">
+          <span id="order-count">0 article</span>
+          <strong id="order-total">0,00 €</strong>
+        </div>
+      </article>
+
+      <article class="checkout-card checkout-payment">
+        <h2>Paiement PayPal</h2>
+        <p id="paypal-status" class="checkout-status">Chargement du paiement...</p>
+        <div id="paypal-buttons" class="paypal-buttons"></div>
+      </article>
+    </section>
+  </main>
+
+  <script src="/public/js/paypal-checkout.js"></script>
+</body>
+</html>
