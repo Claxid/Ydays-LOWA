@@ -4,14 +4,34 @@
  */
 
 let cart = [];
+const CART_STORAGE_KEY = 'lowa_cart';
+let isHydratingCart = false;
 
 /**
  * Initialiser le panier
  */
 function initCart() {
-  cart = JSON.parse(localStorage.getItem('cart')) || [];
+  const raw = (typeof scopedStorageGet === 'function')
+    ? scopedStorageGet(CART_STORAGE_KEY)
+    : localStorage.getItem(CART_STORAGE_KEY);
+  cart = raw ? JSON.parse(raw) : [];
   updateCartUI();
   setupCartListeners();
+  hydrateCartFromCloud();
+}
+
+async function hydrateCartFromCloud() {
+  try {
+    const state = await lowaReadUserState();
+    if (!state || !Array.isArray(state.cart)) return;
+    isHydratingCart = true;
+    cart = state.cart;
+    updateCartUI();
+  } catch (e) {
+    console.warn('Hydrate cart warning:', e && e.message ? e.message : e);
+  } finally {
+    isHydratingCart = false;
+  }
 }
 
 /**
@@ -38,7 +58,15 @@ function updateCartUI() {
   
   const total = cart.reduce((sum, item) => sum + item.price, 0);
   cartTotalSpan.textContent = total.toFixed(2);
-  localStorage.setItem('cart', JSON.stringify(cart));
+  if (typeof scopedStorageSet === 'function') {
+    scopedStorageSet(CART_STORAGE_KEY, JSON.stringify(cart));
+  } else {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+  }
+
+  if (!isHydratingCart) {
+    lowaWriteUserStatePatch({ cart: cart }).catch(() => {});
+  }
   
   // Sync with database if logged in
   if (currentUser && sessionToken) {

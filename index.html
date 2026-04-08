@@ -113,7 +113,9 @@
 
         <header class="site-header">
             <div class="container header-inner">
-                <a class="brand" href="/index.html">🌿 LOWA</a>
+                <a class="brand" href="/index.html" aria-label="LOWA - Accueil">
+                    <img class="brand-logo" src="/public/images/logo-lowa-horizontal.svg" alt="LOWA" />
+                </a>
                 <button class="burger" id="burger-btn" aria-label="Ouvrir le menu" aria-expanded="false">☰</button>
                 <nav class="main-nav" aria-label="Navigation principale">
                     <a href="/index.html" class="nav-accueil">Accueil</a>
@@ -171,6 +173,30 @@
             </div>
         </header>
         <div class="header-spacer" aria-hidden="true"></div>
+
+        <nav class="mobile-dock" aria-label="Navigation mobile rapide" hidden>
+            <a href="/index.html" class="mobile-dock-item active" aria-label="Accueil">
+                <span class="icon">🏠</span>
+                <span class="label">Accueil</span>
+            </a>
+            <button type="button" id="mobile-categories-btn" class="mobile-dock-item" aria-label="Collections">
+                <span class="icon">🧭</span>
+                <span class="label">Collections</span>
+            </button>
+            <a href="/public/pages/favoris.html" class="mobile-dock-item" aria-label="Favoris">
+                <span class="icon">❤️</span>
+                <span class="label">Favoris</span>
+            </a>
+            <button type="button" id="mobile-cart-btn" class="mobile-dock-item" aria-label="Panier">
+                <span class="icon">🛒</span>
+                <span class="label">Panier</span>
+                <span class="mobile-badge" id="mobile-cart-count">0</span>
+            </button>
+            <button type="button" id="mobile-account-btn" class="mobile-dock-item" aria-label="Compte">
+                <span class="icon">👤</span>
+                <span class="label">Compte</span>
+            </button>
+        </nav>
 
         <main>
             <!-- Hero / Presentation Section (fullscreen) -->
@@ -313,17 +339,17 @@
         </div>
 
         <!-- Application Scripts (Load in order of dependencies) -->
-        <script src="/public/js/common.js"></script>
-        <script src="/public/js/modal.js"></script>
-        <script src="/public/js/theme.js"></script>
-        <script src="/public/js/products.js"></script>
-        <script src="/public/js/favorites.js"></script>
-        <script src="/public/js/cart.js"></script>
-        <script src="/public/js/auth.js"></script>
-        <script src="/public/js/filters.js"></script>
-        <script src="/public/js/cookies.js"></script>
-        <script src="/public/js/ui.js"></script>
-        <script src="/public/js/init.js"></script>
+        <script src="/public/js/common.js?v=20260318"></script>
+        <script src="/public/js/modal.js?v=20260318"></script>
+        <script src="/public/js/theme.js?v=20260318"></script>
+        <script src="/public/js/favorites.js?v=20260318"></script>
+        <script src="/public/js/products.js?v=20260318"></script>
+        <script src="/public/js/cart.js?v=20260318"></script>
+        <script src="/public/js/auth.js?v=20260318"></script>
+        <script src="/public/js/filters.js?v=20260318"></script>
+        <script src="/public/js/cookies.js?v=20260318"></script>
+        <script src="/public/js/ui.js?v=20260318"></script>
+        <script src="/public/js/init.js?v=20260318"></script>
 
         <!-- GSAP and Snow Effect -->
         <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>

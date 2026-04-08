@@ -2,9 +2,77 @@
  * LOWA - Authentication Module
  * Gestion de l'authentification
  */
-
 let currentUser = null;
 let sessionToken = null;
+
+function buildSessionStorageScope(token, user) {
+  const basis = (user && (user.id || user.email)) || token || 'guest';
+  return sanitizeStorageSegment(basis);
+}
+
+function refreshScopedClientState() {
+  try {
+    if (typeof loadFavoritesFromStorage === 'function') {
+      loadFavoritesFromStorage();
+    }
+
+    if (typeof scopedStorageGet === 'function' && typeof updateCartUI === 'function' && typeof cart !== 'undefined') {
+      const rawCart = scopedStorageGet('lowa_cart');
+      cart = rawCart ? JSON.parse(rawCart) : [];
+      updateCartUI();
+    }
+
+    if (typeof loadFiltersFromStorage === 'function') {
+      loadFiltersFromStorage();
+    }
+
+    if (typeof initTheme === 'function') {
+      initTheme();
+    }
+
+    if (typeof sortAndDisplayProducts === 'function') {
+      sortAndDisplayProducts();
+    }
+  } catch (e) {
+    console.warn('Refresh state warning:', e && e.message ? e.message : e);
+  }
+}
+
+function mapSupabaseUserToProfile(user) {
+  const metadata = (user && user.user_metadata) ? user.user_metadata : {};
+  return {
+    id: user && user.id ? user.id : null,
+    email: user && user.email ? user.email : '',
+    nom: metadata.nom || '',
+    prenom: metadata.prenom || '',
+    sexe: metadata.sexe || ''
+  };
+}
+
+async function savePublicProfileRecord(supabaseClient, profile) {
+  if (!supabaseClient || !profile || !profile.email) return;
+
+  const payload = {
+    email: profile.email,
+    prenom: profile.prenom || null,
+    nom: profile.nom || null,
+    sexe: profile.sexe || null
+  };
+
+  try {
+    const { error } = await supabaseClient
+      .from('users')
+      .upsert(payload, { onConflict: 'email' });
+    if (error) {
+      const isDuplicate = /duplicate key|unique constraint/i.test(error.message || '');
+      if (!isDuplicate) {
+        console.warn('Sync profil users non critique:', error.message || error);
+      }
+    }
+  } catch (e) {
+    console.warn('Sync profil users non critique:', e && e.message ? e.message : e);
+  }
+}
 
 /**
  * Vérifier l'authentification et afficher modal si nécessaire
@@ -23,15 +91,21 @@ function requireAuth(reason) {
  */
 function loadSessionFromStorage() {
   const stored = localStorage.getItem(LOWA.STORAGE.SESSION_KEY);
-  if (stored) {
-    try {
-      const session = JSON.parse(stored);
-      sessionToken = session.token;
-      currentUser = session.user;
-      updateUserUI();
-    } catch (e) {
-      localStorage.removeItem(LOWA.STORAGE.SESSION_KEY);
+  if (!stored) return;
+
+  try {
+    const session = JSON.parse(stored);
+    sessionToken = session.token || null;
+    currentUser = session.user || null;
+    const storageScope = session.storage_scope || buildSessionStorageScope(sessionToken, currentUser);
+    session.storage_scope = storageScope;
+    localStorage.setItem(LOWA.STORAGE.SESSION_KEY, JSON.stringify(session));
+    if (typeof setActiveStorageUserId === 'function') {
+      setActiveStorageUserId(storageScope);
     }
+    updateUserUI();
+  } catch (e) {
+    localStorage.removeItem(LOWA.STORAGE.SESSION_KEY);
   }
 }
 
@@ -41,7 +115,12 @@ function loadSessionFromStorage() {
 function saveSession(token, user) {
   sessionToken = token;
   currentUser = user;
-  localStorage.setItem(LOWA.STORAGE.SESSION_KEY, JSON.stringify({token, user}));
+  const storageScope = buildSessionStorageScope(token, user);
+  localStorage.setItem(LOWA.STORAGE.SESSION_KEY, JSON.stringify({ token, user, storage_scope: storageScope }));
+  if (typeof setActiveStorageUserId === 'function') {
+    setActiveStorageUserId(storageScope);
+  }
+  refreshScopedClientState();
   updateUserUI();
 }
 
@@ -52,6 +131,10 @@ function clearSession() {
   sessionToken = null;
   currentUser = null;
   localStorage.removeItem(LOWA.STORAGE.SESSION_KEY);
+  if (typeof clearActiveStorageUserId === 'function') {
+    clearActiveStorageUserId();
+  }
+  refreshScopedClientState();
   updateUserUI();
 }
 
@@ -64,9 +147,10 @@ function updateUserUI() {
   const openRegisterBtn = document.getElementById('open-register-btn');
   const userInfoBtn = document.getElementById('user-info-btn');
   const logoutBtn = document.getElementById('logout-btn');
-  
+
   if (currentUser) {
-    if (userDisplay) userDisplay.textContent = currentUser.prenom + ' ' + currentUser.nom;
+    const fullName = [currentUser.prenom, currentUser.nom].filter(Boolean).join(' ').trim();
+    if (userDisplay) userDisplay.textContent = fullName || currentUser.email || 'Mon compte';
     if (openLoginBtn) openLoginBtn.style.display = 'none';
     if (openRegisterBtn) openRegisterBtn.style.display = 'none';
     if (userInfoBtn) userInfoBtn.style.display = 'block';
@@ -99,25 +183,25 @@ function setupUserMenu() {
   const userMenuBtn = document.getElementById('user-menu-btn');
   const userMenu = document.getElementById('user-menu');
   const userInfoBtn = document.getElementById('user-info-btn');
-  
+
   if (userMenuBtn) {
     userMenuBtn.addEventListener('click', (e) => {
       if (!currentUser) {
         openModal('login-modal');
-      } else {
+      } else if (userMenu) {
         const isHidden = userMenu.getAttribute('aria-hidden') === 'true';
-        userMenu.setAttribute('aria-hidden', !isHidden);
+        userMenu.setAttribute('aria-hidden', String(!isHidden));
       }
       e.stopPropagation();
     });
   }
-  
+
   document.addEventListener('click', (e) => {
     if (userMenu && !e.target.closest('.user-btn') && !e.target.closest('.user-menu')) {
       userMenu.setAttribute('aria-hidden', 'true');
     }
   });
-  
+
   if (userInfoBtn) {
     userInfoBtn.addEventListener('click', () => {
       window.location.href = '/public/pages/profile.html';
@@ -131,45 +215,36 @@ function setupUserMenu() {
 function setupLoginForm() {
   const loginForm = document.getElementById('login-form');
   if (!loginForm) return;
-  
+
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
     const submitBtn = e.target.querySelector('button[type="submit"]');
-    
+
     try {
       submitBtn.disabled = true;
-      submitBtn.textContent = '⏳ Connexion...';
-      
-      const response = await fetch(LOWA.API.BASE + '/login', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email, password})
-      });
-      
-      if (!response.ok) throw new Error('Login failed');
-      const data = await response.json();
-      saveSession(data.token, data.user);
+      submitBtn.textContent = 'Connexion...';
+
+      const supabaseClient = initSupabase();
+      if (!supabaseClient) throw new Error('Supabase non initialise');
+
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      if (!data || !data.session || !data.user) {
+        throw new Error('Session invalide. Verifiez la confirmation email.');
+      }
+
+      const profile = mapSupabaseUserToProfile(data.user);
+      saveSession(data.session.access_token, profile);
       closeAllModals();
       loginForm.reset();
-      submitBtn.textContent = 'Se connecter';
     } catch (err) {
-      const localUsers = JSON.parse(localStorage.getItem(LOWA.API.LOCAL_USERS_KEY) || '[]');
-      const matched = localUsers.find(u => u.email === email && u.password === password);
-      if (matched) {
-        const token = 'local-' + Date.now();
-        saveSession(token, matched);
-        closeAllModals();
-        loginForm.reset();
-        alert('Connexion réussie (mode local, API indisponible)');
-        submitBtn.textContent = 'Se connecter';
-      } else {
-        alert('Erreur de connexion: serveur indisponible et aucun compte local correspondant');
-        submitBtn.textContent = 'Se connecter';
-      }
+      console.error('Erreur connexion:', err);
+      alert('Erreur de connexion: ' + (err && err.message ? err.message : 'Inconnue'));
     } finally {
       submitBtn.disabled = false;
+      submitBtn.textContent = 'Se connecter';
     }
   });
 }
@@ -180,7 +255,7 @@ function setupLoginForm() {
 function setupRegisterForm() {
   const registerForm = document.getElementById('register-form');
   if (!registerForm) return;
-  
+
   registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('register-email').value;
@@ -189,59 +264,67 @@ function setupRegisterForm() {
     const sexe = document.getElementById('register-sexe').value;
     const password = document.getElementById('register-password').value;
     const submitBtn = e.target.querySelector('button[type="submit"]');
-    
+
     try {
       submitBtn.disabled = true;
-      submitBtn.textContent = '⏳ Inscription...';
-      
-      const response = await fetch(LOWA.API.BASE + '/register', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email, nom, prenom, sexe, password})
+      submitBtn.textContent = 'Inscription...';
+
+      const supabaseClient = initSupabase();
+      if (!supabaseClient) throw new Error('Supabase non initialise');
+
+      const { data, error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { nom, prenom, sexe }
+        }
       });
-      
-      if (!response.ok) throw new Error('Registration failed');
-      const data = await response.json();
-      saveSession(data.token, {id: data.user_id, email, nom, prenom, sexe});
-      closeAllModals();
-      registerForm.reset();
-      submitBtn.textContent = 'S\'inscrire';
-    } catch (err) {
-      const localUsers = JSON.parse(localStorage.getItem(LOWA.API.LOCAL_USERS_KEY) || '[]');
-      const already = localUsers.find(u => u.email === email);
-      if (already) {
-        alert('Compte local déjà existant. Essayez de vous connecter.');
-      } else {
-        const newUser = { id: 'local-' + Date.now(), email, nom, prenom, sexe, password };
-        localUsers.push(newUser);
-        localStorage.setItem(LOWA.API.LOCAL_USERS_KEY, JSON.stringify(localUsers));
-        const token = 'local-' + Date.now();
-        saveSession(token, newUser);
+
+      if (error) throw error;
+
+      if (data && data.session && data.user) {
+        const profile = mapSupabaseUserToProfile(data.user);
+        await savePublicProfileRecord(supabaseClient, profile);
+        saveSession(data.session.access_token, profile);
         closeAllModals();
         registerForm.reset();
-        alert('Inscription réussie en mode local (API indisponible)');
+        alert('Inscription reussie.');
+      } else {
+        if (data && data.user) {
+          const profile = mapSupabaseUserToProfile(data.user);
+          await savePublicProfileRecord(supabaseClient, profile);
+        }
+        closeAllModals();
+        registerForm.reset();
+        alert('Compte cree. Verifie ton email pour confirmer, puis connecte-toi.');
       }
-      submitBtn.textContent = 'S\'inscrire';
+    } catch (err) {
+      console.error('Erreur inscription:', err);
+      alert('Erreur inscription: ' + (err && err.message ? err.message : 'Inconnue'));
     } finally {
       submitBtn.disabled = false;
+      submitBtn.textContent = 'S\'inscrire';
     }
   });
 }
 
 /**
- * Configurer la déconnexion
+ * Configurer la deconnexion
  */
 function setupLogout() {
   const logoutBtn = document.getElementById('logout-btn');
   if (!logoutBtn) return;
-  
+
   logoutBtn.addEventListener('click', async () => {
     try {
-      await fetch(LOWA.API.BASE + '/logout', {
-        method: 'POST',
-        headers: {Authorization: sessionToken}
-      });
-    } catch (e) {}
+      const supabaseClient = initSupabase();
+      if (supabaseClient) {
+        await supabaseClient.auth.signOut();
+      }
+    } catch (e) {
+      console.error('Erreur deconnexion:', e);
+    }
+
     clearSession();
     const userMenu = document.getElementById('user-menu');
     if (userMenu) {

@@ -10,6 +10,65 @@ function initUI() {
   initBurgerMenu();
   initDropdownMenu();
   initScrollToTop();
+  initMobileDock();
+}
+
+function initMobileDock() {
+  const dock = document.querySelector('.mobile-dock');
+  const mobileCartBtn = document.getElementById('mobile-cart-btn');
+  const mobileCategoriesBtn = document.getElementById('mobile-categories-btn');
+  const mobileAccountBtn = document.getElementById('mobile-account-btn');
+  const mobileCartCount = document.getElementById('mobile-cart-count');
+
+  if (!dock || (!mobileCartBtn && !mobileCategoriesBtn && !mobileAccountBtn)) return;
+
+  const isTouchMobile = window.matchMedia('(max-width: 900px) and (hover: none)').matches ||
+    window.matchMedia('(max-width: 700px)').matches;
+
+  if (isTouchMobile) {
+    dock.hidden = false;
+    document.body.classList.add('has-mobile-dock');
+  } else {
+    dock.hidden = true;
+    document.body.classList.remove('has-mobile-dock');
+    return;
+  }
+
+  const desktopCartButton = document.getElementById('cart-button');
+  const desktopCartCount = document.getElementById('cart-count');
+  const desktopUserButton = document.getElementById('user-menu-btn');
+
+  if (mobileCartBtn && desktopCartButton) {
+    mobileCartBtn.addEventListener('click', () => {
+      desktopCartButton.click();
+    });
+  }
+
+  if (mobileCategoriesBtn) {
+    mobileCategoriesBtn.addEventListener('click', () => {
+      const target = document.querySelector('.category-row') || document.getElementById('products-heading');
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  }
+
+  if (mobileAccountBtn) {
+    mobileAccountBtn.addEventListener('click', () => {
+      if (desktopUserButton) {
+        desktopUserButton.click();
+      }
+    });
+  }
+
+  if (mobileCartCount && desktopCartCount) {
+    const syncCount = () => {
+      mobileCartCount.textContent = desktopCartCount.textContent || '0';
+    };
+    syncCount();
+    const observer = new MutationObserver(syncCount);
+    observer.observe(desktopCartCount, { childList: true, subtree: true, characterData: true });
+  }
 }
 
 /**

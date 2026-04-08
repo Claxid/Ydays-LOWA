@@ -7,15 +7,46 @@
  * Initialiser le thème
  */
 function initTheme() {
-  const fontSize = localStorage.getItem('lowa_pref_font_size') || 'normal';
-  const spacing = localStorage.getItem('lowa_pref_spacing') || 'normal';
-  const animations = localStorage.getItem('lowa_pref_animations') !== 'false';
-  
-  setTheme('light');
+  const fontSize = (typeof scopedStorageGet === 'function' ? scopedStorageGet('lowa_pref_font_size') : localStorage.getItem('lowa_pref_font_size')) || 'normal';
+  const spacing = (typeof scopedStorageGet === 'function' ? scopedStorageGet('lowa_pref_spacing') : localStorage.getItem('lowa_pref_spacing')) || 'normal';
+  const animationsRaw = (typeof scopedStorageGet === 'function' ? scopedStorageGet('lowa_pref_animations') : localStorage.getItem('lowa_pref_animations'));
+  const animations = animationsRaw !== 'false';
+
+  const savedTheme = (typeof scopedStorageGet === 'function' ? scopedStorageGet(LOWA.STORAGE.THEME_KEY) : localStorage.getItem(LOWA.STORAGE.THEME_KEY)) || 'light';
+  setTheme(savedTheme);
   applyFontSize(fontSize);
   applySpacing(spacing);
   applyAnimations(animations);
   initThemeToggle();
+  hydrateThemeFromCloud();
+}
+
+async function hydrateThemeFromCloud() {
+  try {
+    const state = await lowaReadUserState();
+    if (!state) return;
+
+    if (state.theme) {
+      setTheme(state.theme);
+    }
+
+    if (state.font_size) {
+      applyFontSize(state.font_size);
+      if (typeof scopedStorageSet === 'function') scopedStorageSet('lowa_pref_font_size', state.font_size);
+    }
+
+    if (state.spacing) {
+      applySpacing(state.spacing);
+      if (typeof scopedStorageSet === 'function') scopedStorageSet('lowa_pref_spacing', state.spacing);
+    }
+
+    if (typeof state.animations === 'boolean') {
+      applyAnimations(state.animations);
+      if (typeof scopedStorageSet === 'function') scopedStorageSet('lowa_pref_animations', String(state.animations));
+    }
+  } catch (e) {
+    console.warn('Hydrate theme warning:', e && e.message ? e.message : e);
+  }
 }
 
 /**
@@ -23,7 +54,13 @@ function initTheme() {
  */
 function setTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem(LOWA.STORAGE.THEME_KEY, theme);
+  if (typeof scopedStorageSet === 'function') {
+    scopedStorageSet(LOWA.STORAGE.THEME_KEY, theme);
+  } else {
+    localStorage.setItem(LOWA.STORAGE.THEME_KEY, theme);
+  }
+
+  lowaWriteUserStatePatch({ theme: theme }).catch(() => {});
 }
 
 /**

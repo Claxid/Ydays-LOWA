@@ -357,22 +357,36 @@
         </div>
     </div>
 
+    <script src="/public/js/common.js"></script>
     <script>
         // Get product ID from URL params
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id') || '2';
 
+        function detailScopedGet(baseKey) {
+            if (typeof scopedStorageGet === 'function') return scopedStorageGet(baseKey);
+            return localStorage.getItem(baseKey);
+        }
+
+        function detailScopedSet(baseKey, value) {
+            if (typeof scopedStorageSet === 'function') {
+                scopedStorageSet(baseKey, value);
+                return;
+            }
+            localStorage.setItem(baseKey, value);
+        }
+
         document.getElementById('year').textContent = new Date().getFullYear();
 
         // Theme Management
         function initTheme() {
-            const savedTheme = localStorage.getItem('lowa_theme') || 'light';
+            const savedTheme = detailScopedGet('lowa_theme') || 'light';
             setTheme(savedTheme);
         }
 
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('lowa_theme', theme);
+            detailScopedSet('lowa_theme', theme);
             updateThemeEmoji();
         }
 
@@ -383,7 +397,7 @@
         }
 
         document.getElementById('theme-toggle').addEventListener('click', () => {
-            const currentTheme = localStorage.getItem('lowa_theme') || 'light';
+            const currentTheme = detailScopedGet('lowa_theme') || 'light';
             let nextTheme = 'light';
             if (currentTheme === 'light') nextTheme = 'dark';
             else if (currentTheme === 'dark') nextTheme = 'temperate';
@@ -488,7 +502,9 @@
         loadProductDetail();
 
         // Cart Management
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const CART_KEY = 'lowa_cart';
+        const rawCart = detailScopedGet(CART_KEY);
+        let cart = rawCart ? JSON.parse(rawCart) : [];
         const cartButton = document.getElementById('cart-button');
         const cartCount = document.getElementById('cart-count');
         const cartModal = document.getElementById('cart-modal');
@@ -512,7 +528,7 @@
             `).join('');
             const total = cart.reduce((sum, item) => sum + item.price, 0);
             cartTotalSpan.textContent = total.toFixed(2);
-            localStorage.setItem('cart', JSON.stringify(cart));
+            detailScopedSet(CART_KEY, JSON.stringify(cart));
         }
 
         window.removeFromCart = function(idx) {
@@ -563,7 +579,9 @@
         updateCartUI();
 
         // Favorites
-        let favorites = JSON.parse(localStorage.getItem('lowa_favorites')) || [];
+        const FAVORITES_KEY = 'lowa_favorites';
+        const rawFavorites = detailScopedGet(FAVORITES_KEY);
+        let favorites = rawFavorites ? JSON.parse(rawFavorites) : [];
         
         function isFavorite(productId) {
             return favorites.includes(productId);
@@ -576,7 +594,7 @@
             } else {
                 favorites.push(productId);
             }
-            localStorage.setItem('lowa_favorites', JSON.stringify(favorites));
+            detailScopedSet(FAVORITES_KEY, JSON.stringify(favorites));
         }
 
         document.querySelectorAll('.fav-btn').forEach(btn => {

@@ -51,6 +51,8 @@
         </div>
     </footer>
 
+    <script src="/public/js/common.js"></script>
+
     <!-- Cart modal -->
     <div id="cart-modal" class="cart-modal" aria-hidden="true">
         <div class="cart-panel" role="dialog" aria-label="Panier">
@@ -69,6 +71,19 @@
 
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
+
+        function favoritesScopedGet(baseKey) {
+            if (typeof scopedStorageGet === 'function') return scopedStorageGet(baseKey);
+            return localStorage.getItem(baseKey);
+        }
+
+        function favoritesScopedSet(baseKey, value) {
+            if (typeof scopedStorageSet === 'function') {
+                scopedStorageSet(baseKey, value);
+                return;
+            }
+            localStorage.setItem(baseKey, value);
+        }
 
         const favoritesGrid = document.getElementById('favorites-grid');
         const favoritesEmpty = document.getElementById('favorites-empty');
@@ -96,13 +111,13 @@
         let favorites = [];
         function loadFavoritesFromStorage() {
             try {
-                const raw = localStorage.getItem(FAVORITES_KEY);
+                const raw = favoritesScopedGet(FAVORITES_KEY);
                 const arr = raw ? JSON.parse(raw) : [];
                 favorites = Array.from(new Set(arr.map(v => parseInt(v, 10)).filter(n => Number.isFinite(n))));
-                localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+                favoritesScopedSet(FAVORITES_KEY, JSON.stringify(favorites));
             } catch (e) {
                 favorites = [];
-                localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+                favoritesScopedSet(FAVORITES_KEY, JSON.stringify(favorites));
             }
         }
         loadFavoritesFromStorage();
@@ -124,7 +139,7 @@
 
         // Theme Management
         function initTheme() {
-            const savedTheme = localStorage.getItem('lowa_theme') || 'light';
+            const savedTheme = favoritesScopedGet('lowa_theme') || 'light';
             setTheme(savedTheme);
         }
 
@@ -136,7 +151,7 @@
             } else {
                 document.documentElement.setAttribute('data-theme', theme);
             }
-            localStorage.setItem('lowa_theme', theme);
+            favoritesScopedSet('lowa_theme', theme);
             updateThemeEmoji();
         }
 
@@ -151,7 +166,7 @@
         }
 
         document.getElementById('theme-toggle').addEventListener('click', () => {
-            const currentTheme = localStorage.getItem('lowa_theme') || 'light';
+            const currentTheme = favoritesScopedGet('lowa_theme') || 'light';
             let nextTheme = 'light';
             if (currentTheme === 'light') nextTheme = 'dark';
             else if (currentTheme === 'dark') nextTheme = 'temperate';
@@ -272,7 +287,7 @@
                 favorites.push(idNum);
             }
             favorites = Array.from(new Set(favorites));
-            localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+            favoritesScopedSet(FAVORITES_KEY, JSON.stringify(favorites));
         }
 
         function attachFavoriteListeners() {
@@ -297,13 +312,15 @@
             }
             if (confirm('Voulez-vous vraiment supprimer tous vos favoris ?')) {
                 favorites = [];
-                localStorage.setItem('lowa_favorites', JSON.stringify(favorites));
+                favoritesScopedSet(FAVORITES_KEY, JSON.stringify(favorites));
                 renderFavorites();
             }
         });
 
         // Cart Management
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const CART_KEY = 'lowa_cart';
+        const rawCart = favoritesScopedGet(CART_KEY);
+        let cart = rawCart ? JSON.parse(rawCart) : [];
         const cartButton = document.getElementById('cart-button');
         const cartCount = document.getElementById('cart-count');
         const cartModal = document.getElementById('cart-modal');
@@ -327,7 +344,7 @@
             `).join('');
             const total = cart.reduce((sum, item) => sum + item.price, 0);
             cartTotalSpan.textContent = total.toFixed(2);
-            localStorage.setItem('cart', JSON.stringify(cart));
+            favoritesScopedSet(CART_KEY, JSON.stringify(cart));
         }
 
         function attachCartListeners() {

@@ -5,7 +5,7 @@
 
 const LOWA = {
   SUPABASE: {
-    URL: 'https://feslvznzutoygnnszt0y.supabase.co',
+    URL: 'https://feslvznzutoygnnsztoy.supabase.co',
     ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlc2x2em56dXRveWdubnN6dG95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMTI3NzYsImV4cCI6MjA4NzU4ODc3Nn0.6krv4Cuge49e7tTggfql0My22DS_DpnNx5Dgg3utBxA',
     client: null
   },
@@ -27,6 +27,242 @@ const LOWA = {
   PAGINATION: {
     PRODUCTS_PER_PAGE: 12
   }
+};
+
+const LOWA_SCOPED_STORAGE_VERSION = 'v2';
+const LOWA_ACTIVE_USER_STORAGE_KEY = 'lowa_active_user_scope';
+
+function sanitizeStorageSegment(value) {
+  return String(value || 'guest')
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, '_')
+    .slice(0, 80);
+}
+
+function setActiveStorageUserId(value) {
+  const normalized = sanitizeStorageSegment(value);
+  if (normalized && normalized !== 'guest') {
+    localStorage.setItem(LOWA_ACTIVE_USER_STORAGE_KEY, normalized);
+  }
+}
+
+function clearActiveStorageUserId() {
+  localStorage.removeItem(LOWA_ACTIVE_USER_STORAGE_KEY);
+}
+
+function decodeJwtPayload(token) {
+  try {
+    const parts = String(token || '').split('.');
+    if (parts.length < 2) return null;
+    const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const pad = b64.length % 4;
+    const padded = b64 + (pad ? '='.repeat(4 - pad) : '');
+    const json = atob(padded);
+    return JSON.parse(json);
+  } catch (e) {
+    return null;
+  }
+}
+
+function getActiveStorageUserId() {
+  try {
+    const raw = localStorage.getItem(LOWA.STORAGE.SESSION_KEY);
+    if (raw) {
+      const session = JSON.parse(raw);
+      const explicitScope = session && session.storage_scope ? sanitizeStorageSegment(session.storage_scope) : null;
+      if (explicitScope && explicitScope !== 'guest') {
+        setActiveStorageUserId(explicitScope);
+        return explicitScope;
+      }
+
+      const user = session && session.user ? session.user : null;
+      const jwtPayload = decodeJwtPayload(session && session.token ? session.token : '');
+      const idOrEmail =
+        (user && (user.id || user.email)) ||
+        (jwtPayload && (jwtPayload.sub || jwtPayload.email)) ||
+        null;
+
+      if (idOrEmail) {
+        setActiveStorageUserId(idOrEmail);
+        return sanitizeStorageSegment(idOrEmail);
+      }
+    }
+
+    const persisted = localStorage.getItem(LOWA_ACTIVE_USER_STORAGE_KEY);
+    if (persisted) return sanitizeStorageSegment(persisted);
+
+    return 'guest';
+  } catch (e) {
+    return 'guest';
+  }
+}
+
+function getScopedStorageKey(baseKey, scope = 'user') {
+  if (scope === 'global') return baseKey;
+  return `${baseKey}__${getActiveStorageUserId()}__${LOWA_SCOPED_STORAGE_VERSION}`;
+}
+
+function scopedStorageGet(baseKey, options = {}) {
+  const scope = options.scope || 'user';
+  const migrateLegacy = options.migrateLegacy === true;
+  const scopedKey = getScopedStorageKey(baseKey, scope);
+  const scopedValue = localStorage.getItem(scopedKey);
+
+  if (scopedValue !== null) return scopedValue;
+
+  if (migrateLegacy) {
+    const legacyValue = localStorage.getItem(baseKey);
+    if (legacyValue !== null) {
+      localStorage.setItem(scopedKey, legacyValue);
+      return legacyValue;
+    }
+  }
+
+  return null;
+}
+
+function scopedStorageSet(baseKey, value, options = {}) {
+  const scope = options.scope || 'user';
+  const scopedKey = getScopedStorageKey(baseKey, scope);
+  localStorage.setItem(scopedKey, value);
+}
+
+const LOWA_USER_STATE_TABLE = 'user_state';
+
+function lowaNormalizeUserState(row) {
+  const state = row || {};
+  return {
+    favorites: Array.isArray(state.favorites) ? state.favorites : [],
+    cart: Array.isArray(state.cart) ? state.cart : [],
+    theme: typeof state.theme === 'string' ? state.theme : null,
+    font_size: typeof state.font_size === 'string' ? state.font_size : null,
+    spacing: typeof state.spacing === 'string' ? state.spacing : null,
+    animations: typeof state.animations === 'boolean' ? state.animations : null,
+    language: typeof state.language === 'string' ? state.language : null,
+    notif: typeof state.notif === 'boolean' ? state.notif : null,
+    avatar: typeof state.avatar === 'string' ? state.avatar : null
+  };
+}
+
+async function lowaGetAuthUser() {
+  const supabaseClient = initSupabase();
+  if (!supabaseClient) {
+    console.error('❌ Cannot get auth user: Supabase client not initialized');
+    return null;
+  }
+  try {
+    const { data, error } = await supabaseClient.auth.getUser();
+    if (error || !data || !data.user) {
+      console.warn('⚠️ No authenticated user:', error ? error.message : 'data.user is null');
+      return null;
+    }
+    console.log('✅ Auth user found:', data.user.email);
+    return data.user;
+  } catch (e) {
+    console.error('❌ Error getting auth user:', e && e.message ? e.message : e);
+    return null;
+  }
+}
+
+async function lowaReadUserState() {
+  const supabaseClient = initSupabase();
+  if (!supabaseClient) return null;
+  const authUser = await lowaGetAuthUser();
+  if (!authUser) return null;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from(LOWA_USER_STATE_TABLE)
+      .select('favorites, cart, theme, font_size, spacing, animations, language, notif, avatar')
+      .eq('user_id', authUser.id)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Read user_state warning:', error.message || error);
+      return null;
+    }
+    return lowaNormalizeUserState(data);
+  } catch (e) {
+    console.warn('Read user_state warning:', e && e.message ? e.message : e);
+    return null;
+  }
+}
+
+async function lowaWriteUserStatePatch(patch) {
+  const supabaseClient = initSupabase();
+  if (!supabaseClient) {
+    console.error('❌ Supabase client initialization failed');
+    return false;
+  }
+  
+  const authUser = await lowaGetAuthUser();
+  if (!authUser) {
+    console.error('❌ User not authenticated. Cannot sync to user_state.');
+    return false;
+  }
+  
+  console.log('📤 Syncing user state for user:', authUser.id);
+
+  const existing = (await lowaReadUserState()) || {};
+  const merged = Object.assign({}, lowaNormalizeUserState(existing), patch || {});
+
+  const payload = {
+    user_id: authUser.id,
+    favorites: Array.isArray(merged.favorites) ? merged.favorites : [],
+    cart: Array.isArray(merged.cart) ? merged.cart : [],
+    theme: merged.theme || null,
+    font_size: merged.font_size || null,
+    spacing: merged.spacing || null,
+    animations: typeof merged.animations === 'boolean' ? merged.animations : null,
+    language: merged.language || null,
+    notif: typeof merged.notif === 'boolean' ? merged.notif : null,
+    avatar: merged.avatar || null,
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    console.log('📝 Payload to sync:', payload);
+    const { error } = await supabaseClient
+      .from(LOWA_USER_STATE_TABLE)
+      .upsert(payload, { onConflict: 'user_id' });
+
+    if (error) {
+      console.error('❌ Write user_state error:', error.message || error);
+      console.error('Error details:', error);
+      return false;
+    }
+    console.log('✅ User state synced successfully');
+    return true;
+  } catch (e) {
+    console.error('❌ Write user_state exception:', e && e.message ? e.message : e);
+    console.error('Exception details:', e);
+    return false;
+  }
+}
+
+window.LOWA_DEBUG_SCOPE = function() {
+  const uid = getActiveStorageUserId();
+  const sessionRaw = localStorage.getItem(LOWA.STORAGE.SESSION_KEY);
+  let sessionInfo = null;
+  try {
+    const session = sessionRaw ? JSON.parse(sessionRaw) : null;
+    sessionInfo = session && session.user ? {
+      id: session.user.id || null,
+      email: session.user.email || null
+    } : null;
+  } catch (e) {
+    sessionInfo = { error: 'parse-failed' };
+  }
+  const info = {
+    activeScope: uid,
+    persistedScope: localStorage.getItem(LOWA_ACTIVE_USER_STORAGE_KEY),
+    sessionUser: sessionInfo,
+    favoritesKey: getScopedStorageKey(LOWA.STORAGE.FAVORITES_KEY),
+    cartKey: getScopedStorageKey('lowa_cart'),
+    themeKey: getScopedStorageKey(LOWA.STORAGE.THEME_KEY)
+  };
+  console.log('LOWA scope debug:', info);
+  return info;
 };
 
 /**

@@ -214,6 +214,7 @@
       .admin-actions{display:flex;flex-wrap:wrap;gap:0.6rem;margin-top:0.5rem;}
       .admin-actions .btn{flex:1;min-width:180px;text-align:center;}
     </style>
+    <script src="/public/js/common.js"></script>
     <script src="/public/js/api-config.js"></script>
   </head>
   <body>
@@ -335,15 +336,57 @@
       const API = window.API_BASE || '/api';
       let sessionToken = null;
 
+      function profileScopedGet(baseKey) {
+        if (typeof scopedStorageGet === 'function') {
+          return scopedStorageGet(baseKey);
+        }
+        return localStorage.getItem(baseKey);
+      }
+
+      function profileScopedSet(baseKey, value) {
+        if (typeof scopedStorageSet === 'function') {
+          scopedStorageSet(baseKey, value);
+          return;
+        }
+        localStorage.setItem(baseKey, value);
+      }
+
       // Avatar Management
       function loadAvatar() {
-        const savedAvatar = localStorage.getItem('lowa_avatar');
+        const savedAvatar = profileScopedGet('lowa_avatar');
         if (savedAvatar) {
           const avatarEl = document.getElementById('avatar');
           avatarEl.style.backgroundImage = `url(${savedAvatar})`;
           avatarEl.style.backgroundSize = 'cover';
           avatarEl.style.backgroundPosition = 'center';
           document.getElementById('avatar-text').style.display = 'none';
+        }
+      }
+
+      async function hydrateProfileStateFromCloud() {
+        try {
+          const state = await lowaReadUserState();
+          if (!state) return;
+
+          if (state.avatar) {
+            profileScopedSet('lowa_avatar', state.avatar);
+            loadAvatar();
+          }
+
+          if (state.theme) {
+            profileScopedSet('lowa_theme', state.theme);
+            applyTheme(state.theme);
+          }
+
+          if (state.font_size) profileScopedSet('lowa_pref_font_size', state.font_size);
+          if (state.spacing) profileScopedSet('lowa_pref_spacing', state.spacing);
+          if (typeof state.animations === 'boolean') profileScopedSet('lowa_pref_animations', String(state.animations));
+          if (state.language) profileScopedSet('lowa_pref_lang', state.language);
+          if (typeof state.notif === 'boolean') profileScopedSet('lowa_pref_notif', String(state.notif));
+
+          loadAdvancedPrefs();
+        } catch (e) {
+          console.warn('Hydrate profile state warning:', e && e.message ? e.message : e);
         }
       }
 
@@ -357,7 +400,7 @@
           const reader = new FileReader();
           reader.onload = (event) => {
             const avatarData = event.target.result;
-            localStorage.setItem('lowa_avatar', avatarData);
+            profileScopedSet('lowa_avatar', avatarData);
             loadAvatar();
           };
           reader.readAsDataURL(file);
@@ -366,7 +409,7 @@
 
       // Theme Management with Auto mode
       function initTheme() {
-        const savedTheme = localStorage.getItem('lowa_theme') || 'light';
+        const savedTheme = profileScopedGet('lowa_theme') || 'light';
         applyTheme(savedTheme);
       }
 
@@ -378,7 +421,7 @@
         } else {
           document.documentElement.setAttribute('data-theme', theme);
         }
-        localStorage.setItem('lowa_theme', theme);
+        profileScopedSet('lowa_theme', theme);
         
         // Update active button
         document.querySelectorAll('.theme-option').forEach(btn => {
@@ -397,7 +440,8 @@
         // Allow use even inside the menu; only skip when typing in inputs/textareas/selects
         if (['input','textarea','select'].includes(tag)) return;
         const order = ['light', 'dark', 'temperate', 'auto'];
-        const currentPref = order.includes(localStorage.getItem('lowa_theme')) ? localStorage.getItem('lowa_theme') : 'light';
+        const savedTheme = profileScopedGet('lowa_theme');
+        const currentPref = order.includes(savedTheme) ? savedTheme : 'light';
         const idx = order.indexOf(currentPref);
         const next = order[(idx + 1) % order.length];
         setTheme(next);
@@ -534,19 +578,19 @@
 
       async function loadPrefs() {
         // Optionally could add GET /user-preferences; for now reflect local storage
-        const consent = localStorage.getItem('lowa_cookie_consent');
+        const consent = profileScopedGet('lowa_cookie_consent');
         if (consent) {
           try { const obj = JSON.parse(consent); document.getElementById('cookie-consent').checked = obj.status === 'accepted'; } catch {}
         }
       }
 
       function loadAdvancedPrefs(){
-        const lang = localStorage.getItem('lowa_pref_lang') || 'fr';
-        const notif = localStorage.getItem('lowa_pref_notif') === 'true';
-        const animations = localStorage.getItem('lowa_pref_animations') !== 'false';
-        const theme = localStorage.getItem('lowa_theme') || 'light';
-        const fontSize = localStorage.getItem('lowa_pref_font_size') || 'normal';
-        const spacing = localStorage.getItem('lowa_pref_spacing') || 'normal';
+        const lang = profileScopedGet('lowa_pref_lang') || 'fr';
+        const notif = profileScopedGet('lowa_pref_notif') === 'true';
+        const animations = profileScopedGet('lowa_pref_animations') !== 'false';
+        const theme = profileScopedGet('lowa_theme') || 'light';
+        const fontSize = profileScopedGet('lowa_pref_font_size') || 'normal';
+        const spacing = profileScopedGet('lowa_pref_spacing') || 'normal';
         
         document.getElementById('pref-lang').value = lang;
         document.getElementById('pref-notif').checked = notif;
@@ -592,12 +636,21 @@
         const fontSize = document.getElementById('pref-font-size').value;
         const spacing = document.getElementById('pref-spacing').value;
         
-        localStorage.setItem('lowa_pref_lang', lang);
-        localStorage.setItem('lowa_pref_notif', notif);
-        localStorage.setItem('lowa_pref_animations', animations);
-        localStorage.setItem('lowa_theme', theme);
-        localStorage.setItem('lowa_pref_font_size', fontSize);
-        localStorage.setItem('lowa_pref_spacing', spacing);
+        profileScopedSet('lowa_pref_lang', String(lang));
+        profileScopedSet('lowa_pref_notif', String(notif));
+        profileScopedSet('lowa_pref_animations', String(animations));
+        profileScopedSet('lowa_theme', String(theme));
+        profileScopedSet('lowa_pref_font_size', String(fontSize));
+        profileScopedSet('lowa_pref_spacing', String(spacing));
+
+        lowaWriteUserStatePatch({
+          theme: String(theme),
+          font_size: String(fontSize),
+          spacing: String(spacing),
+          animations: Boolean(animations),
+          language: String(lang),
+          notif: Boolean(notif)
+        }).catch(() => {});
         
         // Apply animations preference
         if (!animations) {
@@ -645,6 +698,7 @@
       document.getElementById('logout-btn').addEventListener('click', async () => {
         try { await fetch(API + '/logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
         localStorage.removeItem('lowa_session');
+        if (typeof clearActiveStorageUserId === 'function') clearActiveStorageUserId();
         window.location.href = '/';
       });
 
@@ -686,7 +740,7 @@
             });
 
             if (!resp.ok) {
-              throw new Error('Échec de la mise à jour');
+              throw new Error('Échec de la mise à jour distante');
             }
 
             const updatedUser = await resp.json();
@@ -699,13 +753,34 @@
 
             // Update session storage
             const session = JSON.parse(localStorage.getItem('lowa_session') || '{}');
-            session.user = updatedUser;
+            session.user = Object.assign({}, session.user || {}, updatedUser || {});
+            if (!session.storage_scope && session.user && (session.user.id || session.user.email)) {
+              session.storage_scope = String(session.user.id || session.user.email);
+            }
             localStorage.setItem('lowa_session', JSON.stringify(session));
+            profileScopedSet('lowa_avatar', base64);
+            lowaWriteUserStatePatch({ avatar: base64 }).catch(() => {});
 
             console.log('Photo de profil mise à jour avec succès');
           } catch (err) {
-            console.error('Erreur lors de la mise à jour:', err);
-            alert('Erreur lors de la mise à jour de la photo de profil');
+            console.warn('Mise à jour distante indisponible, fallback local:', err && err.message ? err.message : err);
+
+            // Fallback local: ne pas bloquer l'utilisateur si l'API profil est indisponible
+            const avatarContainer = document.getElementById('avatar');
+            const avatarText = document.getElementById('avatar-text');
+            avatarContainer.style.backgroundImage = `url(${base64})`;
+            avatarText.style.display = 'none';
+            profileScopedSet('lowa_avatar', base64);
+            lowaWriteUserStatePatch({ avatar: base64 }).catch(() => {});
+
+            const session = JSON.parse(localStorage.getItem('lowa_session') || '{}');
+            session.user = Object.assign({}, session.user || {}, { pdp: base64 });
+            if (!session.storage_scope && session.user && (session.user.id || session.user.email)) {
+              session.storage_scope = String(session.user.id || session.user.email);
+            }
+            localStorage.setItem('lowa_session', JSON.stringify(session));
+
+            alert('Photo enregistrée localement sur cet appareil.');
           }
         };
         reader.readAsDataURL(file);
@@ -714,6 +789,7 @@
       document.getElementById('logout-btn-hero').addEventListener('click', async () => {
         try { await fetch(API + '/logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
         localStorage.removeItem('lowa_session');
+        if (typeof clearActiveStorageUserId === 'function') clearActiveStorageUserId();
         window.location.href = '/';
       });
 
@@ -722,6 +798,7 @@
         loadSession();
         try {
           console.log('Initialisation du profil...');
+          await hydrateProfileStateFromCloud();
           await fetchUser();
           await fetchHistory();
           await loadPrefs();
