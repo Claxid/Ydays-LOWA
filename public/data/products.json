@@ -4,7 +4,12 @@
     "name": "T-shirt BIO - Naturel",
     "price": 29.0,
     "description": "T-shirt en coton biologique certifié. Coupe confortable, coloris naturels.",
-      "image": "/public/images/tshirt-naturel.svg",
+      "image": "/public/images/T_shirt BIO_Naturel(0).webp",
+    "images": [
+      "/public/images/T_shirt BIO_Naturel(0).webp",
+      "/public/images/T_shirt BIO_Naturel(1).webp",
+      "/public/images/T_shirt BIO_Naturel(2).webp"
+    ],
     "category": "hommes",
     "subcategory": "t-shirts",
     "collection": "eco"

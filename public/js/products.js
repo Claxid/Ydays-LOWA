@@ -41,7 +41,7 @@ function attachProductNavigationListeners() {
 }
 
 const FALLBACK_PRODUCTS = [
-  {"id":1,"name":"T-shirt BIO - Naturel","price":29.00,"description":"T-shirt en coton biologique certifié. Coupe confortable, coloris naturels.","image":"/public/images/tshirt-naturel.svg","category":"hommes","subcategory":"t-shirts","collection":"eco"},
+  {"id":1,"name":"T-shirt BIO - Naturel","price":29.00,"description":"T-shirt en coton biologique certifié. Coupe confortable, coloris naturels.","image":"/public/images/T_shirt BIO_Naturel(0).webp","images":["/public/images/T_shirt BIO_Naturel(0).webp","/public/images/T_shirt BIO_Naturel(1).webp","/public/images/T_shirt BIO_Naturel(2).webp"],"category":"hommes","subcategory":"t-shirts","collection":"eco"},
   {"id":2,"name":"Pull recyclé - Gris","price":79.00,"description":"Pull fabriqué à partir de fibres recyclées. Chaud et durable.","image":"/public/images/pull-gris.svg","category":"hommes","subcategory":"vestes","collection":"recycle"},
   {"id":3,"name":"Pantalon éco - Kaki","price":59.00,"description":"Pantalon en tissu certifié avec renforts minimalistes.","image":"/public/images/pantalon-kaki.svg","category":"hommes","subcategory":"pantalons","collection":"eco"},
   {"id":4,"name":"Veste en Lin - Beige","price":89.00,"description":"Veste légère en lin naturel, parfaite pour la mi-saison. Coupe ajustée.","image":"/public/images/veste-lin-beige.svg","category":"femmes","subcategory":"vestes","collection":"classiques"},

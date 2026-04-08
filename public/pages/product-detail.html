@@ -1200,25 +1200,37 @@
                     document.getElementById('colorRange').textContent = meta.colors;
                     document.getElementById('sizeRange').textContent = meta.sizeRange;
                     
+                    const isFirstTshirt = Number(product.id) === 1
+                        || String(product.image || '').includes('tshirt-naturel.svg');
+                    const galleryImages = (Array.isArray(product.images) && product.images.length > 0)
+                        ? product.images
+                        : isFirstTshirt
+                            ? [
+                                '/public/images/T_shirt BIO_Naturel(0).webp',
+                                '/public/images/T_shirt BIO_Naturel(1).webp',
+                                '/public/images/T_shirt BIO_Naturel(2).webp'
+                            ]
+                            : [product.image];
+
                     // Update main image
                     const mainImg = document.getElementById('mainImage');
-                    mainImg.src = product.image;
+                    mainImg.src = galleryImages[0];
                     mainImg.alt = product.name;
 
-                    // Create thumbnails (using same image for demo)
+                    // Create thumbnails from the product gallery
                     const thumbsContainer = document.getElementById('thumbnails');
                     thumbsContainer.innerHTML = '';
-                    for (let i = 0; i < 2; i++) {
+                    galleryImages.forEach((imgSrc, i) => {
                         const thumb = document.createElement('div');
                         thumb.className = 'product-thumbnail' + (i === 0 ? ' active' : '');
-                        thumb.innerHTML = `<img src="${product.image}" alt="Image ${i+1}" />`;
+                        thumb.innerHTML = `<img src="${imgSrc}" alt="Image ${i+1}" />`;
                         thumb.addEventListener('click', () => {
                             document.querySelectorAll('.product-thumbnail').forEach(t => t.classList.remove('active'));
                             thumb.classList.add('active');
-                            mainImg.src = product.image;
+                            mainImg.src = imgSrc;
                         });
                         thumbsContainer.appendChild(thumb);
-                    }
+                    });
 
                     // Update add to cart button
                     const addBtn = document.querySelector('.add-to-cart');
