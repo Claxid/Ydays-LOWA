@@ -20,11 +20,11 @@
     "name": "Pull recyclé - Gris",
     "price": 79.00,
     "description": "Pull fabriqué à partir de fibres recyclées. Chaud et durable.",
-    "image": "/images/Pull_recycle_Gris(0).webp",
+    "image": "/images/Pull_recyclé_Gris(0).webp",
     "images": [
-      "/images/Pull_recycle_Gris(0).webp",
-      "/images/Pull_recycle_Gris(1).webp",
-      "/images/Pull_recycle_Gris(2).webp"
+      "/images/Pull_recyclé_Gris(0).webp",
+      "/images/Pull_recyclé_Gris(1).webp",
+      "/images/Pull_recyclé_Gris(2).jpg"
     ],
     "category": "hommes",
     "subcategory": "vestes",
