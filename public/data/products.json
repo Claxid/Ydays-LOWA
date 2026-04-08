@@ -79,7 +79,12 @@
     "name": "Top en fibres recyclées - Rose",
     "price": 35.0,
     "description": "Top féminin fabriqué à partir de bouteilles plastiques recyclées.",
-      "image": "/public/images/top-rose.svg",
+      "image": "/public/images/Top_en_fibres_recyclees_Rose(0).webp",
+    "images": [
+      "/public/images/Top_en_fibres_recyclees_Rose(0).webp",
+      "/public/images/Top_en_fibres_recyclees_Rose(1).webp",
+      "/public/images/Top_en_fibres_recyclees_Rose(2).webp"
+    ],
     "category": "femmes",
     "subcategory": "tops",
     "collection": "recycle"

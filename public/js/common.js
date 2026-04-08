@@ -21,7 +21,7 @@ const LOWA = {
     CACHE_KEY: 'lowa_products_cache',
     CACHE_TIME_KEY: 'lowa_products_cache_time',
     CACHE_VERSION_KEY: 'lowa_products_cache_version',
-    CACHE_VERSION: 'v24', // Bumped after reducing the product catalog
+    CACHE_VERSION: 'v25', // Bumped after updating Top images
     COOKIE_CONSENT_KEY: 'lowa_cookie_consent'
   },
   PAGINATION: {

@@ -13,6 +13,7 @@ const PULL_RECYCLE_GRIS_HOMEPAGE_IMAGE = '/public/images/Pull_recyclé_Gris(0).w
 const PANTALON_ECO_KAKI_HOMEPAGE_IMAGE = '/public/images/Pantalon_éco_Kaki(0).jpg';
 const VESTE_LIN_BEIGE_HOMEPAGE_IMAGE = '/public/images/Veste_en_Lin_Beige(0).webp';
 const ROBE_ETE_BLANC_CASSE_HOMEPAGE_IMAGE = '/public/images/Robe_d_ete_Blanc_casse(0).png';
+const TOP_ROSE_HOMEPAGE_IMAGE = '/public/images/Top_en_fibres_recyclees_Rose(0).webp';
 
 function isBioNaturelTshirt(product) {
   const name = String(product?.name || '').toLowerCase();
@@ -61,6 +62,16 @@ function isRobeEteBlancCasse(product) {
     Number(product?.id) === 5
     || (name.includes('robe') && name.includes('blanc cass'))
     || image.includes('robe-ete.svg')
+  );
+}
+
+function isTopRose(product) {
+  const name = String(product?.name || '').toLowerCase();
+  const image = String(product?.image || '').toLowerCase();
+  return (
+    Number(product?.id) === 6
+    || (name.includes('top') && name.includes('rose'))
+    || image.includes('top-rose.svg')
   );
 }
 
@@ -129,6 +140,18 @@ function normalizeHomepageProductImage(product) {
     return normalized;
   }
 
+  if (isTopRose(product)) {
+    normalized.image = TOP_ROSE_HOMEPAGE_IMAGE;
+    if (!Array.isArray(normalized.images) || normalized.images.length === 0) {
+      normalized.images = [
+        '/public/images/Top_en_fibres_recyclees_Rose(0).webp',
+        '/public/images/Top_en_fibres_recyclees_Rose(1).webp',
+        '/public/images/Top_en_fibres_recyclees_Rose(2).webp'
+      ];
+    }
+    return normalized;
+  }
+
   return normalized;
 }
 
@@ -174,7 +197,7 @@ const FALLBACK_PRODUCTS = [
   {"id":3,"name":"Pantalon éco - Kaki","price":59.00,"description":"Pantalon en tissu certifié avec renforts minimalistes.","image":"/public/images/Pantalon_éco_Kaki(0).jpg","images":["/public/images/Pantalon_éco_Kaki(0).jpg","/public/images/Pantalon_éco_Kaki(1).jpg","/public/images/Pantalon_éco_Kaki(2).jpg"],"category":"hommes","subcategory":"pantalons","collection":"eco"},
   {"id":4,"name":"Veste en Lin - Beige","price":89.00,"description":"Veste légère en lin naturel, parfaite pour la mi-saison. Coupe ajustée.","image":"/public/images/Veste_en_Lin_Beige(0).webp","images":["/public/images/Veste_en_Lin_Beige(0).webp","/public/images/Veste_en_Lin_Beige(1).webp","/public/images/Veste_en_Lin_Beige(2).avif"],"category":"femmes","subcategory":"vestes","collection":"classiques"},
   {"id":5,"name":"Robe d'été - Blanc cassé","price":65.00,"description":"Robe fluide en coton bio, idéale pour l'été. Fabrication locale.","image":"/public/images/Robe_d_ete_Blanc_casse(0).png","images":["/public/images/Robe_d_ete_Blanc_casse(0).png","/public/images/Robe_d_ete_Blanc_casse(1).png","/public/images/Robe_d_ete_Blanc_casse(2).png"],"category":"femmes","subcategory":"robes","collection":"eco"},
-  {"id":6,"name":"Top en fibres recyclées - Rose","price":35.00,"description":"Top féminin fabriqué à partir de bouteilles plastiques recyclées.","image":"/public/images/top-rose.svg","category":"femmes","subcategory":"tops","collection":"recycle"}
+  {"id":6,"name":"Top en fibres recyclées - Rose","price":35.00,"description":"Top féminin fabriqué à partir de bouteilles plastiques recyclées.","image":"/public/images/Top_en_fibres_recyclees_Rose(0).webp","images":["/public/images/Top_en_fibres_recyclees_Rose(0).webp","/public/images/Top_en_fibres_recyclees_Rose(1).webp","/public/images/Top_en_fibres_recyclees_Rose(2).webp"],"category":"femmes","subcategory":"tops","collection":"recycle"}
 ];
 
 /**
@@ -261,6 +284,8 @@ function renderAllProducts() {
             ? VESTE_LIN_BEIGE_HOMEPAGE_IMAGE
             : isRobeEteBlancCasse(product)
               ? ROBE_ETE_BLANC_CASSE_HOMEPAGE_IMAGE
+              : isTopRose(product)
+                ? TOP_ROSE_HOMEPAGE_IMAGE
         : product.image;
     const safeProductImage = typeof lowaEncodeImagePath === 'function' ? lowaEncodeImagePath(productImage) : productImage;
     return `
@@ -328,6 +353,8 @@ function displayProductsPage() {
             ? VESTE_LIN_BEIGE_HOMEPAGE_IMAGE
             : isRobeEteBlancCasse(product)
               ? ROBE_ETE_BLANC_CASSE_HOMEPAGE_IMAGE
+              : isTopRose(product)
+                ? TOP_ROSE_HOMEPAGE_IMAGE
         : product.image;
     const safeProductImage = typeof lowaEncodeImagePath === 'function' ? lowaEncodeImagePath(productImage) : productImage;
     return `

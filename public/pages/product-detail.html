@@ -1214,6 +1214,9 @@
                     const isRobeEteBlancCasse = Number(product.id) === 5
                         || String(product.image || '').includes('robe-ete.svg')
                         || String(product.name || '').toLowerCase().includes('robe d\'été - blanc cassé');
+                    const isTopRose = Number(product.id) === 6
+                        || String(product.image || '').includes('top-rose.svg')
+                        || String(product.name || '').toLowerCase().includes('top en fibres recyclées - rose');
                     const galleryImages = (Array.isArray(product.images) && product.images.length > 0)
                         ? product.images
                         : isFirstTshirt
@@ -1245,6 +1248,12 @@
                                         '/public/images/Robe_d_ete_Blanc_casse(0).png',
                                         '/public/images/Robe_d_ete_Blanc_casse(1).png',
                                         '/public/images/Robe_d_ete_Blanc_casse(2).png'
+                                    ]
+                                : isTopRose
+                                    ? [
+                                        '/public/images/Top_en_fibres_recyclees_Rose(0).webp',
+                                        '/public/images/Top_en_fibres_recyclees_Rose(1).webp',
+                                        '/public/images/Top_en_fibres_recyclees_Rose(2).webp'
                                     ]
                             : [product.image];
                     const safeGalleryImages = galleryImages.map((imagePath) => (
