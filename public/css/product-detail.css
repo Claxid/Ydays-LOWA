@@ -167,6 +167,48 @@
 	color: var(--dark);
 }
 
+.review-form {
+	display: grid;
+	grid-template-columns: 180px 1fr;
+	gap: 0.9rem;
+	background: var(--pale-green);
+	border: 1px solid var(--soft-green);
+	border-radius: 10px;
+	padding: 1rem;
+	margin-bottom: 1rem;
+}
+
+.review-form-row {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+}
+
+.review-form-row-full {
+	grid-column: 1 / -1;
+}
+
+.review-form label {
+	font-weight: 600;
+	color: var(--dark);
+}
+
+.review-form select,
+.review-form textarea {
+	padding: 0.7rem;
+	border: 1px solid var(--soft-green);
+	border-radius: 8px;
+	background: #fff;
+	color: var(--dark);
+	font-family: var(--font-body);
+}
+
+.review-feedback {
+	margin: 0;
+	font-size: 0.9rem;
+	color: var(--muted);
+}
+
 .review {
 	padding: 1.5rem;
 	background: var(--pale-green);
@@ -221,5 +263,9 @@
 
 	.product-actions {
 		flex-direction: column;
+	}
+
+	.review-form {
+		grid-template-columns: 1fr;
 	}
 }

@@ -79,11 +79,11 @@
                         </div>
                         <div class="spec">
                             <span class="spec-label">Taille</span>
-                            <span class="spec-value">XS - XXL</span>
+                            <span class="spec-value" id="sizeRange">XS - XXL</span>
                         </div>
                         <div class="spec">
                             <span class="spec-label">Couleurs</span>
-                            <span class="spec-value">Gris, Noir, Bleu</span>
+                            <span class="spec-value" id="colorRange">Gris, Noir, Bleu</span>
                         </div>
                         <div class="spec">
                             <span class="spec-label">Certificat</span>
@@ -107,32 +107,31 @@
             <!-- Reviews Section -->
             <div class="product-reviews">
                 <h2 class="reviews-title">Avis clients</h2>
-                <div id="reviewsContainer">
-                    <div class="review">
-                        <div class="review-header">
-                            <span>Marie L.</span>
-                            <span class="review-stars">★★★★★</span>
-                        </div>
-                        <div class="review-date">Il y a 5 jours</div>
-                        <div class="review-text">Excellent pull ! Très confortable et la qualité est top. Fier de porter un produit écologique.</div>
+                <form id="review-form" class="review-form" aria-label="Publier un avis">
+                    <div class="review-form-row">
+                        <label for="review-rating">Note</label>
+                        <select id="review-rating" required>
+                            <option value="">Choisir</option>
+                            <option value="5">5 - Excellent</option>
+                            <option value="4">4 - Très bien</option>
+                            <option value="3">3 - Correct</option>
+                            <option value="2">2 - Moyen</option>
+                            <option value="1">1 - Décevant</option>
+                        </select>
                     </div>
-                    <div class="review">
-                        <div class="review-header">
-                            <span>Thomas M.</span>
-                            <span class="review-stars">★★★★☆</span>
-                        </div>
-                        <div class="review-date">Il y a 2 semaines</div>
-                        <div class="review-text">Bon pull, très chaud. La teinte est légèrement plus foncée que sur la photo, mais vraiment pas grave.</div>
+                    <div class="review-form-row review-form-row-full">
+                        <label for="review-comment">Votre avis</label>
+                        <textarea id="review-comment" rows="4" maxlength="600" placeholder="Partagez votre expérience sur ce produit" required></textarea>
                     </div>
-                    <div class="review">
-                        <div class="review-header">
-                            <span>Sophie D.</span>
-                            <span class="review-stars">★★★★★</span>
-                        </div>
-                        <div class="review-date">Il y a 1 mois</div>
-                        <div class="review-text">J'adore ! C'est exactement ce que je cherchais. Parfait pour les sorties décontractées.</div>
-                    </div>
-                </div>
+                    <button type="submit" class="btn primary">Publier mon avis</button>
+                    <p id="review-feedback" class="review-feedback" aria-live="polite"></p>
+                </form>
+
+                <div id="reviewsContainer"></div>
+                <p id="reviews-empty" class="review-date" hidden>Aucun avis pour le moment. Soyez le premier à en poster un.</p>
+                <p id="reviews-db-warning" class="review-date" hidden>
+                    Avis en mode local. Activez la table Supabase <strong>product_reviews</strong> pour le temps réel.
+                </p>
             </div>
         </section>
     </main>
@@ -159,6 +158,7 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="/public/js/common.js"></script>
     <script>
         // Get product ID from URL params
@@ -233,28 +233,226 @@
             }
         }
 
+        let currentProduct = null;
+        let reviewsChannel = null;
+
+        function toStars(n) {
+            const rating = Math.max(1, Math.min(5, Number(n) || 0));
+            return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+        }
+
+        function formatRelativeDate(isoDate) {
+            if (!isoDate) return 'À l\'instant';
+            const diff = Date.now() - new Date(isoDate).getTime();
+            const day = 24 * 60 * 60 * 1000;
+            if (diff < day) return 'Aujourd\'hui';
+            if (diff < day * 2) return 'Hier';
+            if (diff < day * 7) return `Il y a ${Math.floor(diff / day)} jours`;
+            if (diff < day * 30) return `Il y a ${Math.floor(diff / (day * 7))} semaine(s)`;
+            return `Il y a ${Math.floor(diff / (day * 30))} mois`;
+        }
+
+        function getReviewerName() {
+            try {
+                const session = JSON.parse(localStorage.getItem('lowa_session') || 'null');
+                if (!session || !session.user) return 'Client LOWA';
+                const prenom = (session.user.prenom || '').trim();
+                const nom = (session.user.nom || '').trim();
+                if (prenom || nom) return `${prenom} ${nom}`.trim();
+                if (session.user.email) return String(session.user.email).split('@')[0];
+            } catch (e) {}
+            return 'Client LOWA';
+        }
+
+        function renderReviews(reviews) {
+            const reviewsContainer = document.getElementById('reviewsContainer');
+            const reviewCount = document.getElementById('reviewCount');
+            const empty = document.getElementById('reviews-empty');
+            reviewCount.textContent = `(${reviews.length} avis)`;
+
+            if (!reviews.length) {
+                reviewsContainer.innerHTML = '';
+                empty.hidden = false;
+                return;
+            }
+
+            empty.hidden = true;
+            reviewsContainer.innerHTML = reviews.map((review) => `
+                <div class="review">
+                    <div class="review-header">
+                        <span>${review.reviewer_name}</span>
+                        <span class="review-stars">${toStars(review.rating)}</span>
+                    </div>
+                    <div class="review-date">${formatRelativeDate(review.created_at)}</div>
+                    <div class="review-text">${review.comment}</div>
+                </div>
+            `).join('');
+        }
+
+        async function fetchReviewsForProduct(productId) {
+            const supabaseClient = initSupabase();
+            if (!supabaseClient) return null;
+            const { data, error } = await supabaseClient
+                .from('product_reviews')
+                .select('id, product_id, reviewer_name, rating, comment, created_at')
+                .eq('product_id', Number(productId))
+                .order('created_at', { ascending: false });
+            if (error) {
+                console.warn('Impossible de charger les avis depuis la BDD:', error.message || error);
+                return null;
+            }
+            return data || [];
+        }
+
+        async function refreshReviewsFromDbOrFallback() {
+            if (!currentProduct) return;
+            const dbWarning = document.getElementById('reviews-db-warning');
+            const dbReviews = await fetchReviewsForProduct(currentProduct.id);
+            if (Array.isArray(dbReviews)) {
+                dbWarning.hidden = true;
+                renderReviews(dbReviews);
+                return;
+            }
+
+            dbWarning.hidden = false;
+            const idSeed = Number.parseInt(currentProduct.id, 10) || 1;
+            const fallback = [0, 1, 2].map((offset) => ({
+                reviewer_name: ['Marie L.', 'Thomas M.', 'Sophie D.', 'Lucas R.', 'Nina P.'][(idSeed + offset) % 5],
+                rating: [5, 4, 5][offset],
+                comment: offset === 1
+                    ? `${currentProduct.name} est agréable à porter et bien fini.`
+                    : `Très satisfait de ${currentProduct.name}. Bonne qualité et coupe réussie.`,
+                created_at: new Date(Date.now() - (offset + 1) * 86400000).toISOString()
+            }));
+            renderReviews(fallback);
+        }
+
+        function subscribeToRealtimeReviews(productId) {
+            const supabaseClient = initSupabase();
+            if (!supabaseClient) return;
+
+            if (reviewsChannel) {
+                supabaseClient.removeChannel(reviewsChannel);
+                reviewsChannel = null;
+            }
+
+            reviewsChannel = supabaseClient
+                .channel(`product-reviews-${productId}`)
+                .on('postgres_changes', {
+                    event: '*',
+                    schema: 'public',
+                    table: 'product_reviews',
+                    filter: `product_id=eq.${Number(productId)}`
+                }, () => {
+                    refreshReviewsFromDbOrFallback();
+                })
+                .subscribe();
+        }
+
+        function initReviewForm() {
+            const form = document.getElementById('review-form');
+            const ratingInput = document.getElementById('review-rating');
+            const commentInput = document.getElementById('review-comment');
+            const feedback = document.getElementById('review-feedback');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!currentProduct) return;
+
+                if (!requireAuth('Connectez-vous pour publier un avis.')) {
+                    return;
+                }
+
+                const rating = Number(ratingInput.value);
+                const comment = commentInput.value.trim();
+                if (!rating || rating < 1 || rating > 5) {
+                    feedback.textContent = 'Merci de choisir une note entre 1 et 5.';
+                    return;
+                }
+                if (comment.length < 5) {
+                    feedback.textContent = 'Votre avis doit contenir au moins 5 caractères.';
+                    return;
+                }
+
+                const supabaseClient = initSupabase();
+                if (!supabaseClient) {
+                    feedback.textContent = 'Supabase indisponible. Impossible de publier maintenant.';
+                    return;
+                }
+
+                let userId = null;
+                try {
+                    const { data } = await supabaseClient.auth.getUser();
+                    userId = data && data.user ? data.user.id : null;
+                } catch (err) {}
+
+                const payload = {
+                    product_id: Number(currentProduct.id),
+                    user_id: userId,
+                    reviewer_name: getReviewerName(),
+                    rating,
+                    comment
+                };
+
+                const { error } = await supabaseClient.from('product_reviews').insert(payload);
+                if (error) {
+                    feedback.textContent = `Publication impossible: ${error.message || 'erreur inconnue'}`;
+                    return;
+                }
+
+                feedback.textContent = 'Avis publié. Merci !';
+                form.reset();
+                await refreshReviewsFromDbOrFallback();
+            });
+        }
+
         // Load product data
         async function loadProductDetail() {
             const collectionMeta = {
                 eco: {
                     manufacturer: 'LOWA Atelier Éco',
-                    material: 'Coton biologique certifié',
-                    certificate: 'Éco certifié',
-                    colors: 'Naturel, Sable, Écru'
+                    certificate: 'Éco certifié'
                 },
                 recycle: {
                     manufacturer: 'LOWA ReCycle Lab',
-                    material: 'Fibres recyclées haute durabilité',
-                    certificate: 'Recyclé certifié',
-                    colors: 'Gris, Noir, Bleu nuit'
+                    certificate: 'Recyclé certifié'
                 },
                 classiques: {
                     manufacturer: 'LOWA Collection Classique',
-                    material: 'Mélange premium coton et lin',
-                    certificate: 'Traçabilité vérifiée',
-                    colors: 'Blanc, Beige, Marine'
+                    certificate: 'Traçabilité vérifiée'
                 }
             };
+
+            const materialBySubcategory = {
+                't-shirts': 'Coton biologique premium',
+                tops: 'Fibres recyclées respirantes',
+                robes: 'Viscose EcoVero et coton bio',
+                vestes: 'Mélange laine et polyester recyclé',
+                pantalons: 'Sergé de coton biologique',
+                accessoires: 'Textiles recyclés et finitions durables'
+            };
+
+            function computeProductMeta(product) {
+                const meta = collectionMeta[product.collection] || collectionMeta.classiques;
+                const material = materialBySubcategory[product.subcategory] || 'Textile éco-responsable';
+                const sizeRange = product.category === 'femmes' ? 'XS - XL' : 'S - XXL';
+
+                const nameParts = String(product.name || '').split('-').map(v => v.trim()).filter(Boolean);
+                const inferredColor = nameParts.length > 1 ? nameParts[nameParts.length - 1] : null;
+                const defaultColors = product.collection === 'recycle'
+                    ? 'Gris, Noir, Bleu nuit'
+                    : product.collection === 'eco'
+                        ? 'Naturel, Sable, Écru'
+                        : 'Blanc, Beige, Marine';
+
+                return {
+                    manufacturer: meta.manufacturer,
+                    material,
+                    certificate: meta.certificate,
+                    colors: inferredColor ? `${inferredColor}, Noir, Beige` : defaultColors,
+                    sizeRange
+                };
+            }
 
             try {
                 const paths = [
@@ -281,9 +479,10 @@
                 if (!response) throw new Error('Aucune source produit disponible');
 
                 const products = await response.json();
-                const product = products.find(p => String(p.id) === String(productId));
+                const product = products.find(p => String(p.id) === String(productId)) || products[0];
 
                 if (product) {
+                    currentProduct = product;
                     // Update page title
                     document.title = product.name + ' — LOWA';
                     
@@ -292,12 +491,12 @@
                     document.getElementById('productPrice').textContent = product.price.toFixed(2) + ' €';
                     document.getElementById('productDescription').textContent = product.description;
 
-                    const meta = collectionMeta[product.collection] || collectionMeta.classiques;
+                    const meta = computeProductMeta(product);
                     document.getElementById('manufacturer').textContent = meta.manufacturer;
                     document.getElementById('material').textContent = meta.material;
                     document.getElementById('certificate').textContent = meta.certificate;
-                    const colorsRow = document.querySelector('.spec:nth-child(4) .spec-value');
-                    if (colorsRow) colorsRow.textContent = meta.colors;
+                    document.getElementById('colorRange').textContent = meta.colors;
+                    document.getElementById('sizeRange').textContent = meta.sizeRange;
                     
                     // Update main image
                     const mainImg = document.getElementById('mainImage');
@@ -306,6 +505,7 @@
 
                     // Create thumbnails (using same image for demo)
                     const thumbsContainer = document.getElementById('thumbnails');
+                    thumbsContainer.innerHTML = '';
                     for (let i = 0; i < 4; i++) {
                         const thumb = document.createElement('div');
                         thumb.className = 'product-thumbnail' + (i === 0 ? ' active' : '');
@@ -331,12 +531,16 @@
                     } else {
                         favBtn.classList.remove('active');
                     }
+
+                    await refreshReviewsFromDbOrFallback();
+                    subscribeToRealtimeReviews(product.id);
                 }
             } catch (error) {
                 console.error('Erreur chargement produit:', error);
             }
         }
 
+        initReviewForm();
         loadProductDetail();
 
         // Cart Management
@@ -439,8 +643,7 @@
         }
 
         document.querySelectorAll('.detail-fav-btn').forEach(btn => {
-            const productId = btn.dataset.id;
-            if (isFavorite(productId)) {
+            if (isFavorite(btn.dataset.id)) {
                 btn.classList.add('active');
             }
             btn.addEventListener('click', (e) => {
@@ -448,7 +651,7 @@
                 if (!requireAuth('Connectez-vous ou créez un compte pour gérer vos favoris.')) {
                     return;
                 }
-                toggleFavorite(productId);
+                toggleFavorite(btn.dataset.id);
                 btn.classList.toggle('active');
                 btn.style.transform = 'scale(1.3)';
                 setTimeout(() => { btn.style.transform = ''; }, 200);
