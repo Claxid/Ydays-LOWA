@@ -194,9 +194,9 @@ body{
 .brand:hover{ color:var(--accent);transform:scale(1.05) }
 .brand-logo{
   display:block;
-  height:58px;
+  height:82px;
   width:auto;
-  max-width:280px;
+  max-width:420px;
 }
 
 /* Navigation */
@@ -1269,7 +1269,7 @@ body{
 @media (max-width:400px){
   h1{ font-size:1.8rem }
   .brand{ font-size:1.2rem }
-  .brand-logo{ height:40px; max-width:190px }
+  .brand-logo{ height:52px; max-width:250px }
   .product-price{ font-size:1.15rem }
 }
 
@@ -1859,7 +1859,7 @@ form .btn{
     justify-content:space-between;
   }
 
-  .brand-logo{ height:44px; max-width:220px; }
+  .brand-logo{ height:58px; max-width:280px; }
 
   .hero{ display:none; }
 
