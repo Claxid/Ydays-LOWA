@@ -1,5 +1,17 @@
 // Admin Dashboard with API Integration + local fallback mode
-const API_BASE_URL = window.API_BASE || 'https://lowa-api.onrender.com/api';
+function resolveAdminApiBase() {
+    const remoteDefault = 'https://lowa-api.onrender.com/api';
+    const configured = String(window.API_BASE || '').trim();
+    const host = String(window.location.hostname || '').toLowerCase();
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+
+    // Guard against stale scripts/configs forcing localhost while running on a hosted domain.
+    if (!isLocalHost && configured.includes('localhost')) return remoteDefault;
+
+    return configured || remoteDefault;
+}
+
+const API_BASE_URL = resolveAdminApiBase();
 const ADMIN_LOCAL_PRODUCTS_KEY = 'lowa_admin_local_products';
 const ADMIN_LOCAL_MAINTENANCE_KEY = 'lowa_admin_local_maintenance';
 const ADMIN_LOCAL_DEFAULT_THEME_KEY = 'lowa_admin_local_default_theme';
