@@ -12,7 +12,7 @@ const FIRST_PRODUCT_HOMEPAGE_IMAGE = '/public/images/T_shirt BIO_Naturel(0).webp
 const PULL_RECYCLE_GRIS_HOMEPAGE_IMAGE = '/public/images/Pull_recyclé_Gris(0).webp';
 const PANTALON_ECO_KAKI_HOMEPAGE_IMAGE = '/public/images/Pantalon_éco_Kaki(0).jpg';
 const VESTE_LIN_BEIGE_HOMEPAGE_IMAGE = '/public/images/Veste_en_Lin_Beige(0).webp';
-const ROBE_ETE_BLANC_CASSE_HOMEPAGE_IMAGE = '/public/images/Robe_d\'été_Blanc_cassé(0).webp';
+const ROBE_ETE_BLANC_CASSE_HOMEPAGE_IMAGE = '/public/images/Robe_d_ete_Blanc_casse(0).png';
 
 function isBioNaturelTshirt(product) {
   const name = String(product?.name || '').toLowerCase();
@@ -121,9 +121,9 @@ function normalizeHomepageProductImage(product) {
     normalized.image = ROBE_ETE_BLANC_CASSE_HOMEPAGE_IMAGE;
     if (!Array.isArray(normalized.images) || normalized.images.length === 0) {
       normalized.images = [
-        '/public/images/Robe_d\'été_Blanc_cassé(0).webp',
-        '/public/images/Robe_d\'été_Blanc_cassé(1).webp',
-        '/public/images/Robe_d\'été_Blanc_cassé(2).webp'
+        '/public/images/Robe_d_ete_Blanc_casse(0).png',
+        '/public/images/Robe_d_ete_Blanc_casse(1).png',
+        '/public/images/Robe_d_ete_Blanc_casse(2).png'
       ];
     }
     return normalized;
@@ -173,20 +173,8 @@ const FALLBACK_PRODUCTS = [
   {"id":2,"name":"Pull recyclé - Gris","price":79.00,"description":"Pull fabriqué à partir de fibres recyclées. Chaud et durable.","image":"/public/images/Pull_recyclé_Gris(0).webp","images":["/public/images/Pull_recyclé_Gris(0).webp","/public/images/Pull_recyclé_Gris(1).webp","/public/images/Pull_recyclé_Gris(2).jpg"],"category":"hommes","subcategory":"vestes","collection":"recycle"},
   {"id":3,"name":"Pantalon éco - Kaki","price":59.00,"description":"Pantalon en tissu certifié avec renforts minimalistes.","image":"/public/images/Pantalon_éco_Kaki(0).jpg","images":["/public/images/Pantalon_éco_Kaki(0).jpg","/public/images/Pantalon_éco_Kaki(1).jpg","/public/images/Pantalon_éco_Kaki(2).jpg"],"category":"hommes","subcategory":"pantalons","collection":"eco"},
   {"id":4,"name":"Veste en Lin - Beige","price":89.00,"description":"Veste légère en lin naturel, parfaite pour la mi-saison. Coupe ajustée.","image":"/public/images/Veste_en_Lin_Beige(0).webp","images":["/public/images/Veste_en_Lin_Beige(0).webp","/public/images/Veste_en_Lin_Beige(1).webp","/public/images/Veste_en_Lin_Beige(2).avif"],"category":"femmes","subcategory":"vestes","collection":"classiques"},
-  {"id":5,"name":"Robe d'été - Blanc cassé","price":65.00,"description":"Robe fluide en coton bio, idéale pour l'été. Fabrication locale.","image":"/public/images/Robe_d\'été_Blanc_cassé(0).webp","images":["/public/images/Robe_d\'été_Blanc_cassé(0).webp","/public/images/Robe_d\'été_Blanc_cassé(1).webp","/public/images/Robe_d\'été_Blanc_cassé(2).webp"],"category":"femmes","subcategory":"robes","collection":"eco"},
-  {"id":6,"name":"Top en fibres recyclées - Rose","price":35.00,"description":"Top féminin fabriqué à partir de bouteilles plastiques recyclées.","image":"/public/images/top-rose.svg","category":"femmes","subcategory":"tops","collection":"recycle"},
-  {"id":7,"name":"Jupe midi - Marine","price":55.00,"description":"Jupe mi-longue en coton bio certifié GOTS. Coupe élégante.","image":"/public/images/jupe-marine.svg","category":"femmes","subcategory":"robes","collection":"classiques"},
-  {"id":8,"name":"Chemise lin - Blanc","price":49.00,"description":"Chemise intemporelle en lin français. Production éthique.","image":"/public/images/chemise-lin.svg","category":"hommes","subcategory":"t-shirts","collection":"classiques"},
-  {"id":9,"name":"Sac en toile recyclée - Noir","price":25.00,"description":"Sac cabas en toile recyclée, résistant et pratique au quotidien.","image":"/public/images/sac-recyc.svg","category":"femmes","subcategory":"accessoires","collection":"recycle"},
-  {"id":10,"name":"Écharpe en laine bio - Camel","price":39.00,"description":"Écharpe douce en laine biologique. Teinture végétale.","image":"/public/images/echarpe.svg","category":"femmes","subcategory":"accessoires","collection":"eco"},
-  {"id":11,"name":"Pantalon chino - Sable","price":69.00,"description":"Chino en coton bio, coupe moderne et confortable.","image":"/public/images/chino-sable.svg","category":"hommes","subcategory":"pantalons","collection":"classiques"},
-  {"id":12,"name":"Blouson recyclé - Bleu nuit","price":95.00,"description":"Blouson fabriqué à partir de fibres recyclées. Design urbain.","image":"/public/images/blouson-bleu.svg","category":"hommes","subcategory":"vestes","collection":"recycle"},
-  {"id":13,"name":"Sweat organique - Écru","price":59.00,"description":"Sweat doux en coton organique, intérieur gratté, coupe unisexe.","image":"/public/images/pull-gris.svg","category":"hommes","subcategory":"t-shirts","collection":"eco"},
-  {"id":14,"name":"Parka imperméable recyclée","price":129.00,"description":"Parka longue, membrane recyclée, coutures étanchées, capuche ajustable.","image":"/public/images/blouson-bleu.svg","category":"femmes","subcategory":"vestes","collection":"recycle"},
-  {"id":15,"name":"Cardigan laine bio - Olive","price":72.00,"description":"Cardigan en laine biologique, maille perlée, boutons en corozo.","image":"/public/images/veste-lin-beige.svg","category":"femmes","subcategory":"vestes","collection":"classiques"},
-  {"id":16,"name":"Short en coton bio - Sable","price":39.00,"description":"Short léger en sergé de coton bio, taille ajustable, poches latérales.","image":"/public/images/chino-sable.svg","category":"hommes","subcategory":"pantalons","collection":"eco"},
-  {"id":17,"name":"Robe cache-cœur - Terracotta","price":79.00,"description":"Robe cache-cœur en viscose EcoVero, ceinture à nouer, manches 3/4.","image":"/public/images/robe-ete.svg","category":"femmes","subcategory":"robes","collection":"classiques"},
-  {"id":18,"name":"Doudoune légère recyclée","price":139.00,"description":"Doudoune compressible en fibres recyclées, chaleur 4 saisons.","image":"/public/images/blouson-bleu.svg","category":"hommes","subcategory":"vestes","collection":"recycle"}
+  {"id":5,"name":"Robe d'été - Blanc cassé","price":65.00,"description":"Robe fluide en coton bio, idéale pour l'été. Fabrication locale.","image":"/public/images/Robe_d_ete_Blanc_casse(0).png","images":["/public/images/Robe_d_ete_Blanc_casse(0).png","/public/images/Robe_d_ete_Blanc_casse(1).png","/public/images/Robe_d_ete_Blanc_casse(2).png"],"category":"femmes","subcategory":"robes","collection":"eco"},
+  {"id":6,"name":"Top en fibres recyclées - Rose","price":35.00,"description":"Top féminin fabriqué à partir de bouteilles plastiques recyclées.","image":"/public/images/top-rose.svg","category":"femmes","subcategory":"tops","collection":"recycle"}
 ];
 
 /**
@@ -217,7 +205,7 @@ async function loadProducts() {
       
       if (data && data.length > 0) {
         console.log('✅ Supabase returned', data.length, 'products');
-        products = normalizeHomepageProducts(data);
+        products = normalizeHomepageProducts(data).slice(0, 6);
         filteredProducts = [...products];
         renderAllProducts();
         localStorage.setItem(LOWA.STORAGE.CACHE_KEY, JSON.stringify(products));
@@ -236,7 +224,7 @@ async function loadProducts() {
   if (hasFreshCache && !apiSuccess) {
     try {
       console.log('📦 Fallback to cache');
-      products = normalizeHomepageProducts(JSON.parse(cached));
+      products = normalizeHomepageProducts(JSON.parse(cached)).slice(0, 6);
       filteredProducts = [...products];
       renderAllProducts();
       return;
@@ -247,7 +235,7 @@ async function loadProducts() {
 
   // Last resort
   console.warn('📍 Using hardcoded fallback');
-  products = normalizeHomepageProducts([...FALLBACK_PRODUCTS]);
+  products = normalizeHomepageProducts([...FALLBACK_PRODUCTS]).slice(0, 6);
   filteredProducts = [...products];
   renderAllProducts();
 }

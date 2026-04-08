@@ -64,11 +64,11 @@
     "name": "Robe d'été - Blanc cassé",
     "price": 65.0,
     "description": "Robe fluide en coton bio, idéale pour l'été. Fabrication locale.",
-      "image": "/public/images/Robe_d'été_Blanc_cassé(0).webp",
+      "image": "/public/images/Robe_d_ete_Blanc_casse(0).png",
     "images": [
-      "/public/images/Robe_d'été_Blanc_cassé(0).webp",
-      "/public/images/Robe_d'été_Blanc_cassé(1).webp",
-      "/public/images/Robe_d'été_Blanc_cassé(2).webp"
+      "/public/images/Robe_d_ete_Blanc_casse(0).png",
+      "/public/images/Robe_d_ete_Blanc_casse(1).png",
+      "/public/images/Robe_d_ete_Blanc_casse(2).png"
     ],
     "category": "femmes",
     "subcategory": "robes",
@@ -82,126 +82,6 @@
       "image": "/public/images/top-rose.svg",
     "category": "femmes",
     "subcategory": "tops",
-    "collection": "recycle"
-  },
-  {
-    "id": 7,
-    "name": "Jupe midi - Marine",
-    "price": 55.0,
-    "description": "Jupe mi-longue en coton bio certifié GOTS. Coupe élégante.",
-      "image": "/public/images/jupe-marine.svg",
-    "category": "femmes",
-    "subcategory": "robes",
-    "collection": "classiques"
-  },
-  {
-    "id": 8,
-    "name": "Chemise lin - Blanc",
-    "price": 49.0,
-    "description": "Chemise intemporelle en lin français. Production éthique.",
-      "image": "/public/images/chemise-lin.svg",
-    "category": "hommes",
-    "subcategory": "t-shirts",
-    "collection": "classiques"
-  },
-  {
-    "id": 9,
-    "name": "Sac en toile recyclée - Noir",
-    "price": 25.0,
-    "description": "Sac cabas en toile recyclée, résistant et pratique au quotidien.",
-      "image": "/public/images/sac-recyc.svg",
-    "category": "femmes",
-    "subcategory": "accessoires",
-    "collection": "recycle"
-  },
-  {
-    "id": 10,
-    "name": "Écharpe en laine bio - Camel",
-    "price": 39.0,
-    "description": "Écharpe douce en laine biologique. Teinture végétale.",
-      "image": "/public/images/echarpe.svg",
-    "category": "femmes",
-    "subcategory": "accessoires",
-    "collection": "eco"
-  },
-  {
-    "id": 11,
-    "name": "Pantalon chino - Sable",
-    "price": 69.0,
-    "description": "Chino en coton bio, coupe moderne et confortable.",
-      "image": "/public/images/chino-sable.svg",
-    "category": "hommes",
-    "subcategory": "pantalons",
-    "collection": "classiques"
-  },
-  {
-    "id": 12,
-    "name": "Blouson recyclé - Bleu nuit",
-    "price": 95.0,
-    "description": "Blouson fabriqué à partir de fibres recyclées. Design urbain.",
-      "image": "/public/images/blouson-bleu.svg",
-    "category": "hommes",
-    "subcategory": "vestes",
-    "collection": "recycle"
-  },
-  {
-    "id": 13,
-    "name": "Sweat organique - Écru",
-    "price": 59.0,
-    "description": "Sweat doux en coton organique, intérieur gratté, coupe unisexe.",
-      "image": "/public/images/pull-gris.svg",
-    "category": "hommes",
-    "subcategory": "t-shirts",
-    "collection": "eco"
-  },
-  {
-    "id": 14,
-    "name": "Parka imperméable recyclée",
-    "price": 129.0,
-    "description": "Parka longue, membrane recyclée, coutures étanchées, capuche ajustable.",
-      "image": "/public/images/blouson-bleu.svg",
-    "category": "femmes",
-    "subcategory": "vestes",
-    "collection": "recycle"
-  },
-  {
-    "id": 15,
-    "name": "Cardigan laine bio - Olive",
-    "price": 72.0,
-    "description": "Cardigan en laine biologique, maille perlée, boutons en corozo.",
-      "image": "/public/images/veste-lin-beige.svg",
-    "category": "femmes",
-    "subcategory": "vestes",
-    "collection": "classiques"
-  },
-  {
-    "id": 16,
-    "name": "Short en coton bio - Sable",
-    "price": 39.0,
-    "description": "Short léger en sergé de coton bio, taille ajustable, poches latérales.",
-      "image": "/public/images/chino-sable.svg",
-    "category": "hommes",
-    "subcategory": "pantalons",
-    "collection": "eco"
-  },
-  {
-    "id": 17,
-    "name": "Robe cache-cœur - Terracotta",
-    "price": 79.0,
-    "description": "Robe cache-cœur en viscose EcoVero, ceinture à nouer, manches 3/4.",
-      "image": "/public/images/robe-ete.svg",
-    "category": "femmes",
-    "subcategory": "robes",
-    "collection": "classiques"
-  },
-  {
-    "id": 18,
-    "name": "Doudoune légère recyclée",
-    "price": 139.0,
-    "description": "Doudoune compressible en fibres recyclées, chaleur 4 saisons.",
-    "image": "/public/images/blouson-bleu.svg",
-    "category": "hommes",
-    "subcategory": "vestes",
     "collection": "recycle"
   }
 ]
