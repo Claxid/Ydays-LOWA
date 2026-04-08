@@ -452,13 +452,31 @@
                 const { error } = await supabaseClient
                     .from('product_reviews')
                     .upsert(payload, { onConflict: 'product_id,user_id' });
+
                 if (error) {
                     const message = String(error.message || '');
+
                     if (message.includes('invalid input syntax for type integer')) {
                         feedback.textContent = 'La BDD attend une note entière. Exécutez la migration SQL pour autoriser les demi-étoiles (rating en numeric(2,1)).';
-                    } else {
-                        feedback.textContent = `Publication impossible: ${message || 'erreur inconnue'}`;
+                        return;
                     }
+
+                    // Temporary compatibility: if unique constraint is not present yet, insert still works.
+                    if (message.includes('no unique or exclusion constraint matching the ON CONFLICT specification')) {
+                        const insertTry = await supabaseClient.from('product_reviews').insert(payload);
+                        if (insertTry.error) {
+                            feedback.textContent = `Publication impossible: ${insertTry.error.message || 'erreur inconnue'}`;
+                            return;
+                        }
+                        feedback.textContent = 'Avis publié. Ajoutez la contrainte unique pour activer la mise à jour automatique d\'un avis existant.';
+                        form.reset();
+                        ratingInput.value = '';
+                        paintStars('');
+                        await refreshReviewsFromDbOrFallback();
+                        return;
+                    }
+
+                    feedback.textContent = `Publication impossible: ${message || 'erreur inconnue'}`;
                     return;
                 }
 
