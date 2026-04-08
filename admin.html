@@ -15,8 +15,11 @@
 <body>
     <div id="login-container" class="admin-container">
         <div class="login-box">
+            <div class="admin-brand">
+                <img class="admin-brand-logo" src="/public/images/logo.png" alt="LOWA" />
+            </div>
             <h1>Admin LOWA</h1>
-            <p class="help-text" style="text-align: center; margin-bottom: 1rem;">
+            <p class="help-text help-text-center">
                 Utilisez vos identifiants admin (email: admin@lowa.com)
             </p>
             <form id="login-form">
@@ -32,7 +35,13 @@
     <!--.... -->
     <div id="dashboard-container" class="admin-container" style="display:none;">
         <header class="admin-header">
-            <h1>Dashboard Admin</h1>
+            <div class="admin-header-brand">
+                <img class="admin-header-logo" src="/public/images/logo.png" alt="LOWA" />
+                <div>
+                    <h1>Dashboard Admin</h1>
+                    <p>Pilotage du catalogue et des paramètres</p>
+                </div>
+            </div>
             <button id="logout-btn" class="btn btn-secondary">Se déconnecter</button>
         </header>
      
@@ -87,7 +96,7 @@
                         <option value="temperate">Tempéré</option>
                     </select>
                     <button id="save-theme-btn" class="btn btn-primary" style="margin-top: 1rem;">Enregistrer le thème</button>
-                    <p id="theme-message" class="help-text" style="margin-top: 0.5rem;"></p>
+                    <p id="theme-message" class="help-text help-text-spaced"></p>
                 </div>
             </section>
         </main>

@@ -7,6 +7,14 @@
     box-sizing: border-box;
 }
 
+html {
+    min-height: 100%;
+    background:
+        radial-gradient(circle at top left, rgba(219, 152, 246, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(90, 106, 47, 0.14), transparent 22%),
+        linear-gradient(145deg, #f4efe8 0%, #e6ddd4 100%);
+}
+
 :root {
     /* Polices typographie */
     --font-primary: 'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -25,7 +33,8 @@ body {
     margin: 0;
     padding: 0;
     font-family: var(--font-body);
-    background: linear-gradient(145deg, #efebe6 0%, #e2d8d1 100%);
+    min-height: 100vh;
+    background: transparent;
     color: var(--text-main);
 }
 
@@ -36,29 +45,80 @@ body {
     padding: 2rem;
 }
 
+.admin-brand,
+.admin-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.admin-brand {
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.admin-brand-logo,
+.admin-header-logo {
+    display: block;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.12));
+}
+
+.admin-brand-logo {
+    width: 4.6rem;
+    height: 4.6rem;
+}
+
+.admin-header-logo {
+    width: 3.4rem;
+    height: 3.4rem;
+}
+
+.help-text-center {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.help-text-spaced {
+    margin-top: 0.7rem;
+}
+
 /* Login Page */
 #login-container {
     justify-content: center;
     align-items: center;
-    background: radial-gradient(circle at top right, rgba(219, 152, 246, 0.22), transparent 45%), linear-gradient(135deg, #e8edc4 0%, #e2d8d1 100%);
+    background: transparent;
 }
 
 .login-box {
-    background: #f8f6f2;
-    padding: 3rem;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    position: relative;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(249, 245, 239, 0.92));
+    backdrop-filter: blur(16px);
+    padding: 2.75rem 2.4rem;
+    border-radius: 24px;
+    border: 1px solid rgba(90, 106, 47, 0.12);
+    box-shadow: 0 24px 70px rgba(55, 48, 38, 0.16);
     width: 100%;
     max-width: 400px;
     text-align: center;
+    overflow: hidden;
+}
+
+.login-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.26), transparent 45%);
+    pointer-events: none;
 }
 
 .login-box h1 {
     margin-top: 0;
     color: var(--olive);
-    font-size: 2rem;
+    font-size: 2.15rem;
     font-family: var(--font-primary);
     font-weight: 800;
+    letter-spacing: -0.03em;
 }
 
 .form-group {
@@ -75,17 +135,20 @@ body {
 
 .form-group input {
     width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(90, 106, 47, 0.16);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.9);
     font-size: 1rem;
-    transition: border-color 0.3s;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    color: var(--text-main);
 }
 
 .form-group input:focus {
     outline: none;
     border-color: var(--sage);
-    box-shadow: 0 0 0 3px rgba(152, 168, 105, 0.2);
+    box-shadow: 0 0 0 4px rgba(152, 168, 105, 0.18);
+    transform: translateY(-1px);
 }
 
 .error-message {
@@ -96,32 +159,36 @@ body {
 
 /* Buttons */
 .btn {
-    padding: 0.75rem 1.5rem;
+    padding: 0.85rem 1.5rem;
     border: none;
-    border-radius: 6px;
+    border-radius: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s, opacity 0.2s;
     font-size: 1rem;
+    letter-spacing: 0.01em;
 }
 
 .btn-primary {
-    background: var(--olive);
+    background: linear-gradient(135deg, var(--olive) 0%, #748542 100%);
     color: #f8f6f2;
+    box-shadow: 0 14px 28px rgba(90, 106, 47, 0.22);
 }
 
 .btn-primary:hover {
-    background: #6c7d3b;
     transform: translateY(-2px);
+    box-shadow: 0 18px 32px rgba(90, 106, 47, 0.26);
 }
 
 .btn-secondary {
-    background: var(--lilac);
-    color: #2f3423;
+    background: rgba(219, 152, 246, 0.16);
+    color: #4b3159;
+    border: 1px solid rgba(219, 152, 246, 0.24);
 }
 
 .btn-secondary:hover {
-    background: #ca89e6;
+    background: rgba(219, 152, 246, 0.24);
+    transform: translateY(-1px);
 }
 
 .btn-small {
@@ -131,29 +198,42 @@ body {
 
 /* Dashboard */
 #dashboard-container {
-    background: #f8f6f2;
-    border-radius: 12px;
+    background: rgba(248, 246, 242, 0.8);
+    border-radius: 24px;
+    border: 1px solid rgba(90, 106, 47, 0.1);
     overflow: hidden;
+    box-shadow: 0 24px 70px rgba(55, 48, 38, 0.1);
+    backdrop-filter: blur(14px);
 }
 
 .admin-header {
-    background: linear-gradient(120deg, var(--olive) 0%, var(--sage) 100%);
+    background: linear-gradient(120deg, rgba(90, 106, 47, 0.96) 0%, rgba(152, 168, 105, 0.95) 100%);
     color: #f8f6f2;
-    padding: 2rem;
+    padding: 1.7rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
 }
 
-.admin-header h1 {
+.admin-header-brand h1 {
     margin: 0;
     font-family: var(--font-primary);
     font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.admin-header-brand p {
+    margin: 0.2rem 0 0;
+    opacity: 0.86;
+    font-size: 0.92rem;
 }
 
 .admin-header .btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
+    padding: 0.7rem 1.05rem;
+    font-size: 0.92rem;
+    white-space: nowrap;
 }
 
 .admin-dashboard {
@@ -163,14 +243,19 @@ body {
 }
 
 .admin-section {
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
+    padding: 1.4rem;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.56);
+    border: 1px solid rgba(90, 106, 47, 0.08);
+    box-shadow: 0 10px 30px rgba(55, 48, 38, 0.06);
 }
 
 .admin-section h2 {
     color: var(--olive);
     margin-top: 0;
-    margin-bottom: 1.5rem;
-    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.35rem;
     font-family: var(--font-primary);
     font-weight: 700;
 }
@@ -179,71 +264,88 @@ body {
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    gap: 1rem;
+    margin-bottom: 0.25rem;
 }
 
 .stat-card {
-    background: linear-gradient(135deg, var(--olive) 0%, var(--sage) 100%);
+    position: relative;
+    background: linear-gradient(145deg, rgba(90, 106, 47, 0.95), rgba(114, 129, 62, 0.95));
     color: #f8f6f2;
-    padding: 1.5rem;
-    border-radius: 8px;
+    padding: 1.45rem;
+    border-radius: 18px;
     text-align: center;
+    overflow: hidden;
+    box-shadow: 0 18px 38px rgba(90, 106, 47, 0.18);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.24), transparent 45%);
+    pointer-events: none;
 }
 
 .stat-card p:first-child {
     margin: 0;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
 .stat-number {
-    font-size: 2.5rem;
+    font-size: 2.35rem;
     font-weight: 700;
-    margin: 0.5rem 0 0 0;
+    margin: 0.45rem 0 0 0;
 }
 
 /* Admin Actions */
 .admin-actions {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 /* Products Table */
 .products-table-data {
     width: 100%;
     border-collapse: collapse;
-    background: #fff;
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 16px;
     overflow: hidden;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .products-table-data thead {
-    background: #f3f6e3;
-    border-bottom: 2px solid #d5ddaf;
+    background: linear-gradient(180deg, rgba(243, 246, 227, 0.95), rgba(236, 240, 214, 0.95));
+    border-bottom: 1px solid rgba(90, 106, 47, 0.12);
 }
 
 .products-table-data th {
-    padding: 1rem;
+    padding: 1rem 1rem;
     text-align: left;
     font-weight: 600;
     color: var(--text-main);
+    font-size: 0.92rem;
 }
 
 .products-table-data td {
     padding: 1rem;
-    border-bottom: 1px solid #e3e7d0;
+    border-bottom: 1px solid rgba(90, 106, 47, 0.08);
+    vertical-align: top;
 }
 
 .products-table-data tbody tr:hover {
-    background: #f6f8eb;
+    background: rgba(232, 237, 196, 0.35);
 }
 
 /* Settings */
 .settings-group {
-    background: #f3f6e3;
-    padding: 1.5rem;
-    border-radius: 8px;
+    background: rgba(243, 246, 227, 0.72);
+    padding: 1.4rem;
+    border-radius: 18px;
+    border: 1px solid rgba(90, 106, 47, 0.08);
 }
 
 .settings-group label {
@@ -252,6 +354,7 @@ body {
     font-weight: 600;
     cursor: pointer;
     margin-bottom: 0.5rem;
+    gap: 0.6rem;
 }
 
 .settings-group input[type="checkbox"] {
@@ -265,6 +368,24 @@ body {
     font-size: 0.9rem;
     color: #728058;
     margin: 0.5rem 0 0 0;
+}
+
+#default-theme {
+    width: 100%;
+    margin-top: 0.35rem;
+    padding: 0.85rem 1rem;
+    border-radius: 14px;
+    border: 1px solid rgba(90, 106, 47, 0.16);
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    font-size: 1rem;
+}
+
+#default-theme:focus {
+    outline: none;
+    border-color: var(--sage);
+    box-shadow: 0 0 0 4px rgba(152, 168, 105, 0.18);
 }
 
 /* Modal */
@@ -282,27 +403,30 @@ body {
 }
 
 .modal-content {
-    background-color: white;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 245, 239, 0.98));
     padding: 2rem;
-    border-radius: 12px;
+    border-radius: 24px;
     width: 90%;
     max-width: 500px;
     position: relative;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(90, 106, 47, 0.12);
+    backdrop-filter: blur(12px);
 }
 
 .modal-close {
     position: absolute;
     right: 1rem;
-    top: 1rem;
-    font-size: 2rem;
+    top: 0.85rem;
+    font-size: 2.1rem;
     font-weight: bold;
-    color: #999;
+    color: #8c8479;
     cursor: pointer;
+    line-height: 1;
 }
 
 .modal-close:hover {
-    color: #333;
+    color: var(--olive);
 }
 
 .modal-content h2 {
@@ -310,12 +434,33 @@ body {
     color: var(--olive);
     font-family: var(--font-primary);
     font-weight: 700;
+    font-size: 1.5rem;
 }
 
 .modal-content form {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+}
+
+.modal-content textarea,
+.modal-content input,
+.modal-content select {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border-radius: 14px;
+    border: 1px solid rgba(90, 106, 47, 0.16);
+    background: rgba(255, 255, 255, 0.94);
+    color: var(--text-main);
+    font-family: var(--font-body);
+}
+
+.modal-content textarea:focus,
+.modal-content input:focus,
+.modal-content select:focus {
+    outline: none;
+    border-color: var(--sage);
+    box-shadow: 0 0 0 4px rgba(152, 168, 105, 0.18);
 }
 
 .modal-content .btn {
@@ -330,16 +475,19 @@ body {
     }
 
     .login-box {
-        padding: 1.5rem;
+        padding: 1.8rem 1.4rem;
+        border-radius: 20px;
     }
 
     .admin-header {
         flex-direction: column;
         gap: 1rem;
+        align-items: flex-start;
+        padding: 1.4rem;
     }
 
-    .admin-header h1 {
-        font-size: 1.5rem;
+    .admin-header-brand {
+        align-items: flex-start;
     }
 
     .stats-grid {
@@ -350,5 +498,10 @@ body {
     .products-table-data td {
         padding: 0.75rem;
         font-size: 0.9rem;
+    }
+
+    .admin-section {
+        padding: 1.1rem;
+        border-radius: 18px;
     }
 }
