@@ -1211,6 +1211,9 @@
                     const isVesteLinBeige = Number(product.id) === 4
                         || String(product.image || '').includes('veste-lin-beige.svg')
                         || String(product.name || '').toLowerCase().includes('veste en lin - beige');
+                    const isRobeEteBlancCasse = Number(product.id) === 5
+                        || String(product.image || '').includes('robe-ete.svg')
+                        || String(product.name || '').toLowerCase().includes('robe d\'été - blanc cassé');
                     const galleryImages = (Array.isArray(product.images) && product.images.length > 0)
                         ? product.images
                         : isFirstTshirt
@@ -1236,6 +1239,12 @@
                                         '/public/images/Veste_en_Lin_Beige(0).webp',
                                         '/public/images/Veste_en_Lin_Beige(1).webp',
                                         '/public/images/Veste_en_Lin_Beige(2).avif'
+                                    ]
+                                : isRobeEteBlancCasse
+                                    ? [
+                                        '/public/images/Robe_d\'été_Blanc_cassé(0).webp',
+                                        '/public/images/Robe_d\'été_Blanc_cassé(1).webp',
+                                        '/public/images/Robe_d\'été_Blanc_cassé(2).webp'
                                     ]
                             : [product.image];
 

@@ -68,7 +68,12 @@
     "name": "Robe d'été - Blanc cassé",
     "price": 65.00,
     "description": "Robe fluide en coton bio, idéale pour l'été. Fabrication locale.",
-    "image": "/images/robe-ete.svg",
+    "image": "/images/Robe_d'été_Blanc_cassé(0).webp",
+    "images": [
+      "/images/Robe_d'été_Blanc_cassé(0).webp",
+      "/images/Robe_d'été_Blanc_cassé(1).webp",
+      "/images/Robe_d'été_Blanc_cassé(2).webp"
+    ],
     "category": "femmes",
     "subcategory": "robes",
     "collection": "eco"
