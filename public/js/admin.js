@@ -65,6 +65,41 @@ function updateStats(products = []) {
     if (usersCountEl) usersCountEl.textContent = String(users.length);
 }
 
+async function countRows(supabaseClient, tableName) {
+    try {
+        const { count, error } = await supabaseClient
+            .from(tableName)
+            .select('id', { count: 'exact', head: true });
+        if (error) return null;
+        return typeof count === 'number' ? count : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+async function loadStatsFromDatabase() {
+    const supabaseClient = typeof initSupabase === 'function' ? initSupabase() : null;
+    if (!supabaseClient) return null;
+
+    const [productCount, userCount] = await Promise.all([
+        countRows(supabaseClient, 'products'),
+        countRows(supabaseClient, 'users')
+    ]);
+
+    let orderCount = null;
+    const orderTables = ['purchase_history', 'orders', 'commandes'];
+    for (const tableName of orderTables) {
+        orderCount = await countRows(supabaseClient, tableName);
+        if (typeof orderCount === 'number') break;
+    }
+
+    return {
+        products: typeof productCount === 'number' ? productCount : null,
+        users: typeof userCount === 'number' ? userCount : null,
+        orders: typeof orderCount === 'number' ? orderCount : null
+    };
+}
+
 async function loadProductsWithFallback(token) {
     try {
         const response = await fetch(`${API_BASE_URL}/products`, {
@@ -200,9 +235,26 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadDashboardData() {
         const token = localStorage.getItem('adminToken');
         try {
+            // Show a deterministic dashboard immediately so the UI is never empty.
+            updateStats(ADMIN_FALLBACK_PRODUCTS);
+            displayProducts(ADMIN_FALLBACK_PRODUCTS);
+
             const products = await loadProductsWithFallback(token);
-            updateStats(products);
-            displayProducts(products);
+            if (products && products.length > 0) {
+                displayProducts(products);
+                updateStats(products);
+            }
+
+            const dbStats = await loadStatsFromDatabase();
+            if (dbStats) {
+                const productsCountEl = document.getElementById('products-count');
+                const ordersCountEl = document.getElementById('orders-count');
+                const usersCountEl = document.getElementById('users-count');
+
+                if (productsCountEl && typeof dbStats.products === 'number') productsCountEl.textContent = String(dbStats.products);
+                if (ordersCountEl && typeof dbStats.orders === 'number') ordersCountEl.textContent = String(dbStats.orders);
+                if (usersCountEl && typeof dbStats.users === 'number') usersCountEl.textContent = String(dbStats.users);
+            }
             
             // Load maintenance mode status
             loadMaintenanceModeStatus();
