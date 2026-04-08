@@ -455,19 +455,6 @@
                 paintStars(ratingInput.value);
             });
 
-            function renderInteractiveStars(value) {
-                const selected = Number(value) || 0;
-                starButtons.forEach((btn) => {
-                    const btnRating = Number(btn.dataset.rating);
-                    let state = 'empty';
-                    if (selected >= btnRating) state = 'full';
-                    else if (selected >= btnRating - 0.5) state = 'half';
-                    btn.innerHTML = renderStarSequence(state === 'full' ? btnRating : (state === 'half' ? btnRating - 0.5 : 0), true);
-                    btn.classList.toggle('active', state === 'full');
-                    btn.classList.toggle('half', state === 'half');
-                });
-            }
-
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 if (!currentProduct) return;
@@ -546,11 +533,11 @@
                 feedback.textContent = 'Avis enregistré (créé ou mis à jour). Merci !';
                 form.reset();
                 ratingInput.value = '';
-                renderInteractiveStars('');
+                paintStars('');
                 await refreshReviewsFromDbOrFallback();
             });
 
-            renderInteractiveStars(ratingInput.value);
+            paintStars(ratingInput.value);
         }
 
         async function resolveProductById(targetId) {
