@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preload" as="style" href="/public/css/homepage.css?v=20260408" />
     <link rel="stylesheet" href="/public/css/homepage.css?v=20260408" media="all" />
-    <link rel="stylesheet" href="/public/css/product-detail.css?v=20260408b" media="all" />
+    <link rel="stylesheet" href="/public/css/product-detail.css?v=20260408c" media="all" />
 </head>
 <body>
     <header class="site-header">
@@ -126,6 +126,12 @@
                     <div class="review-form-row review-form-row-full">
                         <label for="review-comment">Votre avis</label>
                         <textarea id="review-comment" rows="4" maxlength="600" placeholder="Partagez votre expérience sur ce produit" required></textarea>
+                    </div>
+                    <div class="review-form-row review-form-row-full">
+                        <label for="review-media">Photos / videos (max 2)</label>
+                        <input id="review-media" type="file" accept="image/*,video/*" multiple />
+                        <p class="review-media-help">Formats acceptes: image et video. Maximum 2 fichiers par avis.</p>
+                        <div id="review-media-preview" class="review-media-preview" aria-live="polite"></div>
                     </div>
                     <button type="submit" class="btn primary">Publier mon avis</button>
                     <p id="review-feedback" class="review-feedback" aria-live="polite"></p>
@@ -239,6 +245,10 @@
 
         let currentProduct = null;
         let reviewsChannel = null;
+        const REVIEW_MEDIA_MAX_FILES = 2;
+        const REVIEW_MEDIA_BUCKET = 'review-media';
+        const REVIEW_MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+        const REVIEW_MAX_VIDEO_BYTES = 20 * 1024 * 1024;
 
         function toStarsMarkup(n) {
             const rating = Math.max(0, Math.min(5, Number(n) || 0));
@@ -289,6 +299,104 @@
             const first = parts[0]?.[0] || 'L';
             const second = parts[1]?.[0] || parts[0]?.[1] || 'W';
             return `${first}${second}`.toUpperCase();
+        }
+
+        function isVideoUrl(url) {
+            return /\.(mp4|webm|ogg|mov|m4v|avi)(\?.*)?$/i.test(String(url || ''));
+        }
+
+        function renderReviewMedia(mediaUrls) {
+            const urls = Array.isArray(mediaUrls) ? mediaUrls.filter(Boolean).slice(0, REVIEW_MEDIA_MAX_FILES) : [];
+            if (!urls.length) return '';
+
+            const cards = urls.map((url, idx) => {
+                const safeUrl = escapeHtml(url);
+                if (isVideoUrl(url)) {
+                    return `
+                        <figure class="review-media-card review-media-card-video">
+                            <video controls preload="metadata" src="${safeUrl}"></video>
+                        </figure>
+                    `;
+                }
+
+                return `
+                    <figure class="review-media-card">
+                        <img src="${safeUrl}" alt="Media avis ${idx + 1}" loading="lazy" />
+                    </figure>
+                `;
+            }).join('');
+
+            return `<div class="review-media-grid">${cards}</div>`;
+        }
+
+        function reviewMediaInputFiles(inputEl) {
+            return Array.from((inputEl && inputEl.files) ? inputEl.files : []);
+        }
+
+        function validateReviewMediaFiles(files) {
+            if (!files.length) return { ok: true };
+            if (files.length > REVIEW_MEDIA_MAX_FILES) {
+                return { ok: false, message: `Maximum ${REVIEW_MEDIA_MAX_FILES} fichiers par avis.` };
+            }
+
+            for (const file of files) {
+                const isImage = String(file.type || '').startsWith('image/');
+                const isVideo = String(file.type || '').startsWith('video/');
+                if (!isImage && !isVideo) {
+                    return { ok: false, message: 'Seuls les fichiers image et video sont autorises.' };
+                }
+                if (isImage && file.size > REVIEW_MAX_IMAGE_BYTES) {
+                    return { ok: false, message: 'Une image depasse la taille limite (10 Mo).' };
+                }
+                if (isVideo && file.size > REVIEW_MAX_VIDEO_BYTES) {
+                    return { ok: false, message: 'Une video depasse la taille limite (20 Mo).' };
+                }
+            }
+
+            return { ok: true };
+        }
+
+        function sanitizeFileName(name) {
+            return String(name || 'media')
+                .toLowerCase()
+                .replace(/[^a-z0-9._-]/g, '-')
+                .replace(/-+/g, '-')
+                .slice(0, 80);
+        }
+
+        async function uploadReviewMediaFiles(files, userId, productId) {
+            if (!files.length) return [];
+            const supabaseClient = initSupabase();
+            if (!supabaseClient) throw new Error('Supabase indisponible pour l\'upload media.');
+
+            const uploadedUrls = [];
+            for (const file of files) {
+                const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+                const safeName = sanitizeFileName(file.name);
+                const path = `${userId}/${productId}/${stamp}-${safeName}`;
+
+                const { error: uploadError } = await supabaseClient
+                    .storage
+                    .from(REVIEW_MEDIA_BUCKET)
+                    .upload(path, file, { upsert: false, cacheControl: '3600' });
+
+                if (uploadError) {
+                    throw new Error(uploadError.message || 'Echec upload media.');
+                }
+
+                const { data: publicData } = supabaseClient
+                    .storage
+                    .from(REVIEW_MEDIA_BUCKET)
+                    .getPublicUrl(path);
+
+                if (!publicData || !publicData.publicUrl) {
+                    throw new Error('Impossible de recuperer l\'URL publique du media.');
+                }
+
+                uploadedUrls.push(publicData.publicUrl);
+            }
+
+            return uploadedUrls;
         }
 
         function starMarkup(state, ariaHidden = true, seed = '') {
@@ -350,6 +458,7 @@
                         <span class="review-stars" aria-label="Note ${Number(review.rating || 0).toFixed(1)} sur 5">${renderStarSequence(review.rating, false, `review-${review.id || review.created_at}`)}</span>
                     </div>
                     <p class="review-text">${escapeHtml(review.comment)}</p>
+                    ${renderReviewMedia(review.media_urls)}
                 </div>
             `).join('');
         }
@@ -359,11 +468,27 @@
             if (!supabaseClient) return null;
             const { data, error } = await supabaseClient
                 .from('product_reviews')
-                .select('id, product_id, reviewer_name, rating, comment, created_at')
+                .select('id, product_id, reviewer_name, rating, comment, media_urls, created_at')
                 .eq('product_id', Number(productId))
                 .order('created_at', { ascending: false });
             if (error) {
-                console.warn('Impossible de charger les avis depuis la BDD:', error.message || error);
+                const message = String(error.message || '');
+                if (message.includes('media_urls')) {
+                    const fallback = await supabaseClient
+                        .from('product_reviews')
+                        .select('id, product_id, reviewer_name, rating, comment, created_at')
+                        .eq('product_id', Number(productId))
+                        .order('created_at', { ascending: false });
+
+                    if (fallback.error) {
+                        console.warn('Impossible de charger les avis depuis la BDD:', fallback.error.message || fallback.error);
+                        return null;
+                    }
+
+                    return (fallback.data || []).map((row) => ({ ...row, media_urls: [] }));
+                }
+
+                console.warn('Impossible de charger les avis depuis la BDD:', message || error);
                 return null;
             }
             return data || [];
@@ -418,8 +543,52 @@
             const form = document.getElementById('review-form');
             const ratingInput = document.getElementById('review-rating-value');
             const commentInput = document.getElementById('review-comment');
+            const mediaInput = document.getElementById('review-media');
+            const mediaPreview = document.getElementById('review-media-preview');
             const feedback = document.getElementById('review-feedback');
             const starButtons = Array.from(document.querySelectorAll('.star-btn'));
+
+            function renderSelectedMediaPreview() {
+                if (!mediaInput || !mediaPreview) return;
+                const files = reviewMediaInputFiles(mediaInput);
+                if (!files.length) {
+                    mediaPreview.innerHTML = '';
+                    return;
+                }
+
+                mediaPreview.innerHTML = files.slice(0, REVIEW_MEDIA_MAX_FILES).map((file, idx) => {
+                    const objectUrl = URL.createObjectURL(file);
+                    const safeName = escapeHtml(file.name || `media-${idx + 1}`);
+                    const isVideo = String(file.type || '').startsWith('video/');
+                    if (isVideo) {
+                        return `
+                            <figure class="review-media-card review-media-card-video">
+                                <video controls preload="metadata" src="${objectUrl}"></video>
+                                <figcaption>${safeName}</figcaption>
+                            </figure>
+                        `;
+                    }
+
+                    return `
+                        <figure class="review-media-card">
+                            <img src="${objectUrl}" alt="Apercu media ${idx + 1}" />
+                            <figcaption>${safeName}</figcaption>
+                        </figure>
+                    `;
+                }).join('');
+            }
+
+            mediaInput?.addEventListener('change', () => {
+                const files = reviewMediaInputFiles(mediaInput);
+                const check = validateReviewMediaFiles(files);
+                if (!check.ok) {
+                    feedback.textContent = check.message;
+                    mediaInput.value = '';
+                    renderSelectedMediaPreview();
+                    return;
+                }
+                renderSelectedMediaPreview();
+            });
 
             function paintStars(value) {
                 const selected = Number(value) || 0;
@@ -467,12 +636,19 @@
 
                 const rating = Number(ratingInput.value);
                 const comment = commentInput.value.trim();
+                const selectedFiles = reviewMediaInputFiles(mediaInput);
                 if (!rating || rating < 1 || rating > 5) {
                     feedback.textContent = 'Merci de choisir une note entre 1 et 5 (par 0.5).';
                     return;
                 }
                 if (comment.length < 5) {
                     feedback.textContent = 'Votre avis doit contenir au moins 5 caractères.';
+                    return;
+                }
+
+                const mediaCheck = validateReviewMediaFiles(selectedFiles);
+                if (!mediaCheck.ok) {
+                    feedback.textContent = mediaCheck.message;
                     return;
                 }
 
@@ -493,12 +669,43 @@
                     return;
                 }
 
+                let uploadedMediaUrls = [];
+                if (selectedFiles.length) {
+                    try {
+                        uploadedMediaUrls = await uploadReviewMediaFiles(selectedFiles, userId, Number(currentProduct.id));
+                    } catch (uploadErr) {
+                        const uploadMessage = String(uploadErr && uploadErr.message ? uploadErr.message : uploadErr);
+                        if (uploadMessage.toLowerCase().includes('bucket')) {
+                            feedback.textContent = 'Bucket Supabase review-media introuvable. Creez-le avant d\'uploader des fichiers.';
+                            return;
+                        }
+                        feedback.textContent = `Upload media impossible: ${uploadMessage}`;
+                        return;
+                    }
+                }
+
+                let existingMediaUrls = [];
+                try {
+                    const { data: existing } = await supabaseClient
+                        .from('product_reviews')
+                        .select('media_urls')
+                        .eq('product_id', Number(currentProduct.id))
+                        .eq('user_id', userId)
+                        .maybeSingle();
+                    if (existing && Array.isArray(existing.media_urls)) {
+                        existingMediaUrls = existing.media_urls;
+                    }
+                } catch (e) {}
+
+                const mediaUrls = uploadedMediaUrls.length ? uploadedMediaUrls : existingMediaUrls;
+
                 const payload = {
                     product_id: Number(currentProduct.id),
                     user_id: userId,
                     reviewer_name: getReviewerName(),
                     rating,
-                    comment
+                    comment,
+                    media_urls: mediaUrls
                 };
 
                 const { error } = await supabaseClient
@@ -513,6 +720,11 @@
                         return;
                     }
 
+                    if (message.includes('media_urls')) {
+                        feedback.textContent = 'La colonne media_urls manque en BDD. Exécutez la migration SQL avis+media.';
+                        return;
+                    }
+
                     // Temporary compatibility: if unique constraint is not present yet, insert still works.
                     if (message.includes('no unique or exclusion constraint matching the ON CONFLICT specification')) {
                         const insertTry = await supabaseClient.from('product_reviews').insert(payload);
@@ -523,6 +735,8 @@
                         feedback.textContent = 'Avis publié. Ajoutez la contrainte unique pour activer la mise à jour automatique d\'un avis existant.';
                         form.reset();
                         ratingInput.value = '';
+                        if (mediaInput) mediaInput.value = '';
+                        if (mediaPreview) mediaPreview.innerHTML = '';
                         paintStars('');
                         await refreshReviewsFromDbOrFallback();
                         return;
@@ -535,6 +749,8 @@
                 feedback.textContent = 'Avis enregistré (créé ou mis à jour). Merci !';
                 form.reset();
                 ratingInput.value = '';
+                if (mediaInput) mediaInput.value = '';
+                if (mediaPreview) mediaPreview.innerHTML = '';
                 paintStars('');
                 await refreshReviewsFromDbOrFallback();
             });
