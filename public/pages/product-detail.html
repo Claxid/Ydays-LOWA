@@ -163,7 +163,7 @@
     <script>
         // Get product ID from URL params
         const urlParams = new URLSearchParams(window.location.search);
-        const productId = urlParams.get('id') || '2';
+        const productId = urlParams.get('id');
 
         function detailScopedGet(baseKey) {
             if (typeof scopedStorageGet === 'function') return scopedStorageGet(baseKey);
@@ -406,6 +406,73 @@
             });
         }
 
+        async function resolveProductById(targetId) {
+            // 1) Supabase first (source of truth)
+            try {
+                const supabaseClient = initSupabase();
+                if (supabaseClient && targetId) {
+                    const { data, error } = await supabaseClient
+                        .from('products')
+                        .select('*')
+                        .eq('id', Number(targetId))
+                        .maybeSingle();
+                    if (!error && data) return data;
+                }
+            } catch (e) {
+                console.warn('Supabase product lookup failed:', e && e.message ? e.message : e);
+            }
+
+            // 2) API/JSON fallback (existing behavior)
+            try {
+                const paths = [
+                    'https://lowa-api.onrender.com/api/products',
+                    '/data/products.json?v=14',
+                    './data/products.json?v=14',
+                    '/public/data/products.json?v=14',
+                    './public/data/products.json?v=14',
+                    'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json'
+                ];
+
+                let response = null;
+                for (const url of paths) {
+                    try {
+                        const res = await fetchWithTimeout(url, url.includes('onrender') ? 4000 : 2500);
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        response = res;
+                        break;
+                    } catch (err) {
+                        console.warn('Échec chargement produit depuis', url, err.message);
+                    }
+                }
+
+                if (response) {
+                    const products = await response.json();
+                    const found = targetId
+                        ? products.find(p => String(p.id) === String(targetId))
+                        : products[0];
+                    if (found) return found;
+                }
+            } catch (e) {
+                console.warn('API/json product lookup failed:', e && e.message ? e.message : e);
+            }
+
+            // 3) Local cache fallback (catalog cache)
+            try {
+                const cacheRaw = localStorage.getItem(LOWA.STORAGE.CACHE_KEY);
+                if (cacheRaw) {
+                    const cachedProducts = JSON.parse(cacheRaw);
+                    const found = targetId
+                        ? cachedProducts.find(p => String(p.id) === String(targetId))
+                        : cachedProducts[0];
+                    if (found) return found;
+                }
+            } catch (e) {
+                console.warn('Cache product lookup failed:', e && e.message ? e.message : e);
+            }
+
+            return null;
+        }
+
         // Load product data
         async function loadProductDetail() {
             const collectionMeta = {
@@ -455,31 +522,7 @@
             }
 
             try {
-                const paths = [
-                    'https://lowa-api.onrender.com/api/products',
-                    '/data/products.json?v=14',
-                    './data/products.json?v=14',
-                    '/public/data/products.json?v=14',
-                    './public/data/products.json?v=14',
-                    'https://raw.githubusercontent.com/Claxid/Ydays-LOWA/main/public/data/products.json'
-                ];
-
-                let response = null;
-                for (const url of paths) {
-                    try {
-                        const res = await fetchWithTimeout(url, url.includes('onrender') ? 4000 : 2500);
-                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                        response = res;
-                        break;
-                    } catch (err) {
-                        console.warn('Échec chargement produit depuis', url, err.message);
-                    }
-                }
-
-                if (!response) throw new Error('Aucune source produit disponible');
-
-                const products = await response.json();
-                const product = products.find(p => String(p.id) === String(productId)) || products[0];
+                const product = await resolveProductById(productId);
 
                 if (product) {
                     currentProduct = product;
@@ -534,6 +577,11 @@
 
                     await refreshReviewsFromDbOrFallback();
                     subscribeToRealtimeReviews(product.id);
+                } else {
+                    document.getElementById('productName').textContent = 'Produit introuvable';
+                    document.getElementById('productDescription').textContent = 'Impossible de charger cette fiche produit.';
+                    document.getElementById('productPrice').textContent = '--';
+                    document.getElementById('reviewCount').textContent = '(0 avis)';
                 }
             } catch (error) {
                 console.error('Erreur chargement produit:', error);
