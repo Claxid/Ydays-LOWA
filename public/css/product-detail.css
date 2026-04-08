@@ -458,10 +458,16 @@
 	border: 2px solid rgba(255, 255, 255, 0.45);
 	border-top-color: #ffffff;
 	border-radius: 50%;
+	background: transparent;
+	transform: rotate(0deg);
+	will-change: transform;
 	animation: reviewSpin 0.8s linear infinite;
 }
 
 @keyframes reviewSpin {
+	from {
+		transform: rotate(0deg);
+	}
 	to {
 		transform: rotate(360deg);
 	}
