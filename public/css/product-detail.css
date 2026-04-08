@@ -265,7 +265,6 @@
 	height: 1.8rem;
 	font-size: 1.45rem;
 	line-height: 1;
-	color: #cfc0b1;
 	cursor: pointer;
 	border: none !important;
 	outline: none !important;
@@ -279,31 +278,58 @@
 	border-radius: 0;
 	font-family: inherit;
 	-webkit-tap-highlight-color: transparent;
-	transition: transform var(--transition-fast), color var(--transition-fast), text-shadow var(--transition-fast);
+	transition: transform var(--transition-fast), color var(--transition-fast), opacity var(--transition-fast);
 	position: relative;
 }
 
 .star-btn:hover,
 .star-btn.active {
-	color: #ffb800;
 	transform: translateY(-1px) scale(1.04);
-	text-shadow: 0 0 0.01px rgba(255, 184, 0, 0.2);
 }
 
-.star-btn.half {
-	color: #cfc0b1;
-	text-shadow: none;
+.star-btn .star {
+	display: inline-block;
+	position: relative;
+	width: 1em;
+	height: 1em;
+	line-height: 1;
+	font-size: 1em;
+	vertical-align: middle;
+	pointer-events: none;
 }
 
-.star-btn.half::after {
-	content: '★';
+.star-btn .star-empty {
+	color: #d2c8be;
+}
+
+.star-btn .star-full {
+	color: #ffb800;
+}
+
+.star-btn .star-half {
+	color: #d2c8be;
+	overflow: hidden;
+}
+
+.star-btn .star-half .star-base,
+.star-btn .star-half .star-fill {
 	position: absolute;
-	left: 0;
-	top: 0;
+	inset: 0;
+	display: block;
+	line-height: 1;
+	font-size: 1em;
+	text-align: center;
+	pointer-events: none;
+}
+
+.star-btn .star-half .star-base {
+	color: #d2c8be;
+}
+
+.star-btn .star-half .star-fill {
+	color: #ffb800;
 	width: 50%;
 	overflow: hidden;
-	color: #ffb800;
-	pointer-events: none;
 }
 
 .star-btn:focus-visible {

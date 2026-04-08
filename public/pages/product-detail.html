@@ -291,6 +291,29 @@
             return `${first}${second}`.toUpperCase();
         }
 
+        function starMarkup(state, ariaHidden = true) {
+            if (state === 'half') {
+                return `<span class="star star-half"${ariaHidden ? ' aria-hidden="true"' : ''}><span class="star-base">★</span><span class="star-fill">★</span></span>`;
+            }
+            if (state === 'full') {
+                return `<span class="star star-full"${ariaHidden ? ' aria-hidden="true"' : ''}>★</span>`;
+            }
+            return `<span class="star star-empty"${ariaHidden ? ' aria-hidden="true"' : ''}>★</span>`;
+        }
+
+        function renderStarSequence(value, includeText = false) {
+            const rating = Math.max(0, Math.min(5, Number(value) || 0));
+            return [1, 2, 3, 4, 5].map((i) => {
+                if (rating >= i) return starMarkup('full', !includeText);
+                if (rating >= i - 0.5) return starMarkup('half', !includeText);
+                return starMarkup('empty', !includeText);
+            }).join('');
+        }
+
+        function renderStarButton(state) {
+            return starMarkup(state, true);
+        }
+
         function renderReviews(reviews) {
             const reviewsContainer = document.getElementById('reviewsContainer');
             const reviewCount = document.getElementById('reviewCount');
@@ -310,7 +333,7 @@
             empty.hidden = true;
             const avg = reviews.reduce((sum, r) => sum + (Number(r.rating) || 0), 0) / reviews.length;
             averageWrap.hidden = false;
-            averageStars.innerHTML = toStarsMarkup(avg);
+            averageStars.innerHTML = renderStarSequence(avg);
             averageValue.textContent = `${avg.toFixed(1)}/5`;
             reviewsContainer.innerHTML = reviews.map((review) => `
                 <div class="review">
@@ -322,7 +345,7 @@
                                 <span class="review-date">${escapeHtml(formatRelativeDate(review.created_at))}</span>
                             </div>
                         </div>
-                        <span class="review-stars" aria-label="Note ${Number(review.rating || 0).toFixed(1)} sur 5">${toStarsMarkup(review.rating)}</span>
+                        <span class="review-stars" aria-label="Note ${Number(review.rating || 0).toFixed(1)} sur 5">${renderStarSequence(review.rating)}</span>
                     </div>
                     <p class="review-text">${escapeHtml(review.comment)}</p>
                 </div>
@@ -400,8 +423,11 @@
                 const selected = Number(value) || 0;
                 starButtons.forEach((btn) => {
                     const btnRating = Number(btn.dataset.rating);
-                    btn.classList.toggle('active', btnRating <= selected);
-                    btn.classList.toggle('half', selected >= (btnRating - 0.5) && selected < btnRating);
+                    let state = 'empty';
+                    if (selected >= btnRating) state = 'full';
+                    else if (selected >= (btnRating - 0.5)) state = 'half';
+                    btn.innerHTML = renderStarButton(state);
+                    btn.dataset.state = state;
                 });
             }
 
@@ -428,6 +454,19 @@
             starsContainer?.addEventListener('mouseleave', () => {
                 paintStars(ratingInput.value);
             });
+
+            function renderInteractiveStars(value) {
+                const selected = Number(value) || 0;
+                starButtons.forEach((btn) => {
+                    const btnRating = Number(btn.dataset.rating);
+                    let state = 'empty';
+                    if (selected >= btnRating) state = 'full';
+                    else if (selected >= btnRating - 0.5) state = 'half';
+                    btn.innerHTML = renderStarSequence(state === 'full' ? btnRating : (state === 'half' ? btnRating - 0.5 : 0), true);
+                    btn.classList.toggle('active', state === 'full');
+                    btn.classList.toggle('half', state === 'half');
+                });
+            }
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -507,9 +546,11 @@
                 feedback.textContent = 'Avis enregistré (créé ou mis à jour). Merci !';
                 form.reset();
                 ratingInput.value = '';
-                paintStars('');
+                renderInteractiveStars('');
                 await refreshReviewsFromDbOrFallback();
             });
+
+            renderInteractiveStars(ratingInput.value);
         }
 
         async function resolveProductById(targetId) {
