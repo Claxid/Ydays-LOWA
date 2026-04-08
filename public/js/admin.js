@@ -16,13 +16,22 @@ const ADMIN_LOCAL_PRODUCTS_KEY = 'lowa_admin_local_products';
 const ADMIN_LOCAL_MAINTENANCE_KEY = 'lowa_admin_local_maintenance';
 const ADMIN_LOCAL_DEFAULT_THEME_KEY = 'lowa_admin_local_default_theme';
 
+const ADMIN_FALLBACK_PRODUCTS = [
+    { id: 1, name: 'T-shirt BIO - Naturel', price: 29.0, category: 'hommes' },
+    { id: 2, name: 'Pull recyclé - Gris', price: 79.0, category: 'hommes' },
+    { id: 3, name: 'Pantalon éco - Kaki', price: 59.0, category: 'hommes' },
+    { id: 4, name: 'Veste en Lin - Beige', price: 89.0, category: 'femmes' },
+    { id: 5, name: "Robe d'été - Blanc cassé", price: 65.0, category: 'femmes' },
+    { id: 6, name: 'Top en fibres recyclées - Rose', price: 35.0, category: 'femmes' }
+];
+
 function getLocalProducts() {
     try {
         const raw = localStorage.getItem(ADMIN_LOCAL_PRODUCTS_KEY);
         const parsed = raw ? JSON.parse(raw) : [];
         return Array.isArray(parsed) ? parsed : [];
     } catch (e) {
-        return [];
+        return ADMIN_FALLBACK_PRODUCTS;
     }
 }
 
@@ -199,8 +208,8 @@ document.addEventListener('DOMContentLoaded', () => {
             loadMaintenanceModeStatus();
         } catch (error) {
             console.error('Erreur chargement produits:', error);
-            document.getElementById('products-list').innerHTML = '<p>Erreur de chargement</p>';
-            updateStats([]);
+            updateStats(ADMIN_FALLBACK_PRODUCTS);
+            displayProducts(ADMIN_FALLBACK_PRODUCTS);
         }
     }
 
