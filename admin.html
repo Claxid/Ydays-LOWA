@@ -3,6 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        if (sessionStorage.getItem('lowa_admin_entry') !== '1') {
+            window.location.replace('/index.html');
+        } else {
+            sessionStorage.removeItem('lowa_admin_entry');
+        }
+    </script>
     <link rel="icon" type="image/svg+xml" href="/public/images/favicon.svg" />
     <link rel="apple-touch-icon" href="/public/images/logo.png" />
     <title>Admin - LOWA</title>
@@ -86,9 +93,9 @@
 
             <section class="admin-section">
                 <h2>Thème par défaut</h2>
-                <p class="help-text">Le thème par défaut s'appliquera à tous les nouveaux utilisateurs et visiteurs non connectés</p>
+                <p class="help-text">Ce thème est global: il s'applique à tout le site et à tous les utilisateurs, y compris les visiteurs.</p>
                 <div class="settings-group">
-                    <label for="default-theme">Sélectionnez le thème par défaut :</label>
+                    <label for="default-theme">Sélectionnez le thème global du site :</label>
                     <select id="default-theme" required>
                         <option value="noel">Noël (Mode Neige)</option>
                         <option value="light">Clair</option>

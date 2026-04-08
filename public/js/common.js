@@ -29,6 +29,10 @@ const LOWA = {
   }
 };
 
+const LOWA_ADMIN_ENTRY_KEY = 'lowa_admin_entry';
+const LOWA_ADMIN_KEY_SEQUENCE = ['a', 'j'];
+let lowaAdminShortcutState = { step: 0, timer: null };
+
 const LOWA_SCOPED_STORAGE_VERSION = 'v2';
 const LOWA_ACTIVE_USER_STORAGE_KEY = 'lowa_active_user_scope';
 
@@ -127,6 +131,47 @@ function scopedStorageSet(baseKey, value, options = {}) {
   localStorage.setItem(scopedKey, value);
 }
 
+function isTypingTarget(target) {
+  const tag = target && target.tagName ? String(target.tagName).toLowerCase() : '';
+  return ['input', 'textarea', 'select'].includes(tag) || (target && target.isContentEditable);
+}
+
+function registerAdminKeyboardShortcut() {
+  document.addEventListener('keydown', (event) => {
+    if (isTypingTarget(event.target)) return;
+
+    const key = String(event.key || '').toLowerCase();
+
+    if (lowaAdminShortcutState.step === 0) {
+      if (event.ctrlKey && key === LOWA_ADMIN_KEY_SEQUENCE[0]) {
+        lowaAdminShortcutState.step = 1;
+        clearTimeout(lowaAdminShortcutState.timer);
+        lowaAdminShortcutState.timer = setTimeout(() => {
+          lowaAdminShortcutState.step = 0;
+        }, 1500);
+        event.preventDefault();
+      }
+      return;
+    }
+
+    if (lowaAdminShortcutState.step === 1 && key === LOWA_ADMIN_KEY_SEQUENCE[1]) {
+      clearTimeout(lowaAdminShortcutState.timer);
+      lowaAdminShortcutState.step = 0;
+      sessionStorage.setItem(LOWA_ADMIN_ENTRY_KEY, '1');
+      window.location.href = '/admin.html';
+      event.preventDefault();
+      return;
+    }
+
+    if (key !== LOWA_ADMIN_KEY_SEQUENCE[0]) {
+      clearTimeout(lowaAdminShortcutState.timer);
+      lowaAdminShortcutState.step = 0;
+    }
+  }, true);
+}
+
+registerAdminKeyboardShortcut();
+
 const LOWA_USER_STATE_TABLE = 'user_state';
 
 function lowaNormalizeUserState(row) {
@@ -140,7 +185,9 @@ function lowaNormalizeUserState(row) {
     animations: typeof state.animations === 'boolean' ? state.animations : null,
     language: typeof state.language === 'string' ? state.language : null,
     notif: typeof state.notif === 'boolean' ? state.notif : null,
-    avatar: typeof state.avatar === 'string' ? state.avatar : null
+    avatar: typeof state.avatar === 'string' ? state.avatar : null,
+    theme_auto: typeof state.theme_auto === 'boolean' ? state.theme_auto : null,
+    cookie_consent: typeof state.cookie_consent === 'string' ? state.cookie_consent : null
   };
 }
 
@@ -173,7 +220,7 @@ async function lowaReadUserState() {
   try {
     const { data, error } = await supabaseClient
       .from(LOWA_USER_STATE_TABLE)
-      .select('favorites, cart, theme, font_size, spacing, animations, language, notif, avatar')
+      .select('favorites, cart, theme, font_size, spacing, animations, language, notif, avatar, theme_auto, cookie_consent')
       .eq('user_id', authUser.id)
       .maybeSingle();
 
@@ -217,6 +264,8 @@ async function lowaWriteUserStatePatch(patch) {
     language: merged.language || null,
     notif: typeof merged.notif === 'boolean' ? merged.notif : null,
     avatar: merged.avatar || null,
+    theme_auto: typeof merged.theme_auto === 'boolean' ? merged.theme_auto : null,
+    cookie_consent: merged.cookie_consent || null,
     updated_at: new Date().toISOString()
   };
 
@@ -236,6 +285,62 @@ async function lowaWriteUserStatePatch(patch) {
   } catch (e) {
     console.error('❌ Write user_state exception:', e && e.message ? e.message : e);
     console.error('Exception details:', e);
+    return false;
+  }
+}
+
+async function lowaReadPublicProfile() {
+  const supabaseClient = initSupabase();
+  if (!supabaseClient) return null;
+  const authUser = await lowaGetAuthUser();
+  if (!authUser || !authUser.email) return null;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('users')
+      .select('email, prenom, nom, sexe')
+      .eq('email', authUser.email)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Read users warning:', error.message || error);
+      return null;
+    }
+
+    return data || null;
+  } catch (e) {
+    console.warn('Read users warning:', e && e.message ? e.message : e);
+    return null;
+  }
+}
+
+async function lowaWritePublicProfilePatch(patch) {
+  const supabaseClient = initSupabase();
+  if (!supabaseClient) return false;
+  const authUser = await lowaGetAuthUser();
+  if (!authUser || !authUser.email) return false;
+
+  const existing = (await lowaReadPublicProfile()) || {};
+  const payload = {
+    email: authUser.email,
+    prenom: typeof patch?.prenom === 'string' ? patch.prenom : existing.prenom || null,
+    nom: typeof patch?.nom === 'string' ? patch.nom : existing.nom || null,
+    sexe: typeof patch?.sexe === 'string' ? patch.sexe : existing.sexe || null
+  };
+
+  try {
+    const { error } = await supabaseClient
+      .from('users')
+      .upsert(payload, { onConflict: 'email' });
+
+    if (error) {
+      console.warn('Write users warning:', error.message || error);
+      return false;
+    }
+
+    return true;
+  } catch (e) {
+    console.warn('Write users warning:', e && e.message ? e.message : e);
     return false;
   }
 }

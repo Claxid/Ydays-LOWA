@@ -15,18 +15,27 @@ function initCookieBanner() {
   if (!banner || !acceptBtn || !declineBtn) return;
 
   const cookieGet = () => {
+    if (typeof lowaReadUserState === 'function') {
+      return null;
+    }
     if (typeof scopedStorageGet === 'function') {
       return scopedStorageGet(LOWA.STORAGE.COOKIE_CONSENT_KEY);
     }
     return localStorage.getItem(LOWA.STORAGE.COOKIE_CONSENT_KEY);
   };
 
-  const cookieSet = (value) => {
+  const cookieSet = async (value) => {
+    if (typeof lowaWriteUserStatePatch === 'function') {
+      const status = value === 'accepted' ? 'accepted' : 'declined';
+      const ok = await lowaWriteUserStatePatch({ cookie_consent: status });
+      if (ok) return true;
+    }
     if (typeof scopedStorageSet === 'function') {
       scopedStorageSet(LOWA.STORAGE.COOKIE_CONSENT_KEY, value);
-      return;
+      return true;
     }
     localStorage.setItem(LOWA.STORAGE.COOKIE_CONSENT_KEY, value);
+    return true;
   };
   
   function checkExistingConsent() {
@@ -37,38 +46,29 @@ function initCookieBanner() {
   }
   
   acceptBtn.addEventListener('click', () => {
-    const consentData = {
+    const consentData = JSON.stringify({
       status: 'accepted',
       date: new Date().toISOString(),
       user_id: currentUser ? currentUser.id : null,
       user_email: currentUser ? currentUser.email : null
-    };
-    cookieSet(JSON.stringify(consentData));
-    banner.classList.remove('show');
-    
-    if (currentUser && sessionToken) {
-      fetch(LOWA.API.BASE + '/user-preferences', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': sessionToken
-        },
-        body: JSON.stringify({cookie_consent: 'accepted'})
-      }).catch(e => console.log('Preference sync error:', e));
-    }
-    console.log('Cookies accepted');
+    });
+    Promise.resolve(cookieSet(consentData)).finally(() => {
+      banner.classList.remove('show');
+      console.log('Cookies accepted');
+    });
   });
   
   declineBtn.addEventListener('click', () => {
-    const consentData = {
+    const consentData = JSON.stringify({
       status: 'declined',
       date: new Date().toISOString(),
       user_id: currentUser ? currentUser.id : null,
       user_email: currentUser ? currentUser.email : null
-    };
-    cookieSet(JSON.stringify(consentData));
-    banner.classList.remove('show');
-    console.log('Cookies declined');
+    });
+    Promise.resolve(cookieSet(consentData)).finally(() => {
+      banner.classList.remove('show');
+      console.log('Cookies declined');
+    });
   });
   
   if (policyLink) {

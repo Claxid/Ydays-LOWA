@@ -71,6 +71,7 @@ type MaintenanceMode struct {
 
 var db *sql.DB
 var maintenanceEnabled = false
+var defaultSiteTheme = "light"
 
 func initDB() error {
 	var err error
@@ -105,6 +106,26 @@ func initDB() error {
 	}
 
 	log.Println("✓ Connected to Neon PostgreSQL database successfully")
+	return nil
+}
+
+func initSiteSettings() error {
+	_, err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS site_settings (
+			setting_key TEXT PRIMARY KEY,
+			setting_value TEXT NOT NULL,
+			updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+		)
+	`)
+	if err != nil {
+		return err
+	}
+
+	if err := db.QueryRow(`SELECT COALESCE((SELECT setting_value FROM site_settings WHERE setting_key = 'default_theme' LIMIT 1), 'light')`).Scan(&defaultSiteTheme); err != nil {
+		defaultSiteTheme = "light"
+		return err
+	}
+
 	return nil
 }
 
@@ -759,8 +780,15 @@ func handleSetMaintenanceMode(w http.ResponseWriter, r *http.Request) {
 func handleGetDefaultTheme(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// Default theme for now
-	theme := "light"
+	theme := defaultSiteTheme
+	if err := db.QueryRow(`
+		SELECT COALESCE(setting_value, 'light')
+		FROM site_settings
+		WHERE setting_key = 'default_theme'
+		LIMIT 1
+	`).Scan(&theme); err != nil {
+		theme = defaultSiteTheme
+	}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"theme": theme})
@@ -799,6 +827,19 @@ func handleSetDefaultTheme(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, err := db.Exec(`
+		INSERT INTO site_settings (setting_key, setting_value, updated_at)
+		VALUES ('default_theme', $1, NOW())
+		ON CONFLICT (setting_key)
+		DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW()
+	`, theme); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to save theme"})
+		return
+	}
+
+	defaultSiteTheme = theme
+
 	log.Printf("Default theme updated to: %s", theme)
 
 	w.WriteHeader(http.StatusOK)
@@ -825,6 +866,9 @@ func main() {
 	// Initialize database
 	if err := initDB(); err != nil {
 		log.Fatal("❌ Database initialization failed:", err)
+	}
+	if err := initSiteSettings(); err != nil {
+		log.Printf("⚠️ Site settings initialization warning: %v", err)
 	}
 	defer db.Close()
 

@@ -33,6 +33,123 @@
 	margin-bottom: 1rem;
 }
 
+.articles-section {
+	margin: 2rem 0;
+	padding: 1.4rem;
+	border: 1px solid var(--pastel-green);
+	border-radius: 20px;
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(247, 244, 231, 0.92));
+	box-shadow: var(--shadow-large);
+}
+
+.section-heading {
+	margin-bottom: 1rem;
+}
+
+.section-kicker {
+	margin: 0 0 0.35rem;
+	font-size: 0.8rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	color: var(--accent);
+}
+
+.section-heading h2 {
+	margin: 0 0 0.45rem;
+	font-size: 1.45rem;
+	color: var(--dark);
+}
+
+.section-heading p {
+	margin: 0;
+	max-width: 70ch;
+	color: var(--muted);
+	line-height: 1.65;
+}
+
+.articles-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.95rem;
+}
+
+.article-card {
+	background: rgba(255, 255, 255, 0.8);
+	border: 1px solid rgba(90, 106, 47, 0.12);
+	border-radius: 16px;
+	padding: 1.05rem 1rem;
+	box-shadow: 0 10px 26px rgba(90, 106, 47, 0.06);
+	display: flex;
+	flex-direction: column;
+	gap: 0.7rem;
+	height: 100%;
+}
+
+.article-card-wide {
+	grid-column: 1 / -1;
+	background: linear-gradient(135deg, rgba(232, 237, 196, 0.8), rgba(255, 255, 255, 0.88));
+}
+
+.article-meta {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+}
+
+.article-source {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.28rem 0.6rem;
+	border-radius: 999px;
+	background: rgba(90, 106, 47, 0.12);
+	color: var(--dark);
+	font-size: 0.8rem;
+	font-weight: 700;
+}
+
+.article-date {
+	font-size: 0.82rem;
+	color: var(--muted);
+}
+
+.article-card h3 {
+	margin: 0;
+	font-size: 1.08rem;
+	line-height: 1.35;
+	color: var(--dark);
+}
+
+.article-card p {
+	margin: 0;
+	color: var(--muted);
+	line-height: 1.65;
+}
+
+.article-link {
+	margin-top: auto;
+	align-self: flex-start;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	font-weight: 700;
+	font-size: 0.9rem;
+	color: var(--accent);
+	text-decoration: none;
+	padding: 0.2rem 0;
+}
+
+.article-link::after {
+	content: '↗';
+	font-size: 0.95em;
+}
+
+.article-link:hover {
+	text-decoration: underline;
+}
+
 .about-card {
 	background: var(--pale-green);
 	border: 1px solid var(--pastel-green);
@@ -174,6 +291,10 @@
         grid-template-columns: 1fr;
     }
 
+	.articles-grid {
+		grid-template-columns: 1fr;
+	}
+
     .stats {
         grid-template-columns: 1fr;
     }
@@ -181,6 +302,14 @@
     .about-hero {
         padding: 1.3rem;
     }
+
+	.articles-section {
+		padding: 1rem;
+	}
+
+	.section-heading h2 {
+		font-size: 1.25rem;
+	}
 
     .faq-item summary {
         padding: 0.85rem 1rem;

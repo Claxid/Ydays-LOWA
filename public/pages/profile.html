@@ -97,34 +97,6 @@
         border-bottom-color: var(--pastel-green);
       }
 
-      html[data-theme] .theme-selector {
-        display: flex;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-        flex-wrap: wrap;
-      }
-
-      html[data-theme] .theme-option {
-        padding: 0.5rem 1rem;
-        border: 2px solid var(--pastel-green);
-        border-radius: 8px;
-        background: var(--pale-green);
-        color: var(--dark);
-        cursor: pointer;
-        font-weight: 500;
-        transition: all 0.2s ease;
-      }
-
-      html[data-theme] .theme-option:hover {
-        border-color: var(--accent);
-      }
-
-      html[data-theme] .theme-option.active {
-        background: var(--accent);
-        color: #fff;
-        border-color: var(--accent);
-      }
-
       html[data-theme] .form-group {
         margin-bottom: 1rem;
       }
@@ -253,19 +225,38 @@
         <section class="card">
           <h3>Informations utilisateur</h3>
           <div id="user-info"></div>
+          <form id="profile-info-form" style="margin-top:1rem">
+            <div class="form-group">
+              <label for="profile-prenom">Prénom</label>
+              <input type="text" id="profile-prenom" autocomplete="given-name" />
+            </div>
+            <div class="form-group">
+              <label for="profile-nom">Nom</label>
+              <input type="text" id="profile-nom" autocomplete="family-name" />
+            </div>
+            <div class="form-group">
+              <label for="profile-sexe">Sexe</label>
+              <select id="profile-sexe">
+                <option value="">Non renseigné</option>
+                <option value="H">Homme</option>
+                <option value="F">Femme</option>
+                <option value="Autre">Autre</option>
+              </select>
+            </div>
+            <button type="submit" id="save-profile-info" class="btn primary">Enregistrer les informations</button>
+            <p id="profile-info-status" style="margin-top:0.5rem;color:var(--theme-text-muted)"></p>
+          </form>
         </section>
         <section class="card">
           <h3>Personnalisation de l'interface</h3>
-          
-          <!-- Theme Selection -->
           <div class="form-group">
-            <label style="font-weight:bold;display:block;margin-bottom:0.5rem">Thème visuel</label>
-            <div class="theme-selector">
-              <button class="theme-option active" data-theme="light">Clair</button>
-              <button class="theme-option" data-theme="dark">Crépuscule</button>
-              <button class="theme-option" data-theme="temperate">Tempéré</button>
-              <button class="theme-option" data-theme="auto">Auto</button>
-            </div>
+            <label style="font-weight:bold;display:flex;gap:0.5rem;align-items:center">
+              <input type="checkbox" id="pref-theme-auto" checked />
+              Mode automatique
+            </label>
+            <p style="margin:0.4rem 0 0;color:var(--theme-text-muted);font-size:0.9rem">
+              Nuit: sombre, matin et soir: tempéré, jour: clair.
+            </p>
           </div>
 
           <!-- Font Size -->
@@ -339,25 +330,15 @@
     <script>
       const API = window.API_BASE || '/api';
       let sessionToken = null;
-
-      function profileScopedGet(baseKey) {
-        if (typeof scopedStorageGet === 'function') {
-          return scopedStorageGet(baseKey);
-        }
-        return localStorage.getItem(baseKey);
-      }
-
-      function profileScopedSet(baseKey, value) {
-        if (typeof scopedStorageSet === 'function') {
-          scopedStorageSet(baseKey, value);
-          return;
-        }
-        localStorage.setItem(baseKey, value);
-      }
+      let profileCloudState = {
+        authUser: null,
+        profile: null,
+        userState: null
+      };
 
       // Avatar Management
       function loadAvatar() {
-        const savedAvatar = profileScopedGet('lowa_avatar');
+        const savedAvatar = (profileCloudState.userState && profileCloudState.userState.avatar) || (profileCloudState.profile && profileCloudState.profile.pdp) || '';
         if (savedAvatar) {
           const avatarEl = document.getElementById('avatar');
           avatarEl.style.backgroundImage = `url(${savedAvatar})`;
@@ -367,27 +348,59 @@
         }
       }
 
+      async function getGlobalSiteTheme() {
+        try {
+          const response = await fetch('/api/admin/settings/default-theme', { cache: 'no-cache' });
+          if (!response.ok) return 'light';
+          const data = await response.json();
+          return data && data.theme ? String(data.theme) : 'light';
+        } catch (e) {
+          return 'light';
+        }
+      }
+
+      function getAutoThemeByTime(date = new Date()) {
+        const hour = date.getHours();
+        if (hour >= 20 || hour < 6) return 'dark';
+        if ((hour >= 6 && hour < 10) || (hour >= 17 && hour < 20)) return 'temperate';
+        return 'light';
+      }
+
+      async function applyResolvedProfileTheme() {
+        const globalTheme = await getGlobalSiteTheme();
+        const autoEnabled = profileCloudState.userState && typeof profileCloudState.userState.theme_auto === 'boolean'
+          ? profileCloudState.userState.theme_auto
+          : true;
+        const activeTheme = globalTheme === 'noel' ? globalTheme : (autoEnabled ? getAutoThemeByTime() : globalTheme);
+        document.documentElement.setAttribute('data-theme', activeTheme);
+      }
+
+      function loadThemeAutoPref() {
+        const autoEnabled = profileCloudState.userState && typeof profileCloudState.userState.theme_auto === 'boolean'
+          ? profileCloudState.userState.theme_auto
+          : true;
+        const toggle = document.getElementById('pref-theme-auto');
+        if (toggle) toggle.checked = autoEnabled;
+      }
+
       async function hydrateProfileStateFromCloud() {
         try {
-          const state = await lowaReadUserState();
-          if (!state) return;
+          const [authUser, profile, userState] = await Promise.all([
+            lowaGetAuthUser(),
+            lowaReadPublicProfile(),
+            lowaReadUserState()
+          ]);
 
-          if (state.avatar) {
-            profileScopedSet('lowa_avatar', state.avatar);
-            loadAvatar();
+          profileCloudState.authUser = authUser;
+          profileCloudState.profile = profile || null;
+          profileCloudState.userState = userState || null;
+
+          if (userState && userState.theme) {
+            applyTheme(userState.theme);
           }
 
-          if (state.theme) {
-            profileScopedSet('lowa_theme', state.theme);
-            applyTheme(state.theme);
-          }
-
-          if (state.font_size) profileScopedSet('lowa_pref_font_size', state.font_size);
-          if (state.spacing) profileScopedSet('lowa_pref_spacing', state.spacing);
-          if (typeof state.animations === 'boolean') profileScopedSet('lowa_pref_animations', String(state.animations));
-          if (state.language) profileScopedSet('lowa_pref_lang', state.language);
-          if (typeof state.notif === 'boolean') profileScopedSet('lowa_pref_notif', String(state.notif));
-
+          loadAvatar();
+          loadThemeAutoPref();
           loadAdvancedPrefs();
         } catch (e) {
           console.warn('Hydrate profile state warning:', e && e.message ? e.message : e);
@@ -404,7 +417,7 @@
           const reader = new FileReader();
           reader.onload = (event) => {
             const avatarData = event.target.result;
-            profileScopedSet('lowa_avatar', avatarData);
+            profileCloudState.userState = Object.assign({}, profileCloudState.userState || {}, { avatar: avatarData });
             loadAvatar();
           };
           reader.readAsDataURL(file);
@@ -413,28 +426,21 @@
 
       // Theme Management with Auto mode
       function initTheme() {
-        const savedTheme = profileScopedGet('lowa_theme') || 'light';
-        applyTheme(savedTheme);
+        applyResolvedProfileTheme();
       }
 
       function applyTheme(theme) {
-        if (theme === 'auto') {
-          const hour = new Date().getHours();
-          const actualTheme = (hour >= 20 || hour < 7) ? 'dark' : 'light';
-          document.documentElement.setAttribute('data-theme', actualTheme);
-        } else {
-          document.documentElement.setAttribute('data-theme', theme);
-        }
-        profileScopedSet('lowa_theme', theme);
-        
-        // Update active button
-        document.querySelectorAll('.theme-option').forEach(btn => {
-          btn.classList.toggle('active', btn.dataset.theme === theme);
-        });
+        document.documentElement.setAttribute('data-theme', theme);
       }
 
-      function setTheme(theme) {
-        applyTheme(theme);
+      async function setThemeAuto(enabled) {
+        profileCloudState.userState = Object.assign({}, profileCloudState.userState || {}, { theme_auto: Boolean(enabled) });
+        document.getElementById('pref-theme-auto').checked = Boolean(enabled);
+        const ok = await lowaWriteUserStatePatch(profileCloudState.userState);
+        if (!ok) {
+          throw new Error('Impossible de synchroniser le mode automatique');
+        }
+        await applyResolvedProfileTheme();
       }
 
       // Keyboard shortcut: press "u" to cycle theme (works anywhere, loops back to clair)
@@ -443,25 +449,20 @@
         const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
         // Allow use even inside the menu; only skip when typing in inputs/textareas/selects
         if (['input','textarea','select'].includes(tag)) return;
-        const order = ['light', 'dark', 'temperate', 'auto'];
-        const savedTheme = profileScopedGet('lowa_theme');
-        const currentPref = order.includes(savedTheme) ? savedTheme : 'light';
-        const idx = order.indexOf(currentPref);
-        const next = order[(idx + 1) % order.length];
-        setTheme(next);
-        saveAdvancedPrefs();
+        const toggle = document.getElementById('pref-theme-auto');
+        if (!toggle) return;
+        toggle.checked = !toggle.checked;
+        setThemeAuto(toggle.checked).catch(() => {});
         e.preventDefault();
       });
 
       document.addEventListener('DOMContentLoaded', () => {
-        document.querySelectorAll('.theme-option').forEach(btn => {
-          btn.addEventListener('click', () => {
-            setTheme(btn.dataset.theme);
-            saveAdvancedPrefs();
+        document.getElementById('pref-theme-auto').addEventListener('change', (e) => {
+          setThemeAuto(e.target.checked).catch((err) => {
+            console.warn('Auto theme sync warning:', err && err.message ? err.message : err);
           });
         });
-        
-        // Add listeners for font size and spacing
+
         document.getElementById('pref-font-size').addEventListener('change', saveAdvancedPrefs);
         document.getElementById('pref-spacing').addEventListener('change', saveAdvancedPrefs);
         document.getElementById('pref-animations').addEventListener('change', saveAdvancedPrefs);
@@ -489,81 +490,68 @@
       }
 
       async function fetchUser() {
-        // Prioritize localStorage; try API as secondary
-        let user = null;
-        let usedFallback = false;
-        
-        // First, try to get user from stored session
         try {
-          const stored = JSON.parse(localStorage.getItem('lowa_session') || '{}');
-          if (stored.user) {
-            user = stored.user;
-            usedFallback = true;
-            console.log('Utilisateur chargé depuis localStorage');
+          const authUser = profileCloudState.authUser || await lowaGetAuthUser();
+          if (!authUser) {
+            throw new Error('Aucune donnée utilisateur disponible');
           }
+
+          const profile = profileCloudState.profile || await lowaReadPublicProfile();
+          const userState = profileCloudState.userState || await lowaReadUserState();
+
+          profileCloudState.authUser = authUser;
+          profileCloudState.profile = profile || null;
+          profileCloudState.userState = userState || null;
+
+          const user = {
+            email: authUser.email || profile?.email || '',
+            nom: profile?.nom || authUser.user_metadata?.nom || authUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
+            prenom: profile?.prenom || authUser.user_metadata?.prenom || authUser.user_metadata?.full_name?.split(' ')[0] || '',
+            sexe: profile?.sexe || authUser.user_metadata?.sexe || '',
+            role: authUser.user_metadata?.role || authUser.app_metadata?.role || 'user',
+            pdp: (userState && userState.avatar) || profile?.pdp || '',
+            date_creation: authUser.created_at || authUser.created_at || ''
+          };
+
+          const avatarContainer = document.getElementById('avatar');
+          const avatarText = document.getElementById('avatar-text');
+
+          if (user.pdp) {
+            avatarContainer.style.backgroundImage = `url(${user.pdp})`;
+            avatarText.style.display = 'none';
+          } else {
+            const initials = (user.prenom?.[0] || 'L') + (user.nom?.[0] || 'G');
+            avatarText.textContent = initials.toUpperCase();
+            avatarText.style.display = 'block';
+            avatarContainer.style.backgroundImage = 'none';
+          }
+
+          if (user.date_creation) {
+            document.getElementById('member-since').textContent = 'Membre depuis — ' + new Date(user.date_creation).toLocaleDateString();
+          }
+          const badge = document.getElementById('badge-role');
+          if (user.role && (String(user.role).toLowerCase() === 'admin' || String(user.role).toLowerCase() === 'moderator')) {
+            badge.style.display = 'inline-block';
+            badge.textContent = String(user.role).toLowerCase() === 'admin' ? 'Admin' : 'Modérateur';
+            document.getElementById('admin-panel').style.display = 'block';
+          }
+
+          document.getElementById('profile-prenom').value = user.prenom || '';
+          document.getElementById('profile-nom').value = user.nom || '';
+          document.getElementById('profile-sexe').value = user.sexe || '';
+
+          const userHTML = `
+            <div class="info-row"><strong>Nom:</strong> <span>${user.prenom || 'N/A'} ${user.nom || 'N/A'}</span></div>
+            <div class="info-row"><strong>Email:</strong> <span>${user.email || 'N/A'}</span></div>
+            <div class="info-row"><strong>Sexe:</strong> <span>${formatSexe(user.sexe)}</span></div>
+            <div class="info-row"><strong>Rôle:</strong> <span>${user.role || 'user'}</span></div>
+            <div class="info-row"><strong>Créé le:</strong> <span>${user.date_creation ? new Date(user.date_creation).toLocaleString() : 'N/A'}</span></div>
+          `;
+          document.getElementById('user-info').innerHTML = userHTML;
+          return user;
         } catch (e) {
-          console.warn('Erreur lors du parsing de lowa_session:', e);
-        }
-        
-        // If we have sessionToken, try API to get fresh data
-        if (sessionToken && !usedFallback) {
-          try {
-            console.log('Tentative API avec token...');
-            const resp = await fetch(API + '/user', { headers: { Authorization: sessionToken } });
-            if (!resp.ok) {
-              const text = await resp.text();
-              console.warn(`API erreur ${resp.status}: ${text}`);
-              throw new Error(`API ${resp.status} ${resp.statusText}`);
-            }
-            user = await resp.json();
-            usedFallback = false;
-            console.log('Utilisateur chargé depuis API');
-          } catch (apiErr) {
-            console.warn('Erreur API, utilisation du fallback localStorage:', apiErr);
-            if (!user) throw apiErr;
-          }
-        }
-        
-        if (!user) {
           throw new Error('Aucune donnée utilisateur disponible');
         }
-        
-        // Update avatar: show image if PDP exists, otherwise show initials
-        const avatarContainer = document.getElementById('avatar');
-        const avatarText = document.getElementById('avatar-text');
-        
-        if (user.pdp) {
-          // User has a profile picture
-          avatarContainer.style.backgroundImage = `url(${user.pdp})`;
-          avatarText.style.display = 'none';
-        } else {
-          // Show initials
-          const initials = (user.prenom?.[0] || 'L') + (user.nom?.[0] || 'G');
-          avatarText.textContent = initials.toUpperCase();
-          avatarText.style.display = 'block';
-          avatarContainer.style.backgroundImage = 'none';
-        }
-        
-        if (user.date_creation) {
-          document.getElementById('member-since').textContent = 'Membre depuis — ' + new Date(user.date_creation).toLocaleDateString();
-        }
-        const badge = document.getElementById('badge-role');
-        if (user.role && (user.role.toLowerCase() === 'admin' || user.role.toLowerCase() === 'moderator')) {
-          badge.style.display = 'inline-block';
-          badge.textContent = user.role.toLowerCase() === 'admin' ? 'Admin' : 'Modérateur';
-          document.getElementById('admin-panel').style.display = 'block';
-        }
-
-        const userHTML = `
-          <div class="info-row"><strong>Nom:</strong> <span>${user.prenom || 'N/A'} ${user.nom || 'N/A'}</span></div>
-          <div class="info-row"><strong>Email:</strong> <span>${user.email || 'N/A'}</span></div>
-          <div class="info-row"><strong>Sexe:</strong> <span>${formatSexe(user.sexe)}</span></div>
-          <div class="info-row"><strong>Rôle:</strong> <span>${user.role || 'user'}</span></div>
-          <div class="info-row"><strong>Créé le:</strong> <span>${user.date_creation ? new Date(user.date_creation).toLocaleString() : 'N/A'}</span></div>
-          ${usedFallback ? '<div class="info-row" style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem;">(Données depuis votre session locale)</div>' : ''}
-        `;
-        document.getElementById('user-info').innerHTML = userHTML;
-        return user;
       }
 
       async function fetchHistory() {
@@ -581,33 +569,27 @@
       }
 
       async function loadPrefs() {
-        // Optionally could add GET /user-preferences; for now reflect local storage
-        const consent = profileScopedGet('lowa_cookie_consent');
-        if (consent) {
-          try { const obj = JSON.parse(consent); document.getElementById('cookie-consent').checked = obj.status === 'accepted'; } catch {}
+        const state = profileCloudState.userState || await lowaReadUserState();
+        if (state && state.cookie_consent) {
+          document.getElementById('cookie-consent').checked = state.cookie_consent === 'accepted';
         }
       }
 
       function loadAdvancedPrefs(){
-        const lang = profileScopedGet('lowa_pref_lang') || 'fr';
-        const notif = profileScopedGet('lowa_pref_notif') === 'true';
-        const animations = profileScopedGet('lowa_pref_animations') !== 'false';
-        const theme = profileScopedGet('lowa_theme') || 'light';
-        const fontSize = profileScopedGet('lowa_pref_font_size') || 'normal';
-        const spacing = profileScopedGet('lowa_pref_spacing') || 'normal';
+        const state = profileCloudState.userState || {};
+        const lang = state.language || 'fr';
+        const notif = state.notif === true;
+        const animations = state.animations !== false;
+        const fontSize = state.font_size || 'normal';
+        const spacing = state.spacing || 'normal';
+        const autoEnabled = state.theme_auto !== false;
         
         document.getElementById('pref-lang').value = lang;
         document.getElementById('pref-notif').checked = notif;
         document.getElementById('pref-animations').checked = animations;
         document.getElementById('pref-font-size').value = fontSize;
         document.getElementById('pref-spacing').value = spacing;
-        
-        // Set active theme button
-        document.querySelectorAll('.theme-option').forEach(btn => {
-          if (btn.dataset.theme === theme) {
-            btn.classList.add('active');
-          }
-        });
+        document.getElementById('pref-theme-auto').checked = autoEnabled;
 
         // Apply font size
         applyFontSize(fontSize);
@@ -636,25 +618,20 @@
         const lang = document.getElementById('pref-lang').value;
         const notif = document.getElementById('pref-notif').checked;
         const animations = document.getElementById('pref-animations').checked;
-        const theme = document.documentElement.getAttribute('data-theme');
         const fontSize = document.getElementById('pref-font-size').value;
         const spacing = document.getElementById('pref-spacing').value;
-        
-        profileScopedSet('lowa_pref_lang', String(lang));
-        profileScopedSet('lowa_pref_notif', String(notif));
-        profileScopedSet('lowa_pref_animations', String(animations));
-        profileScopedSet('lowa_theme', String(theme));
-        profileScopedSet('lowa_pref_font_size', String(fontSize));
-        profileScopedSet('lowa_pref_spacing', String(spacing));
+        const autoEnabled = document.getElementById('pref-theme-auto').checked;
 
-        lowaWriteUserStatePatch({
-          theme: String(theme),
+        profileCloudState.userState = Object.assign({}, profileCloudState.userState || {}, {
           font_size: String(fontSize),
           spacing: String(spacing),
           animations: Boolean(animations),
           language: String(lang),
-          notif: Boolean(notif)
-        }).catch(() => {});
+          notif: Boolean(notif),
+          theme_auto: Boolean(autoEnabled)
+        });
+
+        lowaWriteUserStatePatch(profileCloudState.userState).catch(() => {});
         
         // Apply animations preference
         if (!animations) {
@@ -677,17 +654,39 @@
 
       async function savePrefs() {
         const status = document.getElementById('cookie-consent').checked ? 'accepted' : 'declined';
-        const resp = await fetch(API + '/user-preferences', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: sessionToken },
-          body: JSON.stringify({ cookie_consent: status })
-        });
-        if (!resp.ok) throw new Error('Save failed');
+        profileCloudState.userState = Object.assign({}, profileCloudState.userState || {}, { cookie_consent: status });
+        const ok = await lowaWriteUserStatePatch(profileCloudState.userState);
+        if (!ok) throw new Error('Save failed');
         document.getElementById('prefs-status').textContent = 'Préférences enregistrées';
         setTimeout(() => {
           document.getElementById('prefs-status').textContent = '';
         }, 3000);
       }
+
+      document.getElementById('profile-info-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const statusEl = document.getElementById('profile-info-status');
+        const submitBtn = document.getElementById('save-profile-info');
+        const prenom = document.getElementById('profile-prenom').value.trim();
+        const nom = document.getElementById('profile-nom').value.trim();
+        const sexe = document.getElementById('profile-sexe').value;
+
+        submitBtn.disabled = true;
+        statusEl.textContent = 'Enregistrement en base...';
+
+        try {
+          const ok = await lowaWritePublicProfilePatch({ prenom, nom, sexe });
+          if (!ok) throw new Error('Impossible de synchroniser le profil');
+          profileCloudState.profile = Object.assign({}, profileCloudState.profile || {}, { prenom, nom, sexe });
+          statusEl.textContent = 'Profil enregistré dans la base de données';
+          await fetchUser();
+          setTimeout(() => { statusEl.textContent = ''; }, 3000);
+        } catch (err) {
+          statusEl.textContent = 'Erreur: ' + (err && err.message ? err.message : 'inconnue');
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
 
       document.getElementById('save-prefs').addEventListener('click', async () => {
         try { await savePrefs(); } catch (e) { alert('Erreur: ' + e.message); }
@@ -731,60 +730,23 @@
         const reader = new FileReader();
         reader.onload = async (event) => {
           const base64 = event.target.result;
-          
+
           try {
-            // Update profile picture via API
-            const resp = await fetch(API + '/user', {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: sessionToken
-              },
-              body: JSON.stringify({ pdp: base64 })
-            });
-
-            if (!resp.ok) {
-              throw new Error('Échec de la mise à jour distante');
-            }
-
-            const updatedUser = await resp.json();
-            
-            // Update UI
             const avatarContainer = document.getElementById('avatar');
             const avatarText = document.getElementById('avatar-text');
             avatarContainer.style.backgroundImage = `url(${base64})`;
             avatarText.style.display = 'none';
 
-            // Update session storage
-            const session = JSON.parse(localStorage.getItem('lowa_session') || '{}');
-            session.user = Object.assign({}, session.user || {}, updatedUser || {});
-            if (!session.storage_scope && session.user && (session.user.id || session.user.email)) {
-              session.storage_scope = String(session.user.id || session.user.email);
+            profileCloudState.userState = Object.assign({}, profileCloudState.userState || {}, { avatar: base64 });
+            const ok = await lowaWriteUserStatePatch(profileCloudState.userState);
+            if (!ok) {
+              throw new Error('Échec de la mise à jour en base');
             }
-            localStorage.setItem('lowa_session', JSON.stringify(session));
-            profileScopedSet('lowa_avatar', base64);
-            lowaWriteUserStatePatch({ avatar: base64 }).catch(() => {});
 
             console.log('Photo de profil mise à jour avec succès');
           } catch (err) {
-            console.warn('Mise à jour distante indisponible, fallback local:', err && err.message ? err.message : err);
-
-            // Fallback local: ne pas bloquer l'utilisateur si l'API profil est indisponible
-            const avatarContainer = document.getElementById('avatar');
-            const avatarText = document.getElementById('avatar-text');
-            avatarContainer.style.backgroundImage = `url(${base64})`;
-            avatarText.style.display = 'none';
-            profileScopedSet('lowa_avatar', base64);
-            lowaWriteUserStatePatch({ avatar: base64 }).catch(() => {});
-
-            const session = JSON.parse(localStorage.getItem('lowa_session') || '{}');
-            session.user = Object.assign({}, session.user || {}, { pdp: base64 });
-            if (!session.storage_scope && session.user && (session.user.id || session.user.email)) {
-              session.storage_scope = String(session.user.id || session.user.email);
-            }
-            localStorage.setItem('lowa_session', JSON.stringify(session));
-
-            alert('Photo enregistrée localement sur cet appareil.');
+            console.warn('Mise à jour distante indisponible:', err && err.message ? err.message : err);
+            alert('Impossible d\'enregistrer la photo dans la base de données.');
           }
         };
         reader.readAsDataURL(file);

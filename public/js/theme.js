@@ -11,9 +11,6 @@ function initTheme() {
   const spacing = (typeof scopedStorageGet === 'function' ? scopedStorageGet('lowa_pref_spacing') : localStorage.getItem('lowa_pref_spacing')) || 'normal';
   const animationsRaw = (typeof scopedStorageGet === 'function' ? scopedStorageGet('lowa_pref_animations') : localStorage.getItem('lowa_pref_animations'));
   const animations = animationsRaw !== 'false';
-
-  const savedTheme = (typeof scopedStorageGet === 'function' ? scopedStorageGet(LOWA.STORAGE.THEME_KEY) : localStorage.getItem(LOWA.STORAGE.THEME_KEY)) || 'light';
-  setTheme(savedTheme);
   applyFontSize(fontSize);
   applySpacing(spacing);
   applyAnimations(animations);
@@ -25,10 +22,6 @@ async function hydrateThemeFromCloud() {
   try {
     const state = await lowaReadUserState();
     if (!state) return;
-
-    if (state.theme) {
-      setTheme(state.theme);
-    }
 
     if (state.font_size) {
       applyFontSize(state.font_size);
@@ -44,9 +37,62 @@ async function hydrateThemeFromCloud() {
       applyAnimations(state.animations);
       if (typeof scopedStorageSet === 'function') scopedStorageSet('lowa_pref_animations', String(state.animations));
     }
+
+    if (typeof state.theme_auto === 'boolean') {
+      if (typeof scopedStorageSet === 'function') scopedStorageSet('lowa_pref_theme_auto', String(state.theme_auto));
+    }
+
+    await refreshThemeFromSources();
   } catch (e) {
     console.warn('Hydrate theme warning:', e && e.message ? e.message : e);
   }
+}
+
+function isFestiveTheme(theme) {
+  return ['noel'].includes(String(theme || '').toLowerCase());
+}
+
+function getAutoThemeByTime(date = new Date()) {
+  const hour = date.getHours();
+  if (hour >= 20 || hour < 6) return 'dark';
+  if ((hour >= 6 && hour < 10) || (hour >= 17 && hour < 20)) return 'temperate';
+  return 'light';
+}
+
+async function getGlobalSiteTheme() {
+  try {
+    if (typeof fetchWithTimeout === 'function') {
+      const response = await fetchWithTimeout('/api/admin/settings/default-theme', 3500);
+      if (!response || !response.ok) return 'light';
+      const data = await response.json();
+      return data && data.theme ? String(data.theme) : 'light';
+    }
+    const response = await fetch('/api/admin/settings/default-theme', { cache: 'no-cache' });
+    if (!response.ok) return 'light';
+    const data = await response.json();
+    return data && data.theme ? String(data.theme) : 'light';
+  } catch (e) {
+    return 'light';
+  }
+}
+
+async function refreshThemeFromSources() {
+  const globalTheme = await getGlobalSiteTheme();
+  const userState = await lowaReadUserState();
+  const storedAuto = (typeof scopedStorageGet === 'function' ? scopedStorageGet('lowa_pref_theme_auto') : localStorage.getItem('lowa_pref_theme_auto'));
+  const autoEnabled = userState && typeof userState.theme_auto === 'boolean' ? userState.theme_auto : storedAuto !== 'false';
+  const activeTheme = isFestiveTheme(globalTheme) ? globalTheme : (autoEnabled ? getAutoThemeByTime() : globalTheme || 'light');
+  document.documentElement.setAttribute('data-theme', activeTheme);
+  syncThemeToggleUI(autoEnabled, globalTheme, activeTheme);
+}
+
+function syncThemeToggleUI(autoEnabled, globalTheme, activeTheme) {
+  const themeToggle = document.getElementById('theme-toggle');
+  if (!themeToggle) return;
+  themeToggle.textContent = autoEnabled ? 'Auto: ON' : 'Auto: OFF';
+  themeToggle.title = isFestiveTheme(globalTheme)
+    ? `Thème global admin: ${globalTheme}`
+    : `Thème actif: ${activeTheme}`;
 }
 
 /**
@@ -54,13 +100,6 @@ async function hydrateThemeFromCloud() {
  */
 function setTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
-  if (typeof scopedStorageSet === 'function') {
-    scopedStorageSet(LOWA.STORAGE.THEME_KEY, theme);
-  } else {
-    localStorage.setItem(LOWA.STORAGE.THEME_KEY, theme);
-  }
-
-  lowaWriteUserStatePatch({ theme: theme }).catch(() => {});
 }
 
 /**
@@ -100,33 +139,26 @@ function applyAnimations(enabled) {
 function initThemeToggle() {
   const themeToggle = document.getElementById('theme-toggle');
   if (!themeToggle) return;
-  
-  const updateThemeEmoji = () => {
-    const theme = document.documentElement.getAttribute('data-theme');
-    if (theme === 'dark') {
-      themeToggle.textContent = 'Sombre';
-    } else if (theme === 'temperate') {
-      themeToggle.textContent = 'Tempéré';
-    } else if (theme === 'noel') {
-      themeToggle.textContent = 'Noël';
-    } else {
-      themeToggle.textContent = 'Clair';
-    }
-  };
-  
-  updateThemeEmoji();
-  
+
   themeToggle.addEventListener('click', () => {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    let nextTheme = 'light';
-    if (currentTheme === 'light') nextTheme = 'dark';
-    else if (currentTheme === 'dark') nextTheme = 'temperate';
-    else if (currentTheme === 'temperate') nextTheme = 'noel';
-    else nextTheme = 'light';
-    
-    setTheme(nextTheme);
-    updateThemeEmoji();
+    const current = document.documentElement.getAttribute('data-theme') || 'light';
+    const storedAuto = (typeof scopedStorageGet === 'function' ? scopedStorageGet('lowa_pref_theme_auto') : localStorage.getItem('lowa_pref_theme_auto'));
+    const autoEnabled = storedAuto !== 'false';
+    const nextAuto = !autoEnabled;
+
+    if (typeof scopedStorageSet === 'function') {
+      scopedStorageSet('lowa_pref_theme_auto', String(nextAuto));
+    } else {
+      localStorage.setItem('lowa_pref_theme_auto', String(nextAuto));
+    }
+
+    lowaWriteUserStatePatch({ theme_auto: nextAuto }).catch(() => {});
+    syncThemeToggleUI(nextAuto, current, current);
+    refreshThemeFromSources();
   });
+
+  const initialAuto = (typeof scopedStorageGet === 'function' ? scopedStorageGet('lowa_pref_theme_auto') : localStorage.getItem('lowa_pref_theme_auto'));
+  themeToggle.textContent = initialAuto === 'false' ? 'Auto: OFF' : 'Auto: ON';
 }
 
 // Initialiser au chargement
