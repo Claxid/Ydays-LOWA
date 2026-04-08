@@ -65,39 +65,17 @@ function updateStats(products = []) {
     if (usersCountEl) usersCountEl.textContent = String(users.length);
 }
 
-async function countRows(supabaseClient, tableName) {
+async function loadStatsFromDatabase(token) {
     try {
-        const { count, error } = await supabaseClient
-            .from(tableName)
-            .select('id', { count: 'exact', head: true });
-        if (error) return null;
-        return typeof count === 'number' ? count : null;
+        const response = await fetch(`${API_BASE_URL}/admin/stats`, {
+            headers: { 'Authorization': token }
+        });
+        if (!response.ok) return null;
+        const stats = await response.json();
+        return stats && typeof stats === 'object' ? stats : null;
     } catch (e) {
         return null;
     }
-}
-
-async function loadStatsFromDatabase() {
-    const supabaseClient = typeof initSupabase === 'function' ? initSupabase() : null;
-    if (!supabaseClient) return null;
-
-    const [productCount, userCount] = await Promise.all([
-        countRows(supabaseClient, 'products'),
-        countRows(supabaseClient, 'users')
-    ]);
-
-    let orderCount = null;
-    const orderTables = ['purchase_history', 'orders', 'commandes'];
-    for (const tableName of orderTables) {
-        orderCount = await countRows(supabaseClient, tableName);
-        if (typeof orderCount === 'number') break;
-    }
-
-    return {
-        products: typeof productCount === 'number' ? productCount : null,
-        users: typeof userCount === 'number' ? userCount : null,
-        orders: typeof orderCount === 'number' ? orderCount : null
-    };
 }
 
 async function loadProductsWithFallback(token) {
@@ -245,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateStats(products);
             }
 
-            const dbStats = await loadStatsFromDatabase();
+            const dbStats = await loadStatsFromDatabase(token);
             if (dbStats) {
                 const productsCountEl = document.getElementById('products-count');
                 const ordersCountEl = document.getElementById('orders-count');
