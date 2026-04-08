@@ -434,7 +434,12 @@
 
                 const { error } = await supabaseClient.from('product_reviews').insert(payload);
                 if (error) {
-                    feedback.textContent = `Publication impossible: ${error.message || 'erreur inconnue'}`;
+                    const message = String(error.message || '');
+                    if (message.includes('invalid input syntax for type integer')) {
+                        feedback.textContent = 'La BDD attend une note entière. Exécutez la migration SQL pour autoriser les demi-étoiles (rating en numeric(2,1)).';
+                    } else {
+                        feedback.textContent = `Publication impossible: ${message || 'erreur inconnue'}`;
+                    }
                     return;
                 }
 
