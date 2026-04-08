@@ -30,7 +30,7 @@ const LOWA = {
 };
 
 const LOWA_ADMIN_ENTRY_KEY = 'lowa_admin_entry';
-const LOWA_ADMIN_KEY_SEQUENCE = ['a', 'j'];
+const LOWA_ADMIN_KEY_SEQUENCE = ['m', 'ù'];
 let lowaAdminShortcutState = { step: 0, timer: null };
 
 const LOWA_SCOPED_STORAGE_VERSION = 'v2';
