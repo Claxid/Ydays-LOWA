@@ -10,6 +10,7 @@ let sortOrder = 'default';
 
 const FIRST_PRODUCT_HOMEPAGE_IMAGE = '/public/images/T_shirt BIO_Naturel(0).webp';
 const PULL_RECYCLE_GRIS_HOMEPAGE_IMAGE = '/public/images/Pull_recyclé_Gris(0).webp';
+const PANTALON_ECO_KAKI_HOMEPAGE_IMAGE = '/public/images/Pantalon_éco_Kaki(0).webp';
 
 function isBioNaturelTshirt(product) {
   const name = String(product?.name || '').toLowerCase();
@@ -28,6 +29,16 @@ function isPullRecycleGris(product) {
     Number(product?.id) === 2
     || (name.includes('pull recycl') && name.includes('gris'))
     || image.includes('pull-gris.svg')
+  );
+}
+
+function isPantalonEcoKaki(product) {
+  const name = String(product?.name || '').toLowerCase();
+  const image = String(product?.image || '').toLowerCase();
+  return (
+    Number(product?.id) === 3
+    || (name.includes('pantalon') && name.includes('kaki'))
+    || image.includes('pantalon-kaki.svg')
   );
 }
 
@@ -55,6 +66,18 @@ function normalizeHomepageProductImage(product) {
         '/public/images/Pull_recyclé_Gris(0).webp',
         '/public/images/Pull_recyclé_Gris(1).webp',
         '/public/images/Pull_recyclé_Gris(2).jpg'
+      ];
+    }
+    return normalized;
+  }
+
+  if (isPantalonEcoKaki(product)) {
+    normalized.image = PANTALON_ECO_KAKI_HOMEPAGE_IMAGE;
+    if (!Array.isArray(normalized.images) || normalized.images.length === 0) {
+      normalized.images = [
+        '/public/images/Pantalon_éco_Kaki(0).webp',
+        '/public/images/Pantalon_éco_Kaki(1).webp',
+        '/public/images/Pantalon_éco_Kaki(2).webp'
       ];
     }
     return normalized;
@@ -102,7 +125,7 @@ function attachProductNavigationListeners() {
 const FALLBACK_PRODUCTS = [
   {"id":1,"name":"T-shirt BIO - Naturel","price":29.00,"description":"T-shirt en coton biologique certifié. Coupe confortable, coloris naturels.","image":"/public/images/T_shirt BIO_Naturel(0).webp","images":["/public/images/T_shirt BIO_Naturel(0).webp","/public/images/T_shirt BIO_Naturel(1).webp","/public/images/T_shirt BIO_Naturel(2).webp"],"category":"hommes","subcategory":"t-shirts","collection":"eco"},
   {"id":2,"name":"Pull recyclé - Gris","price":79.00,"description":"Pull fabriqué à partir de fibres recyclées. Chaud et durable.","image":"/public/images/Pull_recyclé_Gris(0).webp","images":["/public/images/Pull_recyclé_Gris(0).webp","/public/images/Pull_recyclé_Gris(1).webp","/public/images/Pull_recyclé_Gris(2).jpg"],"category":"hommes","subcategory":"vestes","collection":"recycle"},
-  {"id":3,"name":"Pantalon éco - Kaki","price":59.00,"description":"Pantalon en tissu certifié avec renforts minimalistes.","image":"/public/images/pantalon-kaki.svg","category":"hommes","subcategory":"pantalons","collection":"eco"},
+  {"id":3,"name":"Pantalon éco - Kaki","price":59.00,"description":"Pantalon en tissu certifié avec renforts minimalistes.","image":"/public/images/Pantalon_éco_Kaki(0).webp","images":["/public/images/Pantalon_éco_Kaki(0).webp","/public/images/Pantalon_éco_Kaki(1).webp","/public/images/Pantalon_éco_Kaki(2).webp"],"category":"hommes","subcategory":"pantalons","collection":"eco"},
   {"id":4,"name":"Veste en Lin - Beige","price":89.00,"description":"Veste légère en lin naturel, parfaite pour la mi-saison. Coupe ajustée.","image":"/public/images/veste-lin-beige.svg","category":"femmes","subcategory":"vestes","collection":"classiques"},
   {"id":5,"name":"Robe d'été - Blanc cassé","price":65.00,"description":"Robe fluide en coton bio, idéale pour l'été. Fabrication locale.","image":"/public/images/robe-ete.svg","category":"femmes","subcategory":"robes","collection":"eco"},
   {"id":6,"name":"Top en fibres recyclées - Rose","price":35.00,"description":"Top féminin fabriqué à partir de bouteilles plastiques recyclées.","image":"/public/images/top-rose.svg","category":"femmes","subcategory":"tops","collection":"recycle"},
@@ -198,6 +221,8 @@ function renderAllProducts() {
       ? FIRST_PRODUCT_HOMEPAGE_IMAGE
       : isPullRecycleGris(product)
         ? PULL_RECYCLE_GRIS_HOMEPAGE_IMAGE
+        : isPantalonEcoKaki(product)
+          ? PANTALON_ECO_KAKI_HOMEPAGE_IMAGE
         : product.image;
     return `
     <article class="product" role="listitem" data-id="${product.id}">
@@ -258,6 +283,8 @@ function displayProductsPage() {
       ? FIRST_PRODUCT_HOMEPAGE_IMAGE
       : isPullRecycleGris(product)
         ? PULL_RECYCLE_GRIS_HOMEPAGE_IMAGE
+        : isPantalonEcoKaki(product)
+          ? PANTALON_ECO_KAKI_HOMEPAGE_IMAGE
         : product.image;
     return `
     <article class="product" role="listitem" data-id="${product.id}" data-category="${product.category}" data-subcategory="${product.subcategory}" data-collection="${collectionLabels[product.collection] || product.collection}">
