@@ -30,6 +30,32 @@ function setLocalProducts(products) {
     localStorage.setItem(ADMIN_LOCAL_PRODUCTS_KEY, JSON.stringify(products || []));
 }
 
+function parseArrayStorage(key) {
+    try {
+        const raw = localStorage.getItem(key);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function updateStats(products = []) {
+    const productsCountEl = document.getElementById('products-count');
+    const ordersCountEl = document.getElementById('orders-count');
+    const usersCountEl = document.getElementById('users-count');
+
+    if (productsCountEl) productsCountEl.textContent = String((products || []).length);
+
+    // Local fallback stats sources
+    const users = parseArrayStorage('lowa_local_users');
+    const localOrders = parseArrayStorage('lowa_orders');
+    const purchaseHistory = parseArrayStorage('lowa_purchase_history');
+
+    if (ordersCountEl) ordersCountEl.textContent = String(Math.max(localOrders.length, purchaseHistory.length, 0));
+    if (usersCountEl) usersCountEl.textContent = String(users.length);
+}
+
 async function loadProductsWithFallback(token) {
     try {
         const response = await fetch(`${API_BASE_URL}/products`, {
@@ -44,7 +70,13 @@ async function loadProductsWithFallback(token) {
         const localProducts = getLocalProducts();
         if (localProducts.length > 0) return localProducts;
 
-        const fallbackPaths = ['/public/data/products.json', '/products.json'];
+        const fallbackPaths = [
+            '/public/data/products.json',
+            './public/data/products.json',
+            'public/data/products.json',
+            '/products.json',
+            './products.json'
+        ];
         for (const path of fallbackPaths) {
             try {
                 const res = await fetch(path, { cache: 'no-cache' });
@@ -160,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const token = localStorage.getItem('adminToken');
         try {
             const products = await loadProductsWithFallback(token);
-            document.getElementById('products-count').textContent = products.length;
+            updateStats(products);
             displayProducts(products);
             
             // Load maintenance mode status
@@ -168,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Erreur chargement produits:', error);
             document.getElementById('products-list').innerHTML = '<p>Erreur de chargement</p>';
+            updateStats([]);
         }
     }
 
