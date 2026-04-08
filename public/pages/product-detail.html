@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preload" as="style" href="/public/css/homepage.css?v=20260408" />
     <link rel="stylesheet" href="/public/css/homepage.css?v=20260408" media="all" />
-    <link rel="stylesheet" href="/public/css/product-detail.css?v=20260408d" media="all" />
+        <link rel="stylesheet" href="/public/css/product-detail.css?v=20260408e" media="all" />
 </head>
 <body>
     <header class="site-header">
@@ -137,7 +137,8 @@
                         <p class="review-media-help">Formats acceptes: image et video. Maximum 2 fichiers par avis.</p>
                         <div id="review-media-preview" class="review-media-preview" aria-live="polite"></div>
                     </div>
-                    <button type="submit" class="btn primary">Publier mon avis</button>
+                    <button id="review-submit-btn" type="submit" class="btn primary">Publier mon avis</button>
+                    <p id="review-submit-stage" class="review-submit-stage" hidden></p>
                     <p id="review-feedback" class="review-feedback" aria-live="polite"></p>
                 </form>
 
@@ -253,6 +254,9 @@
         const REVIEW_MEDIA_BUCKET = 'review-media';
         const REVIEW_MAX_IMAGE_BYTES = 10 * 1024 * 1024;
         const REVIEW_MAX_VIDEO_BYTES = 20 * 1024 * 1024;
+        const REVIEW_NSFW_BLOCK_THRESHOLD = 0.68;
+        const REVIEW_FILENAME_BLOCKLIST = /(porn|porno|sex|sexe|nude|nudity|hentai|gore|blood|murder|kill|violence|rape|xxx|nsfw)/i;
+        let reviewModerationModelPromise = null;
 
         function toStarsMarkup(n) {
             const rating = Math.max(0, Math.min(5, Number(n) || 0));
@@ -384,6 +388,176 @@
                 .replace(/[^a-z0-9._-]/g, '-')
                 .replace(/-+/g, '-')
                 .slice(0, 80);
+        }
+
+        function loadExternalScript(src) {
+            return new Promise((resolve, reject) => {
+                const existing = document.querySelector(`script[data-src="${src}"]`);
+                if (existing) {
+                    if (existing.dataset.loaded === 'true') {
+                        resolve();
+                        return;
+                    }
+                    existing.addEventListener('load', () => resolve(), { once: true });
+                    existing.addEventListener('error', () => reject(new Error(`Echec chargement script: ${src}`)), { once: true });
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = src;
+                script.async = true;
+                script.dataset.src = src;
+                script.addEventListener('load', () => {
+                    script.dataset.loaded = 'true';
+                    resolve();
+                }, { once: true });
+                script.addEventListener('error', () => reject(new Error(`Echec chargement script: ${src}`)), { once: true });
+                document.head.appendChild(script);
+            });
+        }
+
+        async function getReviewModerationModel() {
+            if (!reviewModerationModelPromise) {
+                reviewModerationModelPromise = (async () => {
+                    await loadExternalScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js');
+                    await loadExternalScript('https://cdn.jsdelivr.net/npm/nsfwjs@2.4.2/dist/nsfwjs.min.js');
+                    if (!window.nsfwjs || typeof window.nsfwjs.load !== 'function') {
+                        throw new Error('Moderation indisponible: modele NSFW non charge.');
+                    }
+                    return window.nsfwjs.load();
+                })();
+            }
+            return reviewModerationModelPromise;
+        }
+
+        async function readFileHeaderBytes(file, length = 16) {
+            const chunk = file.slice(0, length);
+            const buffer = await chunk.arrayBuffer();
+            return new Uint8Array(buffer);
+        }
+
+        function headerStartsWith(bytes, signature) {
+            if (bytes.length < signature.length) return false;
+            for (let i = 0; i < signature.length; i += 1) {
+                if (bytes[i] !== signature[i]) return false;
+            }
+            return true;
+        }
+
+        function detectMediaSignature(bytes) {
+            if (headerStartsWith(bytes, [0xFF, 0xD8, 0xFF])) return 'image/jpeg';
+            if (headerStartsWith(bytes, [0x89, 0x50, 0x4E, 0x47])) return 'image/png';
+            if (headerStartsWith(bytes, [0x47, 0x49, 0x46, 0x38])) return 'image/gif';
+            if (headerStartsWith(bytes, [0x52, 0x49, 0x46, 0x46]) && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return 'image/webp';
+            if (headerStartsWith(bytes, [0x00, 0x00, 0x00]) && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) return 'video/mp4';
+            if (headerStartsWith(bytes, [0x1A, 0x45, 0xDF, 0xA3])) return 'video/webm';
+            if (headerStartsWith(bytes, [0x4F, 0x67, 0x67, 0x53])) return 'video/ogg';
+            if (headerStartsWith(bytes, [0x4D, 0x5A])) return 'executable';
+            if (headerStartsWith(bytes, [0x7F, 0x45, 0x4C, 0x46])) return 'executable';
+            if (headerStartsWith(bytes, [0x23, 0x21])) return 'script';
+            return 'unknown';
+        }
+
+        function isFileSignatureCompatible(fileType, detectedSignature) {
+            if (detectedSignature === 'unknown') return false;
+            if (detectedSignature === 'executable' || detectedSignature === 'script') return false;
+            const declared = String(fileType || '').toLowerCase();
+            if (declared.startsWith('image/')) return detectedSignature.startsWith('image/');
+            if (declared.startsWith('video/')) return detectedSignature.startsWith('video/');
+            return false;
+        }
+
+        function nsfwScore(predictions) {
+            const list = Array.isArray(predictions) ? predictions : [];
+            return list.reduce((sum, p) => {
+                const cls = String((p && p.className) || '').toLowerCase();
+                const prob = Number(p && p.probability) || 0;
+                if (cls === 'porn' || cls === 'hentai' || cls === 'sexy') return sum + prob;
+                return sum;
+            }, 0);
+        }
+
+        async function classifyImageForModeration(file, model) {
+            const url = URL.createObjectURL(file);
+            try {
+                const img = new Image();
+                await new Promise((resolve, reject) => {
+                    img.onload = () => resolve();
+                    img.onerror = () => reject(new Error('Impossible de lire l\'image.'));
+                    img.src = url;
+                });
+                const predictions = await model.classify(img);
+                return nsfwScore(predictions);
+            } finally {
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        async function classifyVideoForModeration(file, model) {
+            const url = URL.createObjectURL(file);
+            try {
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                video.src = url;
+
+                await new Promise((resolve, reject) => {
+                    video.onloadedmetadata = () => resolve();
+                    video.onerror = () => reject(new Error('Impossible de lire la video.'));
+                });
+
+                const seekTime = Number.isFinite(video.duration) && video.duration > 0 ? Math.min(video.duration * 0.2, 2) : 0;
+                await new Promise((resolve, reject) => {
+                    video.onseeked = () => resolve();
+                    video.onerror = () => reject(new Error('Impossible d\'analyser la video.'));
+                    video.currentTime = seekTime;
+                });
+
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, video.videoWidth || 640);
+                canvas.height = Math.max(1, video.videoHeight || 360);
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                const predictions = await model.classify(canvas);
+                return nsfwScore(predictions);
+            } finally {
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        async function moderateReviewMediaFiles(files) {
+            if (!files.length) return { ok: true };
+
+            const model = await getReviewModerationModel();
+
+            for (const file of files) {
+                const fileName = String(file.name || '');
+                if (REVIEW_FILENAME_BLOCKLIST.test(fileName)) {
+                    return { ok: false, message: `Nom de fichier suspect bloque: ${fileName}` };
+                }
+
+                const header = await readFileHeaderBytes(file, 16);
+                const detected = detectMediaSignature(header);
+                if (!isFileSignatureCompatible(file.type, detected)) {
+                    return { ok: false, message: `Fichier suspect ou type invalide bloque: ${fileName}` };
+                }
+
+                const isImage = String(file.type || '').startsWith('image/');
+                const isVideo = String(file.type || '').startsWith('video/');
+                let score = 0;
+
+                if (isImage) {
+                    score = await classifyImageForModeration(file, model);
+                } else if (isVideo) {
+                    score = await classifyVideoForModeration(file, model);
+                }
+
+                if (score >= REVIEW_NSFW_BLOCK_THRESHOLD) {
+                    return { ok: false, message: `Media bloque par moderation automatique (${fileName}).` };
+                }
+            }
+
+            return { ok: true };
         }
 
         async function uploadReviewMediaFiles(files, userId, productId) {
@@ -572,8 +746,30 @@
             const mediaInput = document.getElementById('review-media');
             const mediaPreview = document.getElementById('review-media-preview');
             const mediaCount = document.getElementById('review-media-count');
+            const submitBtn = document.getElementById('review-submit-btn');
+            const submitStage = document.getElementById('review-submit-stage');
             const feedback = document.getElementById('review-feedback');
             const starButtons = Array.from(document.querySelectorAll('.star-btn'));
+            const submitDefaultLabel = submitBtn ? submitBtn.textContent : 'Publier mon avis';
+
+            function setSubmitLoading(isLoading, stageText = '') {
+                if (submitBtn) {
+                    submitBtn.disabled = isLoading;
+                    submitBtn.classList.toggle('is-loading', isLoading);
+                    submitBtn.textContent = isLoading ? 'Envoi en cours...' : submitDefaultLabel;
+                }
+                if (commentInput) commentInput.disabled = isLoading;
+                if (mediaInput) mediaInput.disabled = isLoading;
+                starButtons.forEach((btn) => {
+                    btn.disabled = isLoading;
+                    btn.style.pointerEvents = isLoading ? 'none' : '';
+                    btn.style.opacity = isLoading ? '0.65' : '';
+                });
+                if (submitStage) {
+                    submitStage.hidden = !isLoading;
+                    submitStage.textContent = isLoading ? stageText : '';
+                }
+            }
 
             function renderSelectedMediaPreview() {
                 if (!mediaInput || !mediaPreview) return;
@@ -684,109 +880,137 @@
                     return;
                 }
 
-                const supabaseClient = initSupabase();
-                if (!supabaseClient) {
-                    feedback.textContent = 'Supabase indisponible. Impossible de publier maintenant.';
+                if (submitBtn && submitBtn.disabled) {
                     return;
                 }
 
-                let userId = null;
+                setSubmitLoading(true, 'Preparation de votre avis...');
+
                 try {
-                    const { data } = await supabaseClient.auth.getUser();
-                    userId = data && data.user ? data.user.id : null;
-                } catch (err) {}
+                    if (selectedFiles.length) {
+                        setSubmitLoading(true, 'Verification de securite des fichiers...');
+                        let moderationResult;
+                        try {
+                            moderationResult = await moderateReviewMediaFiles(selectedFiles);
+                        } catch (moderationError) {
+                            feedback.textContent = `Moderation media indisponible: ${String(moderationError && moderationError.message ? moderationError.message : moderationError)}`;
+                            return;
+                        }
+                        if (!moderationResult.ok) {
+                            feedback.textContent = moderationResult.message || 'Media bloque par moderation.';
+                            return;
+                        }
+                    }
 
-                if (!userId) {
-                    feedback.textContent = 'Session Supabase non détectée. Reconnectez-vous pour publier votre avis.';
-                    return;
-                }
+                    setSubmitLoading(true, 'Connexion au service de publication...');
+                    const supabaseClient = initSupabase();
+                    if (!supabaseClient) {
+                        feedback.textContent = 'Supabase indisponible. Impossible de publier maintenant.';
+                        return;
+                    }
 
-                let uploadedMediaUrls = [];
-                if (selectedFiles.length) {
+                    let userId = null;
                     try {
-                        uploadedMediaUrls = await uploadReviewMediaFiles(selectedFiles, userId, Number(currentProduct.id));
-                    } catch (uploadErr) {
-                        const uploadMessage = String(uploadErr && uploadErr.message ? uploadErr.message : uploadErr);
-                        if (uploadMessage.toLowerCase().includes('bucket')) {
-                            feedback.textContent = 'Bucket Supabase review-media introuvable. Creez-le avant d\'uploader des fichiers.';
-                            return;
-                        }
-                        feedback.textContent = `Upload media impossible: ${uploadMessage}`;
+                        const { data } = await supabaseClient.auth.getUser();
+                        userId = data && data.user ? data.user.id : null;
+                    } catch (err) {}
+
+                    if (!userId) {
+                        feedback.textContent = 'Session Supabase non détectée. Reconnectez-vous pour publier votre avis.';
                         return;
                     }
-                }
 
-                let existingMediaUrls = [];
-                try {
-                    const { data: existing } = await supabaseClient
+                    let uploadedMediaUrls = [];
+                    if (selectedFiles.length) {
+                        setSubmitLoading(true, 'Upload des medias...');
+                        try {
+                            uploadedMediaUrls = await uploadReviewMediaFiles(selectedFiles, userId, Number(currentProduct.id));
+                        } catch (uploadErr) {
+                            const uploadMessage = String(uploadErr && uploadErr.message ? uploadErr.message : uploadErr);
+                            if (uploadMessage.toLowerCase().includes('bucket')) {
+                                feedback.textContent = 'Bucket Supabase review-media introuvable. Creez-le avant d\'uploader des fichiers.';
+                                return;
+                            }
+                            feedback.textContent = `Upload media impossible: ${uploadMessage}`;
+                            return;
+                        }
+                    }
+
+                    let existingMediaUrls = [];
+                    try {
+                        const { data: existing } = await supabaseClient
+                            .from('product_reviews')
+                            .select('media_urls')
+                            .eq('product_id', Number(currentProduct.id))
+                            .eq('user_id', userId)
+                            .maybeSingle();
+                        if (existing && Array.isArray(existing.media_urls)) {
+                            existingMediaUrls = existing.media_urls.slice(0, REVIEW_MEDIA_MAX_FILES);
+                        }
+                    } catch (e) {}
+
+                    const mediaUrls = uploadedMediaUrls.length ? uploadedMediaUrls : existingMediaUrls;
+
+                    const payload = {
+                        product_id: Number(currentProduct.id),
+                        user_id: userId,
+                        reviewer_name: getReviewerName(),
+                        rating,
+                        comment,
+                        media_urls: mediaUrls
+                    };
+
+                    setSubmitLoading(true, 'Publication de votre avis...');
+                    const { error } = await supabaseClient
                         .from('product_reviews')
-                        .select('media_urls')
-                        .eq('product_id', Number(currentProduct.id))
-                        .eq('user_id', userId)
-                        .maybeSingle();
-                    if (existing && Array.isArray(existing.media_urls)) {
-                        existingMediaUrls = existing.media_urls.slice(0, REVIEW_MEDIA_MAX_FILES);
-                    }
-                } catch (e) {}
+                        .upsert(payload, { onConflict: 'product_id,user_id' });
 
-                const mediaUrls = uploadedMediaUrls.length ? uploadedMediaUrls : existingMediaUrls;
+                    if (error) {
+                        const message = String(error.message || '');
 
-                const payload = {
-                    product_id: Number(currentProduct.id),
-                    user_id: userId,
-                    reviewer_name: getReviewerName(),
-                    rating,
-                    comment,
-                    media_urls: mediaUrls
-                };
-
-                const { error } = await supabaseClient
-                    .from('product_reviews')
-                    .upsert(payload, { onConflict: 'product_id,user_id' });
-
-                if (error) {
-                    const message = String(error.message || '');
-
-                    if (message.includes('invalid input syntax for type integer')) {
-                        feedback.textContent = 'La BDD attend une note entière. Exécutez la migration SQL pour autoriser les demi-étoiles (rating en numeric(2,1)).';
-                        return;
-                    }
-
-                    if (message.includes('media_urls')) {
-                        feedback.textContent = 'La colonne media_urls manque en BDD. Exécutez la migration SQL avis+media.';
-                        return;
-                    }
-
-                    // Temporary compatibility: if unique constraint is not present yet, insert still works.
-                    if (message.includes('no unique or exclusion constraint matching the ON CONFLICT specification')) {
-                        const insertTry = await supabaseClient.from('product_reviews').insert(payload);
-                        if (insertTry.error) {
-                            feedback.textContent = `Publication impossible: ${insertTry.error.message || 'erreur inconnue'}`;
+                        if (message.includes('invalid input syntax for type integer')) {
+                            feedback.textContent = 'La BDD attend une note entière. Exécutez la migration SQL pour autoriser les demi-étoiles (rating en numeric(2,1)).';
                             return;
                         }
-                        feedback.textContent = 'Avis publié. Ajoutez la contrainte unique pour activer la mise à jour automatique d\'un avis existant.';
-                        form.reset();
-                        ratingInput.value = '';
-                        if (mediaInput) mediaInput.value = '';
-                        if (mediaPreview) mediaPreview.innerHTML = '';
-                        if (mediaCount) mediaCount.textContent = 'Aucun fichier selectionne';
-                        paintStars('');
-                        await refreshReviewsFromDbOrFallback();
+
+                        if (message.includes('media_urls')) {
+                            feedback.textContent = 'La colonne media_urls manque en BDD. Exécutez la migration SQL avis+media.';
+                            return;
+                        }
+
+                        // Temporary compatibility: if unique constraint is not present yet, insert still works.
+                        if (message.includes('no unique or exclusion constraint matching the ON CONFLICT specification')) {
+                            const insertTry = await supabaseClient.from('product_reviews').insert(payload);
+                            if (insertTry.error) {
+                                feedback.textContent = `Publication impossible: ${insertTry.error.message || 'erreur inconnue'}`;
+                                return;
+                            }
+                            feedback.textContent = 'Avis publié. Ajoutez la contrainte unique pour activer la mise à jour automatique d\'un avis existant.';
+                            form.reset();
+                            ratingInput.value = '';
+                            if (mediaInput) mediaInput.value = '';
+                            if (mediaPreview) mediaPreview.innerHTML = '';
+                            if (mediaCount) mediaCount.textContent = 'Aucun fichier selectionne';
+                            paintStars('');
+                            await refreshReviewsFromDbOrFallback();
+                            return;
+                        }
+
+                        feedback.textContent = `Publication impossible: ${message || 'erreur inconnue'}`;
                         return;
                     }
 
-                    feedback.textContent = `Publication impossible: ${message || 'erreur inconnue'}`;
-                    return;
+                    feedback.textContent = 'Avis enregistré (créé ou mis à jour). Merci !';
+                    form.reset();
+                    ratingInput.value = '';
+                    if (mediaInput) mediaInput.value = '';
+                    if (mediaPreview) mediaPreview.innerHTML = '';
+                    if (mediaCount) mediaCount.textContent = 'Aucun fichier selectionne';
+                    paintStars('');
+                    await refreshReviewsFromDbOrFallback();
+                } finally {
+                    setSubmitLoading(false);
                 }
-
-                feedback.textContent = 'Avis enregistré (créé ou mis à jour). Merci !';
-                form.reset();
-                ratingInput.value = '';
-                if (mediaInput) mediaInput.value = '';
-                if (mediaPreview) mediaPreview.innerHTML = '';
-                if (mediaCount) mediaCount.textContent = 'Aucun fichier selectionne';
-                paintStars('');
-                await refreshReviewsFromDbOrFallback();
             });
 
             paintStars(ratingInput.value);
