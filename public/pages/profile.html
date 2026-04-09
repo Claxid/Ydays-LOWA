@@ -188,6 +188,7 @@
       .admin-actions{display:flex;flex-wrap:wrap;gap:0.6rem;margin-top:0.5rem;}
       .admin-actions .btn{flex:1;min-width:180px;text-align:center;}
     </style>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="/public/js/common.js"></script>
     <script src="/public/js/api-config.js"></script>
   </head>
@@ -350,7 +351,7 @@
 
       async function getGlobalSiteTheme() {
         try {
-          const response = await fetch('/api/admin/settings/default-theme', { cache: 'no-cache' });
+          const response = await fetch(`${API}/admin/settings/default-theme`, { cache: 'no-cache' });
           if (!response.ok) return 'light';
           const data = await response.json();
           return data && data.theme ? String(data.theme) : 'light';
@@ -406,23 +407,6 @@
           console.warn('Hydrate profile state warning:', e && e.message ? e.message : e);
         }
       }
-
-      document.getElementById('avatar').addEventListener('click', () => {
-        document.getElementById('avatar-upload').click();
-      });
-
-      document.getElementById('avatar-upload').addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file && file.type.startsWith('image/')) {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            const avatarData = event.target.result;
-            profileCloudState.userState = Object.assign({}, profileCloudState.userState || {}, { avatar: avatarData });
-            loadAvatar();
-          };
-          reader.readAsDataURL(file);
-        }
-      });
 
       // Theme Management with Auto mode
       function initTheme() {
@@ -752,12 +736,15 @@
         reader.readAsDataURL(file);
       });
 
-      document.getElementById('logout-btn-hero').addEventListener('click', async () => {
-        try { await fetch(API + '/logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
-        localStorage.removeItem('lowa_session');
-        if (typeof clearActiveStorageUserId === 'function') clearActiveStorageUserId();
-        window.location.href = '/';
-      });
+      const heroLogoutBtn = document.getElementById('logout-btn-hero');
+      if (heroLogoutBtn) {
+        heroLogoutBtn.addEventListener('click', async () => {
+          try { await fetch(API + '/logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
+          localStorage.removeItem('lowa_session');
+          if (typeof clearActiveStorageUserId === 'function') clearActiveStorageUserId();
+          window.location.href = '/';
+        });
+      }
 
       (async function init() {
         initTheme();
