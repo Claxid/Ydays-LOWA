@@ -329,13 +329,65 @@
     </main>
 
     <script>
-      const API = window.API_BASE || '/api';
+      const API = window.API_BASE || (window.LOWA && window.LOWA.API && window.LOWA.API.BASE) || '/api';
+      const API_CANDIDATES = Array.from(new Set([
+        API,
+        window.API_BASE,
+        window.LOWA && window.LOWA.API && window.LOWA.API.BASE,
+        '/api'
+      ].filter(Boolean).map((base) => String(base).replace(/\/$/, ''))));
       let sessionToken = null;
+      let localSessionUser = null;
       let profileCloudState = {
         authUser: null,
         profile: null,
         userState: null
       };
+
+      function addListenerById(id, eventName, handler) {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener(eventName, handler);
+      }
+
+      function buildApiUrl(base, path) {
+        const cleanBase = String(base || '').replace(/\/$/, '');
+        const cleanPath = String(path || '').replace(/^\//, '');
+        return `${cleanBase}/${cleanPath}`;
+      }
+
+      async function fetchWithApiFallback(path, options = {}) {
+        for (const base of API_CANDIDATES) {
+          try {
+            const response = await fetch(buildApiUrl(base, path), options);
+            if (response.ok) return response;
+          } catch (e) {
+            // Try next base
+          }
+        }
+        throw new Error(`API indisponible pour ${path}`);
+      }
+
+      async function ensureSupabaseLoaded(timeoutMs = 5000) {
+        if (window.supabase && typeof window.supabase.createClient === 'function') return true;
+
+        const scriptId = 'lowa-supabase-cdn-loader';
+        if (!document.getElementById(scriptId)) {
+          const script = document.createElement('script');
+          script.id = scriptId;
+          script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+          script.async = true;
+          document.head.appendChild(script);
+        }
+
+        const start = Date.now();
+        while (Date.now() - start < timeoutMs) {
+          if (window.supabase && typeof window.supabase.createClient === 'function') {
+            return true;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 120));
+        }
+        return false;
+      }
 
       // Avatar Management
       function loadAvatar() {
@@ -351,8 +403,7 @@
 
       async function getGlobalSiteTheme() {
         try {
-          const response = await fetch(`${API}/admin/settings/default-theme`, { cache: 'no-cache' });
-          if (!response.ok) return 'light';
+          const response = await fetchWithApiFallback('admin/settings/default-theme', { cache: 'no-cache' });
           const data = await response.json();
           return data && data.theme ? String(data.theme) : 'light';
         } catch (e) {
@@ -419,7 +470,8 @@
 
       async function setThemeAuto(enabled) {
         profileCloudState.userState = Object.assign({}, profileCloudState.userState || {}, { theme_auto: Boolean(enabled) });
-        document.getElementById('pref-theme-auto').checked = Boolean(enabled);
+        const toggle = document.getElementById('pref-theme-auto');
+        if (toggle) toggle.checked = Boolean(enabled);
         const ok = await lowaWriteUserStatePatch(profileCloudState.userState);
         if (!ok) {
           throw new Error('Impossible de synchroniser le mode automatique');
@@ -441,15 +493,15 @@
       });
 
       document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('pref-theme-auto').addEventListener('change', (e) => {
+        addListenerById('pref-theme-auto', 'change', (e) => {
           setThemeAuto(e.target.checked).catch((err) => {
             console.warn('Auto theme sync warning:', err && err.message ? err.message : err);
           });
         });
 
-        document.getElementById('pref-font-size').addEventListener('change', saveAdvancedPrefs);
-        document.getElementById('pref-spacing').addEventListener('change', saveAdvancedPrefs);
-        document.getElementById('pref-animations').addEventListener('change', saveAdvancedPrefs);
+        addListenerById('pref-font-size', 'change', saveAdvancedPrefs);
+        addListenerById('pref-spacing', 'change', saveAdvancedPrefs);
+        addListenerById('pref-animations', 'change', saveAdvancedPrefs);
         
         loadAvatar();
         initTheme();
@@ -461,6 +513,7 @@
           if (!stored) return;
           const s = JSON.parse(stored);
           sessionToken = s.token;
+          localSessionUser = s.user || null;
           console.log('Session chargée:', { token: !!sessionToken, user: !!s.user });
         } catch (e) {
           console.warn('Erreur lors du chargement de la session:', e);
@@ -476,7 +529,7 @@
       async function fetchUser() {
         try {
           const authUser = profileCloudState.authUser || await lowaGetAuthUser();
-          if (!authUser) {
+          if (!authUser && !localSessionUser) {
             throw new Error('Aucune donnée utilisateur disponible');
           }
 
@@ -488,13 +541,13 @@
           profileCloudState.userState = userState || null;
 
           const user = {
-            email: authUser.email || profile?.email || '',
-            nom: profile?.nom || authUser.user_metadata?.nom || authUser.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
-            prenom: profile?.prenom || authUser.user_metadata?.prenom || authUser.user_metadata?.full_name?.split(' ')[0] || '',
-            sexe: profile?.sexe || authUser.user_metadata?.sexe || '',
-            role: authUser.user_metadata?.role || authUser.app_metadata?.role || 'user',
+            email: (authUser && authUser.email) || localSessionUser?.email || profile?.email || '',
+            nom: profile?.nom || (authUser && authUser.user_metadata?.nom) || localSessionUser?.nom || (authUser && authUser.user_metadata?.full_name?.split(' ').slice(1).join(' ')) || '',
+            prenom: profile?.prenom || (authUser && authUser.user_metadata?.prenom) || localSessionUser?.prenom || (authUser && authUser.user_metadata?.full_name?.split(' ')[0]) || '',
+            sexe: profile?.sexe || (authUser && authUser.user_metadata?.sexe) || localSessionUser?.sexe || '',
+            role: (authUser && (authUser.user_metadata?.role || authUser.app_metadata?.role)) || 'user',
             pdp: (userState && userState.avatar) || profile?.pdp || '',
-            date_creation: authUser.created_at || authUser.created_at || ''
+            date_creation: (authUser && authUser.created_at) || ''
           };
 
           const avatarContainer = document.getElementById('avatar');
@@ -540,7 +593,13 @@
 
       async function fetchHistory() {
         if (!sessionToken) { document.getElementById('history').innerHTML = '<p>Pas d\'historique.</p>'; return; }
-        const resp = await fetch(API + '/purchase-history', { headers: { Authorization: sessionToken } });
+        let resp;
+        try {
+          resp = await fetchWithApiFallback('purchase-history', { headers: { Authorization: sessionToken } });
+        } catch (e) {
+          document.getElementById('history').innerHTML = '<p>Pas d\'historique.</p>';
+          return;
+        }
         if (!resp.ok) { document.getElementById('history').innerHTML = '<p>Pas d\'historique.</p>'; return; }
         const items = await resp.json();
         if (!items.length) { document.getElementById('history').innerHTML = '<p>Pas d\'historique.</p>'; return; }
@@ -647,7 +706,7 @@
         }, 3000);
       }
 
-      document.getElementById('profile-info-form').addEventListener('submit', async (e) => {
+      addListenerById('profile-info-form', 'submit', async (e) => {
         e.preventDefault();
         const statusEl = document.getElementById('profile-info-status');
         const submitBtn = document.getElementById('save-profile-info');
@@ -672,29 +731,29 @@
         }
       });
 
-      document.getElementById('save-prefs').addEventListener('click', async () => {
+      addListenerById('save-prefs', 'click', async () => {
         try { await savePrefs(); } catch (e) { alert('Erreur: ' + e.message); }
       });
 
-      document.getElementById('pref-lang').addEventListener('change', saveAdvancedPrefs);
-      document.getElementById('pref-notif').addEventListener('change', saveAdvancedPrefs);
-      document.getElementById('pref-animations').addEventListener('change', saveAdvancedPrefs);
-      document.getElementById('pref-font-size').addEventListener('change', saveAdvancedPrefs);
-      document.getElementById('pref-spacing').addEventListener('change', saveAdvancedPrefs);
+      addListenerById('pref-lang', 'change', saveAdvancedPrefs);
+      addListenerById('pref-notif', 'change', saveAdvancedPrefs);
+      addListenerById('pref-animations', 'change', saveAdvancedPrefs);
+      addListenerById('pref-font-size', 'change', saveAdvancedPrefs);
+      addListenerById('pref-spacing', 'change', saveAdvancedPrefs);
 
-      document.getElementById('logout-btn').addEventListener('click', async () => {
-        try { await fetch(API + '/logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
+      addListenerById('logout-btn', 'click', async () => {
+        try { await fetchWithApiFallback('logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
         localStorage.removeItem('lowa_session');
         if (typeof clearActiveStorageUserId === 'function') clearActiveStorageUserId();
         window.location.href = '/';
       });
 
       // Avatar upload handler
-      document.getElementById('avatar').addEventListener('click', () => {
+      addListenerById('avatar', 'click', () => {
         document.getElementById('avatar-upload').click();
       });
 
-      document.getElementById('avatar-upload').addEventListener('change', async (e) => {
+      addListenerById('avatar-upload', 'change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
@@ -739,7 +798,7 @@
       const heroLogoutBtn = document.getElementById('logout-btn-hero');
       if (heroLogoutBtn) {
         heroLogoutBtn.addEventListener('click', async () => {
-          try { await fetch(API + '/logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
+          try { await fetchWithApiFallback('logout', { method: 'POST', headers: { Authorization: sessionToken } }); } catch {}
           localStorage.removeItem('lowa_session');
           if (typeof clearActiveStorageUserId === 'function') clearActiveStorageUserId();
           window.location.href = '/';
@@ -750,6 +809,10 @@
         initTheme();
         loadSession();
         try {
+          const supabaseReady = await ensureSupabaseLoaded();
+          if (!supabaseReady) {
+            console.warn('Supabase indisponible: démarrage en mode local');
+          }
           console.log('Initialisation du profil...');
           await hydrateProfileStateFromCloud();
           await fetchUser();

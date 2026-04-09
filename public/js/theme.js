@@ -59,21 +59,38 @@ function getAutoThemeByTime(date = new Date()) {
   return 'light';
 }
 
+function getThemeApiCandidates() {
+  return Array.from(new Set([
+    window.API_BASE,
+    window.LOWA && window.LOWA.API && window.LOWA.API.BASE,
+    '/api'
+  ].filter(Boolean).map((base) => String(base).replace(/\/$/, ''))));
+}
+
+function buildThemeApiUrl(base, path) {
+  const cleanBase = String(base || '').replace(/\/$/, '');
+  const cleanPath = String(path || '').replace(/^\//, '');
+  return `${cleanBase}/${cleanPath}`;
+}
+
 async function getGlobalSiteTheme() {
-  try {
-    if (typeof fetchWithTimeout === 'function') {
-      const response = await fetchWithTimeout('/api/admin/settings/default-theme', 3500);
-      if (!response || !response.ok) return 'light';
+  const candidates = getThemeApiCandidates();
+
+  for (const base of candidates) {
+    const url = buildThemeApiUrl(base, 'admin/settings/default-theme');
+    try {
+      const response = typeof fetchWithTimeout === 'function'
+        ? await fetchWithTimeout(url, 3500)
+        : await fetch(url, { cache: 'no-cache' });
+      if (!response || !response.ok) continue;
       const data = await response.json();
       return data && data.theme ? String(data.theme) : 'light';
+    } catch (e) {
+      // Try next candidate
     }
-    const response = await fetch('/api/admin/settings/default-theme', { cache: 'no-cache' });
-    if (!response.ok) return 'light';
-    const data = await response.json();
-    return data && data.theme ? String(data.theme) : 'light';
-  } catch (e) {
-    return 'light';
   }
+
+  return 'light';
 }
 
 async function refreshThemeFromSources() {
