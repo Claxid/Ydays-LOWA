@@ -21,7 +21,7 @@ const LOWA = {
     CACHE_KEY: 'lowa_products_cache',
     CACHE_TIME_KEY: 'lowa_products_cache_time',
     CACHE_VERSION_KEY: 'lowa_products_cache_version',
-    CACHE_VERSION: 'v16', // Bumped for Supabase
+    CACHE_VERSION: 'v25', // Bumped after updating Top images
     COOKIE_CONSENT_KEY: 'lowa_cookie_consent'
   },
   PAGINATION: {
@@ -427,15 +427,27 @@ function formatPrice(value) {
 }
 
 /**
+ * Normaliser un chemin d'image pour l'usage dans src/href
+ */
+function lowaEncodeImagePath(path) {
+  const raw = String(path || '');
+  try {
+    return encodeURI(raw).replace(/'/g, '%27');
+  } catch (e) {
+    return raw;
+  }
+}
+
+/**
  * Fallback pour images manquantes
  */
 window.lowaImgFallback = function(img) {
   try {
     const src = img.getAttribute('src') || '';
     if (src.includes('/images/')) {
-      img.src = src.replace('/images/', '/public/images/');
+      img.src = lowaEncodeImagePath(src.replace('/images/', '/public/images/'));
     } else if (src.includes('/public/images/')) {
-      img.src = src.replace('/public/images/', '/images/');
+      img.src = lowaEncodeImagePath(src.replace('/public/images/', '/images/'));
     } else {
       img.src = '/public/images/pull-gris.svg';
     }

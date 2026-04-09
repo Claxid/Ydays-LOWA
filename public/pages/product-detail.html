@@ -1200,25 +1200,85 @@
                     document.getElementById('colorRange').textContent = meta.colors;
                     document.getElementById('sizeRange').textContent = meta.sizeRange;
                     
+                    const isFirstTshirt = Number(product.id) === 1
+                        || String(product.image || '').includes('tshirt-naturel.svg');
+                    const isPullRecycleGris = Number(product.id) === 2
+                        || String(product.image || '').includes('pull-gris.svg')
+                        || String(product.name || '').toLowerCase().includes('pull recyclé - gris');
+                    const isPantalonEcoKaki = Number(product.id) === 3
+                        || String(product.image || '').includes('pantalon-kaki.svg')
+                        || String(product.name || '').toLowerCase().includes('pantalon éco - kaki');
+                    const isVesteLinBeige = Number(product.id) === 4
+                        || String(product.image || '').includes('veste-lin-beige.svg')
+                        || String(product.name || '').toLowerCase().includes('veste en lin - beige');
+                    const isRobeEteBlancCasse = Number(product.id) === 5
+                        || String(product.image || '').includes('robe-ete.svg')
+                        || String(product.name || '').toLowerCase().includes('robe d\'été - blanc cassé');
+                    const isTopRose = Number(product.id) === 6
+                        || String(product.image || '').includes('top-rose.svg')
+                        || String(product.name || '').toLowerCase().includes('top en fibres recyclées - rose');
+                    const galleryImages = (Array.isArray(product.images) && product.images.length > 0)
+                        ? product.images
+                        : isFirstTshirt
+                            ? [
+                                '/public/images/T_shirt BIO_Naturel(0).webp',
+                                '/public/images/T_shirt BIO_Naturel(1).webp',
+                                '/public/images/T_shirt BIO_Naturel(2).webp'
+                            ]
+                            : isPullRecycleGris
+                                ? [
+                                    '/public/images/Pull_recyclé_Gris(0).webp',
+                                    '/public/images/Pull_recyclé_Gris(1).webp',
+                                    '/public/images/Pull_recyclé_Gris(2).jpg'
+                                ]
+                                : isPantalonEcoKaki
+                                    ? [
+                                        '/public/images/Pantalon_éco_Kaki(0).jpg',
+                                        '/public/images/Pantalon_éco_Kaki(1).jpg',
+                                        '/public/images/Pantalon_éco_Kaki(2).jpg'
+                                    ]
+                                : isVesteLinBeige
+                                    ? [
+                                        '/public/images/Veste_en_Lin_Beige(0).webp',
+                                        '/public/images/Veste_en_Lin_Beige(1).webp',
+                                        '/public/images/Veste_en_Lin_Beige(2).avif'
+                                    ]
+                                : isRobeEteBlancCasse
+                                    ? [
+                                        '/public/images/Robe_d_ete_Blanc_casse(0).png',
+                                        '/public/images/Robe_d_ete_Blanc_casse(1).png',
+                                        '/public/images/Robe_d_ete_Blanc_casse(2).png'
+                                    ]
+                                : isTopRose
+                                    ? [
+                                        '/public/images/Top_en_fibres_recyclees_Rose(0).webp',
+                                        '/public/images/Top_en_fibres_recyclees_Rose(1).webp',
+                                        '/public/images/Top_en_fibres_recyclees_Rose(2).webp'
+                                    ]
+                            : [product.image];
+                    const safeGalleryImages = galleryImages.map((imagePath) => (
+                        typeof lowaEncodeImagePath === 'function' ? lowaEncodeImagePath(imagePath) : imagePath
+                    ));
+
                     // Update main image
                     const mainImg = document.getElementById('mainImage');
-                    mainImg.src = product.image;
+                    mainImg.src = safeGalleryImages[0];
                     mainImg.alt = product.name;
 
-                    // Create thumbnails (using same image for demo)
+                    // Create thumbnails from the product gallery
                     const thumbsContainer = document.getElementById('thumbnails');
                     thumbsContainer.innerHTML = '';
-                    for (let i = 0; i < 4; i++) {
+                    safeGalleryImages.forEach((imgSrc, i) => {
                         const thumb = document.createElement('div');
                         thumb.className = 'product-thumbnail' + (i === 0 ? ' active' : '');
-                        thumb.innerHTML = `<img src="${product.image}" alt="Image ${i+1}" />`;
+                        thumb.innerHTML = `<img src="${imgSrc}" alt="Image ${i+1}" />`;
                         thumb.addEventListener('click', () => {
                             document.querySelectorAll('.product-thumbnail').forEach(t => t.classList.remove('active'));
                             thumb.classList.add('active');
-                            mainImg.src = product.image;
+                            mainImg.src = imgSrc;
                         });
                         thumbsContainer.appendChild(thumb);
-                    }
+                    });
 
                     // Update add to cart button
                     const addBtn = document.querySelector('.add-to-cart');
