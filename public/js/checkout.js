@@ -37,7 +37,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function loadCartItems() {
   try {
-    const raw = localStorage.getItem('lowa_cart') || '[]';
+    // Trouver la bonne clé du panier dynamiquement
+    const cartKey = Object.keys(localStorage).find(k => k.startsWith('lowa_cart_') && k.endsWith('_v2'));
+    const raw = cartKey ? localStorage.getItem(cartKey) : null;
     cartItems = JSON.parse(raw);
     cartTotal = cartItems.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
   } catch (error) {
