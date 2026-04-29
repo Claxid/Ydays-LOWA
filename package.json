@@ -1,0 +1,22 @@
+{
+  "name": "lowa-api",
+  "version": "1.0.0",
+  "description": "LOWA - API backend for e-commerce platform",
+  "engines": {
+    "node": "18.x"
+  },
+  "dependencies": {
+    "stripe": "^14.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "stripe",
+    "payment",
+    "ecommerce"
+  ],
+  "author": "LOWA",
+  "license": "MIT"
+}
