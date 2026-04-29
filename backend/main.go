@@ -14,6 +14,9 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+
+	"github.com/stripe/stripe-go/v76"
+	"github.com/stripe/stripe-go/v76/checkout/session"
 )
 
 type User struct {
@@ -25,6 +28,13 @@ type User struct {
 	Role         string    `json:"role"`
 	PDP          string    `json:"pdp"`
 	DateCreation time.Time `json:"date_creation"`
+}
+
+type CheckoutItem struct {
+	Name     string  `json:"name"`
+	Price    float64 `json:"price"`
+	Quantity int     `json:"quantity"`
+	Image    string  `json:"image"`
 }
 
 type CartItem struct {
@@ -72,6 +82,47 @@ type MaintenanceMode struct {
 var db *sql.DB
 var maintenanceEnabled = false
 var defaultSiteTheme = "light"
+
+func createCheckoutSessionHandler(w http.ResponseWriter, r *http.Request) {
+	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
+
+	var items []CheckoutItem
+	if err := json.NewDecoder(r.Body).Decode(&items); err != nil {
+		http.Error(w, "Invalid body", http.StatusBadRequest)
+		return
+	}
+
+	var lineItems []*stripe.CheckoutSessionLineItemParams
+	for _, item := range items {
+		lineItems = append(lineItems, &stripe.CheckoutSessionLineItemParams{
+			PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
+				Currency: stripe.String("eur"),
+				ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
+					Name: stripe.String(item.Name),
+				},
+				UnitAmount: stripe.Int64(int64(item.Price * 100)),
+			},
+			Quantity: stripe.Int64(int64(item.Quantity)),
+		})
+	}
+
+	params := &stripe.CheckoutSessionParams{
+		PaymentMethodTypes: stripe.StringSlice([]string{"card"}),
+		LineItems:          lineItems,
+		Mode:               stripe.String("payment"),
+		SuccessURL:         stripe.String("https://ydays-lowa.vercel.app/public/pages/success.html?session_id={CHECKOUT_SESSION_ID}"),
+		CancelURL:          stripe.String("https://ydays-lowa.vercel.app/"),
+	}
+
+	s, err := session.New(params)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"url": s.URL})
+}
 
 func initDB() error {
 	var err error
