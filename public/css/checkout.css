@@ -404,3 +404,11 @@
     max-height: 300px;
   }
 }
+
+
+.site-footer {
+    position: relative;
+    z-index: 0;
+    clear: both;
+    margin-top: 4rem;
+}

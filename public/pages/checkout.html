@@ -131,9 +131,9 @@
               <label>Numéro de carte</label>
               <div id="card-element"></div>
             </div>
-            <button id="btn-pay" class="btn primary" onclick="proceedToCheckout()">
-                 Payer maintenant
-        </button>
+            <button id="btn-pay" class="btn primary" onclick="handleStripePayment(event)">
+                Payer maintenant
+            </button>
           </form>
           <p class="payment-notice">💡 Vos données sont protégées par le chiffrement SSL/TLS</p>
         </div>
