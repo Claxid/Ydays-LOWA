@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/public/images/favicon.svg" />
+  <link rel="apple-touch-icon" href="/public/images/logo.png" />
+  <title>Paiement réussi — LOWA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/homepage.css" />
+  <link rel="stylesheet" href="/public/css/theme-variables.css" />
+  <style>
+    .success-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    }
+    
+    .success-card {
+      background: var(--bg);
+      padding: 3rem;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      text-align: center;
+    }
+    
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 2rem;
+      background: #4caf50;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+    }
+    
+    .success-card h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #4caf50;
+    }
+    
+    .success-card p {
+      color: var(--muted);
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+    
+    .order-id {
+      background: var(--bg-secondary);
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      border-left: 3px solid var(--accent);
+    }
+    
+    .order-id label {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    
+    .order-id code {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+    }
+    
+    .success-actions {
+      display: flex;
+      gap: 1rem;
+      flex-direction: column;
+    }
+    
+    .btn-large {
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      font-weight: 600;
+    }
+    
+    .btn-primary-large {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .btn-primary-large:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(198, 124, 247, 0.3);
+    }
+    
+    .btn-secondary-large {
+      background: var(--bg-secondary);
+      color: var(--text);
+      border: 2px solid var(--border);
+    }
+    
+    .btn-secondary-large:hover {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: white;
+    }
+    
+    .success-details {
+      text-align: left;
+      background: var(--bg-secondary);
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 2rem 0;
+      font-size: 0.95rem;
+    }
+    
+    .success-details p {
+      margin: 0.75rem 0;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .success-details strong {
+      color: var(--text);
+    }
+    
+    .status-badge {
+      display: inline-block;
+      background: #4caf50;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/index.html" aria-label="LOWA - Accueil">
+        <img class="brand-logo" src="/public/images/logo.png" alt="LOWA" />
+      </a>
+      <nav class="main-nav">
+        <a href="/index.html">Accueil</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="success-container">
+    <div class="success-card">
+      <div class="success-icon">✓</div>
+      <h1>Paiement réussi!</h1>
+      <p>Merci pour votre commande. Votre paiement a été traité avec succès.</p>
+      
+      <div class="order-id">
+        <label>Numéro de commande</label>
+        <code id="order-id">--</code>
+      </div>
+
+      <div class="success-details">
+        <p>
+          <strong>Statut</strong>
+          <span id="status-text">Confirmé</span>
+        </p>
+        <p>
+          <strong>Montant</strong>
+          <span id="amount-text">--</span>
+        </p>
+        <p>
+          <strong>Moyen de paiement</strong>
+          <span>Carte bancaire (Stripe)</span>
+        </p>
+        <p>
+          <strong>Livraison</strong>
+          <span>Sous 48h</span>
+        </p>
+      </div>
+
+      <p style="color: var(--muted); font-size: 0.9rem;">
+        Un email de confirmation a été envoyé à votre adresse email.
+      </p>
+
+      <div class="status-badge">✓ Paiement sécurisé</div>
+
+      <div class="success-actions">
+        <a href="/index.html" class="btn-large btn-primary-large">
+          ← Retour à l'accueil
+        </a>
+        <a href="/public/pages/profile.html" class="btn-large btn-secondary-large">
+          Voir mes commandes
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; <span id="year"></span> LOWA — Tous droits réservés.</p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Récupérer les paramètres de l'URL
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get('id') || 'EN_ATTENTE';
+
+    // Afficher l'ID de commande
+    document.getElementById('order-id').textContent = orderId;
+
+    // Vider le panier
+    localStorage.removeItem('lowa_cart');
+    localStorage.removeItem('Lowa_cart');
+    console.log('✓ Panier vidé après paiement réussi');
+  </script>
+</body>
+</html>
