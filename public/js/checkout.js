@@ -32,7 +32,7 @@ function formatPrice(value) {
 // ===============================
 function loadCartItems() {
   try {
-    const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const savedCart = JSON.parse(localStorage.getItem("Lowa_cart")) || [];
     cartItems = savedCart;
 
     cartTotal = cartItems.reduce(
