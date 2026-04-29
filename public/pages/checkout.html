@@ -95,22 +95,19 @@
           </button>
         </div>
 
-        <!-- Formulaire Stripe -->
+        <!-- Paiement Stripe (Payment Element) -->
         <div id="stripe-payment" class="payment-form active">
-          <form id="stripe-form">
-            <div class="form-group">
-              <label>Coordonnées de facturation</label>
-              <input type="text" id="card-name" placeholder="Nom complet" required />
-              <input type="email" id="card-email" placeholder="Email" required />
-              <input type="text" id="card-address" placeholder="Adresse" required />
-              <input type="text" id="card-city" placeholder="Ville" required />
-              <input type="text" id="card-postal" placeholder="Code postal" required />
+            <div id="payment-element"><!-- Stripe injecte ici --></div>
+
+                <button id="pay-button" class="btn btn-primary">
+                    Payer maintenant
+                </button>
+
+                <p class="payment-notice">
+                    🔒 Vos données sont protégées par le chiffrement SSL/TLS
+                </p>
             </div>
-            <div class="form-group">
-              <label>Numéro de carte</label>
-              <div id="card-element"></div>
-            </div>
-            <button id="btn-pay" class="btn primary" onclick="handleStripePayment(event)">
+                <button id="btn-pay" class="btn primary" onclick="handleStripePayment(event)">
                 Payer maintenant
             </button>
           </form>

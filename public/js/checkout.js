@@ -31,6 +31,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupPaymentMethodButtons();
   setupPayPal();
   setupFormSubmission();
+
+  initStripePayment();
 });
 
 // ================== Gestion du panier ==================
@@ -129,19 +131,7 @@ function switchPaymentMethod(method) {
 
 // ================== Stripe ==================
 
-function initializeStripeCard() {
-  if (!stripe) return;
 
-  const elements = stripe.elements();
-  cardElement = elements.create('card', {
-    style: {
-      base: {
-        fontSize: '16px',
-        color: '#424242',
-        '::placeholder': { color: '#9e9e9e' }
-      }
-    }
-  });
 
   cardElement.mount('#card-element');
   cardElement.addEventListener('change', (e) => {
@@ -149,7 +139,7 @@ function initializeStripeCard() {
       showStatus('❌ ' + e.error.message, 'error');
     }
   });
-}
+
 
 function setupFormSubmission() {
   const stripeForm = document.getElementById('stripe-form');
@@ -200,21 +190,54 @@ async function handleStripePayment(e) {
     const { clientSecret } = await response.json();
     if (!clientSecret) throw new Error('Impossible de créer l\'intention de paiement');
 
-    // Confirmer le paiement
-    const { paymentIntent, error } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement,
-        billing_details: {
-          name: document.getElementById('card-name').value,
-          email: document.getElementById('card-email').value,
-          address: {
-            line1: document.getElementById('card-address').value,
-            city: document.getElementById('card-city').value,
-            postal_code: document.getElementById('card-postal').value
-          }
-        }
-      }
-    });
+    let stripe;
+let elements;
+
+/* Initialisation Stripe */
+async function initStripePayment() {
+  // 1. Récupération de la clé publique
+  const configRes = await fetch("/api/stripe/config");
+  const config = await configRes.json();
+
+  stripe = Stripe(config.publicKey);
+
+  // 2. Création du PaymentIntent
+  const intentRes = await fetch("/api/stripe/create-intent", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      amount: Math.round(cartTotal * 100),
+    }),
+  });
+
+  const { clientSecret } = await intentRes.json();
+
+  // 3. Initialisation Stripe Elements
+  elements = stripe.elements({ clientSecret });
+
+  // 4. Payment Element (clé centrale)
+  const paymentElement = elements.create("payment");
+  paymentElement.mount("#payment-element");
+}
+
+/* Paiement */
+document.getElementById("pay-button").addEventListener("click", async () => {
+  if (!stripe || !elements) return;
+
+  showStatus("Traitement du paiement...", "loading");
+
+  const { error } = await stripe.confirmPayment({
+    elements,
+    confirmParams: {
+      return_url: `${window.location.origin}/payment-success.html`,
+    },
+  });
+
+  if (error) {
+    showStatus(error.message, "error");
+  }
+});
+
 
     if (error) {
       showStatus('❌ Erreur: ' + error.message, 'error');
