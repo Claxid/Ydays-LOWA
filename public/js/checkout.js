@@ -59,6 +59,15 @@ function renderOrderSummary() {
     return;
   }
 
+
+    const payBtn = document.getElementById("pay-button");
+    if (cartItems.length === 0 && payBtn) {
+        payBtn.disabled = true;
+        payBtn.textContent = "Panier vide";
+    }   
+
+
+
   cartItems.forEach(item => {
     const div = document.createElement("div");
     div.className = "order-item";
@@ -148,3 +157,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     payBtn.addEventListener("click", handlePayClick);
   }
 });
+
+
+// Switcher entre méthodes de paiement
+document.querySelectorAll(".payment-option-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".payment-option-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const method = btn.dataset.method;
+    document.querySelectorAll(".payment-form").forEach(f => f.classList.add("hidden"));
+    document.getElementById(`${method}-payment`)?.classList.remove("hidden");
+  });
+});
+
+
