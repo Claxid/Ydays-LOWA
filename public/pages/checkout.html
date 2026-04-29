@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <link rel="icon" type="image/svg+xml" href="/public/images/favicon.svg" />
+  <link rel="apple-touch-icon" href="/public/images/logo.png" />
+  <title>Checkout — LOWA</title>
+  <meta name="description" content="Finalisez votre commande LOWA de manière sécurisée." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/homepage.css" />
+  <link rel="stylesheet" href="/public/css/theme-variables.css" />
+  <link rel="stylesheet" href="/public/css/checkout.css" />
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="/public/js/common.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/index.html" aria-label="LOWA - Accueil">
+        <img class="brand-logo" src="/public/images/logo.png" alt="LOWA" />
+      </a>
+      <nav class="main-nav">
+        <a href="/index.html">Accueil</a>
+        <a href="/public/pages/favoris.html">Favoris</a>
+        <a href="/public/pages/profile.html">Mon profil</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="checkout-page">
+    <section class="checkout-hero container">
+      <div class="checkout-copy">
+        <p class="eyebrow">Paiement sécurisé</p>
+        <h1>Finaliser votre commande</h1>
+        <p>Choisissez votre méthode de paiement préférée pour valider vos achats.</p>
+        <a class="back-link" href="/index.html">← Retour aux produits</a>
+      </div>
+    </section>
+
+    <section class="container checkout-grid">
+      <!-- Récapitulatif commande -->
+      <article class="checkout-card order-summary">
+        <h2>Récapitulatif de commande</h2>
+        <div id="order-items" class="order-items"></div>
+        <div class="order-breakdown">
+          <div class="breakdown-row">
+            <span>Sous-total</span>
+            <span id="subtotal">0,00 €</span>
+          </div>
+          <div class="breakdown-row">
+            <span>Frais de port</span>
+            <span id="shipping">Gratuit</span>
+          </div>
+          <div class="breakdown-row total">
+            <span>Total</span>
+            <strong id="order-total">0,00 €</strong>
+          </div>
+        </div>
+      </article>
+
+      <!-- Choix du moyen de paiement -->
+      <article class="checkout-card payment-methods">
+        <h2>Méthode de paiement</h2>
+        
+        <!-- Sélecteur de méthodes -->
+        <div class="payment-selector">
+          <button class="payment-option-btn active" data-method="stripe">
+            <div class="payment-icon">💳</div>
+            <div class="payment-info">
+              <strong>Carte bancaire</strong>
+              <small>Stripe - Sécurisé</small>
+            </div>
+          </button>
+
+          <button class="payment-option-btn" data-method="paypal">
+            <div class="payment-icon">🅿️</div>
+            <div class="payment-info">
+              <strong>PayPal</strong>
+              <small>Compte PayPal</small>
+            </div>
+          </button>
+
+          <button class="payment-option-btn" data-method="apple-pay">
+            <div class="payment-icon">🍎</div>
+            <div class="payment-info">
+              <strong>Apple Pay</strong>
+              <small>Rapide et sécurisé</small>
+            </div>
+          </button>
+
+          <button class="payment-option-btn" data-method="google-pay">
+            <div class="payment-icon">🔵</div>
+            <div class="payment-info">
+              <strong>Google Pay</strong>
+              <small>Paiement Google</small>
+            </div>
+          </button>
+
+          <button class="payment-option-btn" data-method="bank-transfer">
+            <div class="payment-icon">🏦</div>
+            <div class="payment-info">
+              <strong>Virement bancaire</strong>
+              <small>Virement SEPA</small>
+            </div>
+          </button>
+        </div>
+
+        <!-- Formulaire Stripe -->
+        <div id="stripe-payment" class="payment-form active">
+          <form id="stripe-form">
+            <div class="form-group">
+              <label>Coordonnées de facturation</label>
+              <input type="text" id="card-name" placeholder="Nom complet" required />
+              <input type="email" id="card-email" placeholder="Email" required />
+              <input type="text" id="card-address" placeholder="Adresse" required />
+              <input type="text" id="card-city" placeholder="Ville" required />
+              <input type="text" id="card-postal" placeholder="Code postal" required />
+            </div>
+            <div class="form-group">
+              <label>Numéro de carte</label>
+              <div id="card-element"></div>
+            </div>
+            <button type="submit" class="btn primary full-width" id="stripe-btn">
+              Payer <span id="stripe-amount">0,00 €</span>
+            </button>
+          </form>
+          <p class="payment-notice">💡 Vos données sont protégées par le chiffrement SSL/TLS</p>
+        </div>
+
+        <!-- PayPal -->
+        <div id="paypal-payment" class="payment-form hidden">
+          <p class="payment-notice">Vous allez être redirigé vers PayPal pour confirmer votre paiement.</p>
+          <div id="paypal-buttons"></div>
+        </div>
+
+        <!-- Apple Pay -->
+        <div id="apple-pay-payment" class="payment-form hidden">
+          <p class="payment-notice">Préparez votre appareil Apple pour autoriser le paiement.</p>
+          <button class="btn primary full-width" id="apple-pay-btn">
+            Autoriser avec Apple Pay
+          </button>
+        </div>
+
+        <!-- Google Pay -->
+        <div id="google-pay-payment" class="payment-form hidden">
+          <p class="payment-notice">Préparez votre compte Google pour autoriser le paiement.</p>
+          <button class="btn primary full-width" id="google-pay-btn">
+            Payer avec Google Pay
+          </button>
+        </div>
+
+        <!-- Virement bancaire -->
+        <div id="bank-transfer-payment" class="payment-form hidden">
+          <div class="bank-details">
+            <p class="payment-notice">Effectuez un virement bancaire SEPA à nos coordonnées :</p>
+            <div class="bank-info">
+              <p><strong>Titulaire du compte :</strong> LOWA SARL</p>
+              <p><strong>IBAN :</strong> <code>FR76 XXXX XXXX XXXX XXXX XXXX XXX</code></p>
+              <p><strong>BIC :</strong> <code>BNAGFRPPXXX</code></p>
+              <p><strong>Motif :</strong> Indiquez votre numéro de commande</p>
+            </div>
+            <p style="color:var(--muted);font-size:0.9rem;margin-top:1rem;">⏱️ Délai : généralement 1-2 jours ouvrables</p>
+            <button class="btn primary full-width" id="bank-transfer-btn">
+              J'ai effectué le virement
+            </button>
+          </div>
+        </div>
+
+        <div id="checkout-status" class="checkout-status hidden"></div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; <span id="year"></span> LOWA — Tous droits réservés.</p>
+    </div>
+  </footer>
+
+  <script src="/public/js/checkout.js"></script>
+</body>
+</html>
