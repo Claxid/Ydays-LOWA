@@ -38,8 +38,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 function loadCartItems() {
   try {
     // Trouver la bonne clé du panier dynamiquement
-    const cartKey = Object.keys(localStorage).find(k => k.startsWith('lowa_cart_') && k.endsWith('_v2'));
-    const raw = cartKey ? localStorage.getItem(cartKey) : null;
+    const cartKeys = Object.keys(localStorage).filter(k => k.startsWith('lowa_cart_') && k.endsWith('_v2'));
+    let bestRaw = '[]';
+    for (const key of cartKeys) {
+        const data = JSON.parse(localStorage.getItem(key) || '[]');
+    if (data.length > JSON.parse(bestRaw).length) {
+        bestRaw = localStorage.getItem(key);
+    }
+}
+const raw = bestRaw;
     cartItems = JSON.parse(raw);
     cartTotal = cartItems.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
   } catch (error) {
