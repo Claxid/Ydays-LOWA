@@ -84,29 +84,7 @@
             </div>
           </button>
 
-          <button class="payment-option-btn" data-method="paypal">
-            <div class="payment-icon">🅿️</div>
-            <div class="payment-info">
-              <strong>PayPal</strong>
-              <small>Compte PayPal</small>
-            </div>
-          </button>
-
-          <button class="payment-option-btn" data-method="apple-pay">
-            <div class="payment-icon">🍎</div>
-            <div class="payment-info">
-              <strong>Apple Pay</strong>
-              <small>Rapide et sécurisé</small>
-            </div>
-          </button>
-
-          <button class="payment-option-btn" data-method="google-pay">
-            <div class="payment-icon">🔵</div>
-            <div class="payment-info">
-              <strong>Google Pay</strong>
-              <small>Paiement Google</small>
-            </div>
-          </button>
+          
 
           <button class="payment-option-btn" data-method="bank-transfer">
             <div class="payment-icon">🏦</div>
@@ -139,27 +117,7 @@
           <p class="payment-notice">💡 Vos données sont protégées par le chiffrement SSL/TLS</p>
         </div>
 
-        <!-- PayPal -->
-        <div id="paypal-payment" class="payment-form hidden">
-          <p class="payment-notice">Vous allez être redirigé vers PayPal pour confirmer votre paiement.</p>
-          <div id="paypal-buttons"></div>
-        </div>
-
-        <!-- Apple Pay -->
-        <div id="apple-pay-payment" class="payment-form hidden">
-          <p class="payment-notice">Préparez votre appareil Apple pour autoriser le paiement.</p>
-          <button class="btn primary full-width" id="apple-pay-btn">
-            Autoriser avec Apple Pay
-          </button>
-        </div>
-
-        <!-- Google Pay -->
-        <div id="google-pay-payment" class="payment-form hidden">
-          <p class="payment-notice">Préparez votre compte Google pour autoriser le paiement.</p>
-          <button class="btn primary full-width" id="google-pay-btn">
-            Payer avec Google Pay
-          </button>
-        </div>
+       
 
         <!-- Virement bancaire -->
         <div id="bank-transfer-payment" class="payment-form hidden">
@@ -183,7 +141,7 @@
     </section>
   </main>
 
-  <footer class="site-footer" style="position:relative; z-index:0; margin-top:3rem;">
+  <footer class="site-footer">
     <div class="container">
       <p>&copy; <span id="year"></span> LOWA — Tous droits réservés.</p>
     </div>
