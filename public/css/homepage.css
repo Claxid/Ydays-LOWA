@@ -2089,6 +2089,5 @@ form .btn{
 .site-footer {
     position: relative;
     z-index: 0;
-    clear: both;
-    margin-top: 4rem;
+    margin-top: 2rem;
 }
