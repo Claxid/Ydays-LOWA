@@ -18,6 +18,47 @@
   <script src="https://js.stripe.com/v3/"></script>
   <script src="/public/js/common.js"></script>
 </head>
+
+<script>
+async function proceedToCheckout() {
+    const cartRaw = localStorage.getItem("lowa_cart");
+    const cart = cartRaw ? JSON.parse(cartRaw) : [];
+
+    if (!cart || cart.length === 0) {
+        alert("Votre panier est vide.");
+        return;
+    }
+
+    const items = cart.map(item => ({
+        name: item.name,
+        price: parseFloat(item.price),
+        quantity: item.quantity || 1,
+        image: item.image || ""
+    }));
+
+    try {
+        const response = await fetch("https://lowa-api.onrender.com/create-checkout-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(items)
+        });
+
+        const data = await response.json();
+        if (data.url) {
+            window.location.href = data.url;
+        } else {
+            alert("Erreur paiement, réessaie.");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Impossible de contacter le serveur.");
+    }
+}
+</script>
+
+
+
+
 <body>
   <header class="site-header">
     <div class="container header-inner">
@@ -125,9 +166,9 @@
               <label>Numéro de carte</label>
               <div id="card-element"></div>
             </div>
-            <button type="submit" class="btn primary full-width" id="stripe-btn">
-              Payer <span id="stripe-amount">0,00 €</span>
-            </button>
+            <button id="btn-pay" class="btn primary" onclick="proceedToCheckout()">
+                 Payer maintenant
+        </button>
           </form>
           <p class="payment-notice">💡 Vos données sont protégées par le chiffrement SSL/TLS</p>
         </div>
