@@ -5,8 +5,8 @@
 
 const LOWA = {
   SUPABASE: {
-    URL: 'https://feslvznzutoygnnsztoy.supabase.co',
-    ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlc2x2em56dXRveWdubnN6dG95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMTI3NzYsImV4cCI6MjA4NzU4ODc3Nn0.6krv4Cuge49e7tTggfql0My22DS_DpnNx5Dgg3utBxA',
+    URL: window.LOWA_SUPABASE_CONFIG?.URL || 'https://YOUR_SUPABASE_URL.supabase.co',
+    ANON_KEY: window.LOWA_SUPABASE_CONFIG?.ANON_KEY || 'YOUR_SUPABASE_ANON_KEY',
     client: null
   },
   API: {
@@ -34,6 +34,13 @@ let lowaAdminShortcutState = { step: 0, timer: null, startedAt: 0 };
 
 const LOWA_SCOPED_STORAGE_VERSION = 'v2';
 const LOWA_ACTIVE_USER_STORAGE_KEY = 'lowa_active_user_scope';
+
+if (window.LOWA_SUPABASE_CONFIG) {
+  LOWA.SUPABASE.URL = window.LOWA_SUPABASE_CONFIG.URL || LOWA.SUPABASE.URL;
+  LOWA.SUPABASE.ANON_KEY = window.LOWA_SUPABASE_CONFIG.ANON_KEY || LOWA.SUPABASE.ANON_KEY;
+} else {
+  console.warn('Supabase config not loaded. Add /config/supabase.config.js before /public/js/common.js');
+}
 
 function sanitizeStorageSegment(value) {
   return String(value || 'guest')
