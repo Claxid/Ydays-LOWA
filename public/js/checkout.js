@@ -47,23 +47,30 @@ async function waitForStripe(timeout = 10000) {
 // ===============================
 function loadCartItems() {
   try {
-    // Essayer plusieurs clés possibles pour la compatibilité
-    let savedCart = JSON.parse(localStorage.getItem("lowa_cart")) || 
-                   JSON.parse(localStorage.getItem("Lowa_cart")) ||
-                   [];
+    // Attendre que cart.js ait fini d'hydrater depuis le cloud
+    // En fallback, lire directement le localStorage
+    let savedCart = [];
+
+    const raw = localStorage.getItem("lowa_cart") ||
+                 localStorage.getItem("Lowa_cart") ||
+                 sessionStorage.getItem("lowa_cart");
+
+    savedCart = raw ? JSON.parse(raw) : [];
     cartItems = Array.isArray(savedCart) ? savedCart : [];
 
-    // Calculer le total
+    // Si toujours vide, essayer window.cart (partagé depuis cart.js)
+    if (cartItems.length === 0 && Array.isArray(window.cart)) {
+      cartItems = window.cart;
+    }
+
     cartTotal = cartItems.reduce((sum, item) => {
-      const price = Number(item.price) || 0;
-      const quantity = Number(item.quantity) || 1;
-      return sum + (price * quantity);
+      return sum + (Number(item.price) || 0) * (Number(item.quantity) || 1);
     }, 0);
-    
-    console.log('📦 Panier chargé:', { items: cartItems.length, total: cartTotal });
+
+    console.log('📦 Panier:', cartItems.length, 'articles, total:', cartTotal);
     return true;
   } catch (e) {
-    console.error("❌ Erreur chargement panier", e);
+    console.error("Erreur chargement panier", e);
     cartItems = [];
     cartTotal = 0;
     return false;

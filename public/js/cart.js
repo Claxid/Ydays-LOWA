@@ -83,6 +83,7 @@ function updateCartUI() {
       body: JSON.stringify(cartData)
     }).catch(e => console.log('Cart sync error:', e));
   }
+  window.cart = cart; 
 }
 
 /**
