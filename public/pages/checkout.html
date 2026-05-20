@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="/public/css/homepage.css" />
   <link rel="stylesheet" href="/public/css/theme-variables.css" />
   <link rel="stylesheet" href="/public/css/checkout.css" />
+  <script src="/config/supabase.config.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="https://js.stripe.com/v3/"></script>
   <script src="/public/js/common.js"></script>
@@ -83,29 +84,7 @@
             </div>
           </button>
 
-          <button class="payment-option-btn" data-method="paypal">
-            <div class="payment-icon">🅿️</div>
-            <div class="payment-info">
-              <strong>PayPal</strong>
-              <small>Compte PayPal</small>
-            </div>
-          </button>
-
-          <button class="payment-option-btn" data-method="apple-pay">
-            <div class="payment-icon">🍎</div>
-            <div class="payment-info">
-              <strong>Apple Pay</strong>
-              <small>Rapide et sécurisé</small>
-            </div>
-          </button>
-
-          <button class="payment-option-btn" data-method="google-pay">
-            <div class="payment-icon">🔵</div>
-            <div class="payment-info">
-              <strong>Google Pay</strong>
-              <small>Paiement Google</small>
-            </div>
-          </button>
+          
 
           <button class="payment-option-btn" data-method="bank-transfer">
             <div class="payment-icon">🏦</div>
@@ -116,49 +95,20 @@
           </button>
         </div>
 
-        <!-- Formulaire Stripe -->
+        <!-- Paiement Stripe (Payment Element) -->
         <div id="stripe-payment" class="payment-form active">
-          <form id="stripe-form">
-            <div class="form-group">
-              <label>Coordonnées de facturation</label>
-              <input type="text" id="card-name" placeholder="Nom complet" required />
-              <input type="email" id="card-email" placeholder="Email" required />
-              <input type="text" id="card-address" placeholder="Adresse" required />
-              <input type="text" id="card-city" placeholder="Ville" required />
-              <input type="text" id="card-postal" placeholder="Code postal" required />
-            </div>
-            <div class="form-group">
-              <label>Numéro de carte</label>
-              <div id="card-element"></div>
-            </div>
-            <button id="btn-pay" class="btn primary" onclick="proceedToCheckout()">
-                 Payer maintenant
-        </button>
-          </form>
-          <p class="payment-notice">💡 Vos données sont protégées par le chiffrement SSL/TLS</p>
+            <div id="payment-element"><!-- Stripe injecte ici --></div>
+
+                <button id="pay-button" class="btn btn-primary">
+                     Payer maintenant
+                </button>
+
+            <p class="payment-notice">
+                🔒 Vos données sont protégées par le chiffrement SSL/TLS
+            </p>
         </div>
 
-        <!-- PayPal -->
-        <div id="paypal-payment" class="payment-form hidden">
-          <p class="payment-notice">Vous allez être redirigé vers PayPal pour confirmer votre paiement.</p>
-          <div id="paypal-buttons"></div>
-        </div>
-
-        <!-- Apple Pay -->
-        <div id="apple-pay-payment" class="payment-form hidden">
-          <p class="payment-notice">Préparez votre appareil Apple pour autoriser le paiement.</p>
-          <button class="btn primary full-width" id="apple-pay-btn">
-            Autoriser avec Apple Pay
-          </button>
-        </div>
-
-        <!-- Google Pay -->
-        <div id="google-pay-payment" class="payment-form hidden">
-          <p class="payment-notice">Préparez votre compte Google pour autoriser le paiement.</p>
-          <button class="btn primary full-width" id="google-pay-btn">
-            Payer avec Google Pay
-          </button>
-        </div>
+       
 
         <!-- Virement bancaire -->
         <div id="bank-transfer-payment" class="payment-form hidden">

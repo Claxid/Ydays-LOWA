@@ -1,10 +1,18 @@
 {
   "version": 2,
-  "buildCommand": null,
+  "buildCommand": "npm install --legacy-peer-deps",
   "outputDirectory": ".",
-  "installCommand": null,
+  "installCommand": "npm install --legacy-peer-deps",
   "devCommand": null,
   "framework": null,
+
+  "functions": {
+    "api/**/*.js": {
+      "memory": 1024,
+      "maxDuration": 30,
+      "runtime": "nodejs18.x"
+    }
+  },
 
   "headers": [
     {

@@ -5,8 +5,8 @@
 
 const LOWA = {
   SUPABASE: {
-    URL: window.LOWA_SUPABASE_CONFIG?.URL || 'https://YOUR_SUPABASE_URL.supabase.co',
-    ANON_KEY: window.LOWA_SUPABASE_CONFIG?.ANON_KEY || 'YOUR_SUPABASE_ANON_KEY',
+    URL: window.LOWA_SUPABASE_CONFIG?.URL || 'https://feslvznzutoygnnsztoy.supabase.co',
+    ANON_KEY: window.LOWA_SUPABASE_CONFIG?.ANON_KEY || 'sb_publishable_Ol9XBRZ6pLZDimjii5VEXg_GyfQBzC3',
     client: null
   },
   API: {

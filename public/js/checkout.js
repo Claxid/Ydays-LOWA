@@ -1,472 +1,369 @@
-/**
- * LOWA - Checkout Module
- * Gestion unifiée du paiement (Stripe, PayPal, Apple Pay, Google Pay, Virement bancaire)
- */
+// ===============================
+// Checkout - Stripe Payment Integration (SÉCURISÉ)
+// ===============================
 
-let stripe;
-let cardElement;
-let currentPaymentMethod = 'stripe';
+let stripe = null;
+let elements = null;
 let cartItems = [];
 let cartTotal = 0;
+let stripeInitialized = false;
+let processingPayment = false;
 
-// ================== Initialisation ==================
+// ===============================
+// Utils
+// ===============================
+function showStatus(message, type = "info") {
+  const status = document.getElementById("checkout-status");
+  if (!status) return;
 
-document.addEventListener('DOMContentLoaded', async () => {
-  document.getElementById('year').textContent = new Date().getFullYear();
-  
-  loadCartItems();
-  renderOrderSummary();
-  
-  // Initialiser Stripe
-  try {
-    const response = await fetch('/api/stripe/config');
-    const { publicKey } = await response.json();
-    stripe = Stripe(publicKey);
-    initializeStripeCard();
-  } catch (error) {
-    console.error('Erreur Stripe:', error);
-    showStatus('Erreur de configuration Stripe', 'error');
+  status.textContent = message;
+  status.className = `checkout-status ${type}`;
+  status.classList.remove("hidden");
+
+  if (type !== "loading") {
+    setTimeout(() => status.classList.add("hidden"), 4000);
   }
+}
 
-  setupPaymentMethodButtons();
-  setupPayPal();
-  setupFormSubmission();
-});
+function formatPrice(value) {
+  return `${value.toFixed(2).replace(".", ",")} €`;
+}
 
-// ================== Gestion du panier ==================
+// Attendre que Stripe soit chargé (SDK externe)
+async function waitForStripe(timeout = 10000) {
+  const startTime = Date.now();
+  while (!window.Stripe) {
+    if (Date.now() - startTime > timeout) {
+      throw new Error('SDK Stripe n\'a pas pu être chargé. Vérifiez votre connexion ou désactivez les ad-blockers.');
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  console.log('✓ SDK Stripe détecté');
+  return window.Stripe;
+}
 
+// ===============================
+// Cart Loading
+// ===============================
 function loadCartItems() {
   try {
-    const raw = localStorage.getItem('lowa_cart') || '[]';
-    cartItems = JSON.parse(raw);
-    cartTotal = cartItems.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
-  } catch (error) {
-    console.error('Erreur de chargement du panier:', error);
+    // Essayer plusieurs clés possibles pour la compatibilité
+    let savedCart = JSON.parse(localStorage.getItem("lowa_cart")) || 
+                   JSON.parse(localStorage.getItem("Lowa_cart")) ||
+                   [];
+    cartItems = Array.isArray(savedCart) ? savedCart : [];
+
+    // Calculer le total
+    cartTotal = cartItems.reduce((sum, item) => {
+      const price = Number(item.price) || 0;
+      const quantity = Number(item.quantity) || 1;
+      return sum + (price * quantity);
+    }, 0);
+    
+    console.log('📦 Panier chargé:', { items: cartItems.length, total: cartTotal });
+    return true;
+  } catch (e) {
+    console.error("❌ Erreur chargement panier", e);
     cartItems = [];
     cartTotal = 0;
+    return false;
   }
 }
 
 function renderOrderSummary() {
-  const orderItems = document.getElementById('order-items');
-  const subtotal = document.getElementById('subtotal');
-  const total = document.getElementById('order-total');
-  const stripeAmount = document.getElementById('stripe-amount');
+  const list = document.getElementById("order-items");
+  const totalEl = document.getElementById("order-total");
+  const subtotalEl = document.getElementById("subtotal");
+  const shippingEl = document.getElementById("shipping");
+  
+  if (!list) return;
 
-  if (!orderItems || !subtotal || !total) return;
+  list.innerHTML = "";
 
-  // Rendre les articles
   if (cartItems.length === 0) {
-    orderItems.innerHTML = '<div class="empty-state">Votre panier est vide. <a href="/index.html">Retour aux produits</a></div>';
-  } else {
-    orderItems.innerHTML = cartItems.map((item) => `
-      <div class="order-item">
-        <img src="${item.image || '/public/images/logo.png'}" alt="${item.name}" />
-        <div class="order-item-meta">
-          <strong>${item.name}</strong>
-          <span>Qté: 1</span>
-        </div>
-        <div class="order-item-price">${formatPrice(item.price)} €</div>
-      </div>
-    `).join('');
-  }
-
-  // Mise à jour des montants
-  const shippingFree = true; // Gratuit pour cet exemple
-  subtotal.textContent = formatPrice(cartTotal) + ' €';
-  total.textContent = formatPrice(cartTotal) + ' €';
-  if (stripeAmount) stripeAmount.textContent = formatPrice(cartTotal) + ' €';
-}
-
-function formatPrice(value) {
-  return (Number(value) || 0).toFixed(2).replace('.', ',');
-}
-
-// ================== Gestion des méthodes de paiement ==================
-
-function setupPaymentMethodButtons() {
-  const buttons = document.querySelectorAll('.payment-option-btn');
-  
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const method = btn.dataset.method;
-      switchPaymentMethod(method);
-    });
-  });
-}
-
-function switchPaymentMethod(method) {
-  currentPaymentMethod = method;
-  
-  // Mettre à jour les boutons
-  document.querySelectorAll('.payment-option-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.method === method);
-  });
-
-  // Masquer tous les formulaires
-  document.querySelectorAll('.payment-form').forEach(form => {
-    form.classList.add('hidden');
-  });
-
-  // Afficher le formulaire sélectionné
-  const selectedForm = document.getElementById(`${method}-payment`);
-  if (selectedForm) {
-    selectedForm.classList.remove('hidden');
-    selectedForm.classList.add('active');
-  }
-
-  console.log('Méthode de paiement changée:', method);
-}
-
-// ================== Stripe ==================
-
-function initializeStripeCard() {
-  if (!stripe) return;
-
-  const elements = stripe.elements();
-  cardElement = elements.create('card', {
-    style: {
-      base: {
-        fontSize: '16px',
-        color: '#424242',
-        '::placeholder': { color: '#9e9e9e' }
-      }
+    list.innerHTML = "<p>Votre panier est vide.</p>";
+    if (subtotalEl) subtotalEl.textContent = formatPrice(0);
+    if (shippingEl) shippingEl.textContent = "Gratuit";
+    if (totalEl) totalEl.textContent = formatPrice(0);
+    
+    const payBtn = document.getElementById("pay-button");
+    if (payBtn) {
+      payBtn.disabled = true;
+      payBtn.textContent = "Panier vide";
     }
-  });
-
-  cardElement.mount('#card-element');
-  cardElement.addEventListener('change', (e) => {
-    if (e.error) {
-      showStatus('❌ ' + e.error.message, 'error');
-    }
-  });
-}
-
-function setupFormSubmission() {
-  const stripeForm = document.getElementById('stripe-form');
-  if (stripeForm) {
-    stripeForm.addEventListener('submit', handleStripePayment);
-  }
-
-  const bankTransferBtn = document.getElementById('bank-transfer-btn');
-  if (bankTransferBtn) {
-    bankTransferBtn.addEventListener('click', handleBankTransfer);
-  }
-
-  const applePayBtn = document.getElementById('apple-pay-btn');
-  if (applePayBtn) {
-    applePayBtn.addEventListener('click', handleApplePay);
-  }
-
-  const googlePayBtn = document.getElementById('google-pay-btn');
-  if (googlePayBtn) {
-    googlePayBtn.addEventListener('click', handleGooglePay);
-  }
-}
-
-async function handleStripePayment(e) {
-  e.preventDefault();
-  
-  if (cartItems.length === 0) {
-    showStatus('⚠️ Votre panier est vide', 'error');
     return;
   }
 
-  const stripeBtn = document.getElementById('stripe-btn');
-  stripeBtn.disabled = true;
-  showStatus('Traitement du paiement...', 'loading');
+  cartItems.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "order-item";
+    div.innerHTML = `
+      <span>${item.name} × ${item.quantity}</span>
+      <strong>${formatPrice(item.price * item.quantity)}</strong>
+    `;
+    list.appendChild(div);
+  });
+
+  if (subtotalEl) subtotalEl.textContent = formatPrice(cartTotal);
+  if (shippingEl) shippingEl.textContent = "Gratuit";
+  if (totalEl) totalEl.textContent = formatPrice(cartTotal);
+}
+
+// ===============================
+// Stripe Payment - Main Logic
+// ===============================
+async function initStripePayment() {
+  console.log('🚀 Initialisation du paiement...');
+
+  // 1. Vérifier le panier
+  if (cartItems.length === 0) {
+    console.log('⚠️ Panier vide, paiement désactivé');
+    return;
+  }
 
   try {
-    // Créer une intention de paiement
-    const response = await fetch('/api/stripe/create-intent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    showStatus("⏳ Initialisation du paiement...", "loading");
+    console.log('1️⃣ Attendre SDK Stripe...');
+    
+    // 2. Attendre Stripe SDK
+    await waitForStripe(10000);
+
+    // 3. Récupérer la clé publique
+    console.log('2️⃣ Récupérer clé publique Stripe...');
+    const configRes = await fetch("/api/stripe/config", {
+      headers: { 'Accept': 'application/json' }
+    });
+    
+    if (!configRes.ok) {
+      const err = await configRes.json().catch(() => ({ error: 'Erreur config' }));
+      throw new Error(err.error || err.solution || `HTTP ${configRes.status}`);
+    }
+
+    const config = await configRes.json();
+    console.log('✓ Clé reçue');
+    
+    if (!config.publicKey) {
+      throw new Error('Clé publique Stripe manquante');
+    }
+
+    // 4. Initialiser Stripe
+    console.log('3️⃣ Initialiser Stripe avec clé...');
+    stripe = window.Stripe(config.publicKey);
+    console.log('✓ Stripe initialisé');
+
+    // 5. Créer l'intention de paiement
+    console.log('4️⃣ Créer PaymentIntent...');
+    const amount = Math.round(cartTotal * 100); // En centimes
+    console.log(`  Montant: ${amount} (${cartTotal}€)`);
+    
+    const intentRes = await fetch("/api/stripe/create-intent", {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
       body: JSON.stringify({
-        amount: Math.round(cartTotal * 100), // en centimes
-        currency: 'eur',
-        items: cartItems
-      })
+        amount: amount,
+        currency: "eur",
+        items: cartItems.map(i => ({ name: i.name, price: i.price }))
+      }),
     });
 
-    const { clientSecret } = await response.json();
-    if (!clientSecret) throw new Error('Impossible de créer l\'intention de paiement');
+    if (!intentRes.ok) {
+      const err = await intentRes.json().catch(() => ({ error: 'Erreur création intent' }));
+      console.error('Erreur intent:', err);
+      throw new Error(err.error || err.solution || `HTTP ${intentRes.status}`);
+    }
 
-    // Confirmer le paiement
-    const { paymentIntent, error } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement,
-        billing_details: {
-          name: document.getElementById('card-name').value,
-          email: document.getElementById('card-email').value,
-          address: {
-            line1: document.getElementById('card-address').value,
-            city: document.getElementById('card-city').value,
-            postal_code: document.getElementById('card-postal').value
-          }
+    const intentData = await intentRes.json();
+    console.log('✓ Intent créée:', intentData.paymentIntentId);
+
+    if (!intentData.clientSecret) {
+      throw new Error('clientSecret manquant');
+    }
+
+    // 6. Créer les éléments
+    console.log('5️⃣ Créer Payment Element...');
+    elements = stripe.elements({ 
+      clientSecret: intentData.clientSecret,
+      appearance: {
+        theme: 'stripe',
+        variables: {
+          colorPrimary: '#d4a5a5',
+          colorText: '#333333',
+          colorBackground: '#ffffff',
+          borderRadius: '6px'
         }
       }
+    });
+
+    const paymentElement = elements.create("payment");
+    paymentElement.mount("#payment-element");
+    console.log('✓ Payment Element monté');
+
+    stripeInitialized = true;
+    showStatus("✓ Paiement prêt", "success");
+    console.log('✓✓✓ Paiement initialisé avec succès\n');
+    
+  } catch (error) {
+    console.error("❌ Erreur initiale:", error);
+    stripeInitialized = false;
+    showStatus(`❌ ${error.message}`, "error");
+  }
+}
+
+// ===============================
+// Payment Submission
+// ===============================
+async function handlePayClick() {
+  // Sécurité: éviter les double-clics
+  if (processingPayment) {
+    console.log('⚠️ Paiement déjà en cours');
+    return;
+  }
+
+  // Vérifier l'initialisation
+  if (!stripeInitialized || !stripe || !elements) {
+    showStatus("❌ Paiement non initialisé. Rechargez la page.", "error");
+    console.error('Stripe ou elements non initialisés');
+    return;
+  }
+
+  // Vérifier le panier
+  if (cartItems.length === 0) {
+    showStatus("❌ Votre panier est vide", "error");
+    return;
+  }
+
+  processingPayment = true;
+  showStatus("⏳ Traitement du paiement...", "loading");
+  console.log('💳 Confirmation du paiement...');
+
+  try {
+    const { error, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/public/pages/payment-success.html`,
+      },
+      redirect: "if_required"
     });
 
     if (error) {
-      showStatus('❌ Erreur: ' + error.message, 'error');
-      stripeBtn.disabled = false;
-    } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-      showStatus('✅ Paiement réussi!', 'success');
-      setTimeout(() => {
-        window.location.href = `/public/pages/order-success.html?orderId=${paymentIntent.id}`;
-      }, 2000);
-    }
-  } catch (error) {
-    console.error('Erreur Stripe:', error);
-    showStatus('❌ ' + error.message, 'error');
-    stripeBtn.disabled = false;
-  }
-}
-
-// ================== PayPal ==================
-
-function setupPayPal() {
-  // Vérifier si PayPal est disponible
-  // Cette fonction sera appelée quand la méthode PayPal est sélectionnée
-  const paypalPayment = document.getElementById('paypal-payment');
-  if (paypalPayment) {
-    const observer = new MutationObserver(() => {
-      if (!paypalPayment.classList.contains('hidden') && !window.paypalLoaded) {
-        initializePayPal();
+      console.error('❌ Erreur paiement:', error);
+      processingPayment = false;
+      
+      // Message d'erreur détaillé
+      let message = error.message || 'Paiement échoué';
+      if (error.code === 'card_error') {
+        message = error.message; // Ex: "Your card was declined"
       }
-    });
-    observer.observe(paypalPayment, { attributes: true });
-  }
-}
-
-async function initializePayPal() {
-  if (window.paypalLoaded) return;
-  
-  try {
-    const response = await fetch('/api/paypal/config');
-    const { clientId } = await response.json();
-    
-    const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&currency=EUR&intent=capture&components=buttons`;
-    script.onload = () => renderPayPalButtons();
-    document.head.appendChild(script);
-    window.paypalLoaded = true;
-  } catch (error) {
-    console.error('Erreur PayPal:', error);
-    showStatus('Erreur de configuration PayPal', 'error');
-  }
-}
-
-function renderPayPalButtons() {
-  paypal.Buttons({
-    createOrder: async () => {
-      const response = await fetch('/api/paypal/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: cartItems })
-      });
-      const data = await response.json();
-      return data.orderID;
-    },
-    onApprove: async (data) => {
-      const response = await fetch('/api/paypal/capture-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderID: data.orderID })
-      });
-      const result = await response.json();
-      if (result.success) {
-        showStatus('✅ Paiement PayPal réussi!', 'success');
+      showStatus(`❌ ${message}`, "error");
+      
+    } else if (paymentIntent) {
+      console.log('✓ PaymentIntent status:', paymentIntent.status);
+      
+      if (paymentIntent.status === 'succeeded') {
+        console.log('✅ Paiement réussi!');
+        showStatus("✅ Paiement réussi! Redirection...", "success");
+        
+        // Vider le panier
+        localStorage.removeItem("lowa_cart");
+        localStorage.removeItem("Lowa_cart");
+        console.log('🗑️ Panier vidé');
+        
+        // Rediriger
         setTimeout(() => {
-          window.location.href = `/public/pages/order-success.html?orderId=${data.orderID}`;
-        }, 2000);
-      }
-    },
-    onError: (err) => {
-      console.error('Erreur PayPal:', err);
-      showStatus('❌ Erreur PayPal: ' + err, 'error');
-    }
-  }).render('#paypal-buttons');
-}
-
-// ================== Apple Pay ==================
-
-async function handleApplePay() {
-  if (!window.ApplePaySession) {
-    showStatus('Apple Pay n\'est pas disponible sur ce navigateur', 'error');
-    return;
-  }
-
-  showStatus('Initialisation d\'Apple Pay...', 'loading');
-
-  try {
-    const session = new ApplePaySession(3, {
-      countryCode: 'FR',
-      currencyCode: 'EUR',
-      supportedNetworks: ['visa', 'masterCard'],
-      supportedMerchantCapabilities: ['supports3DS'],
-      total: {
-        label: 'LOWA',
-        amount: cartTotal.toString()
-      },
-      lineItems: cartItems.map(item => ({
-        label: item.name,
-        amount: item.price.toString()
-      }))
-    });
-
-    session.onpaymentauthorized = async (event) => {
-      const response = await fetch('/api/apple-pay/process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          payment: event.payment,
-          items: cartItems
-        })
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        session.completePayment(ApplePaySession.STATUS_SUCCESS);
-        showStatus('✅ Paiement Apple Pay réussi!', 'success');
-        setTimeout(() => {
-          window.location.href = `/public/pages/order-success.html?orderId=${result.orderId}`;
-        }, 2000);
+          window.location.href = `/public/pages/payment-success.html?id=${paymentIntent.id}`;
+        }, 1500);
+        
+      } else if (paymentIntent.status === 'processing') {
+        console.log('⏳ Paiement en cours...');
+        showStatus("⏳ Paiement en cours de traitement. Veuillez patienter...", "loading");
+        processingPayment = false;
+        
       } else {
-        session.completePayment(ApplePaySession.STATUS_FAILURE);
-        showStatus('❌ Erreur du paiement', 'error');
+        console.log('ℹ️ Statut:', paymentIntent.status);
+        showStatus(`ℹ️ Statut: ${paymentIntent.status}`, "info");
+        processingPayment = false;
       }
-    };
-
-    session.begin();
-  } catch (error) {
-    console.error('Erreur Apple Pay:', error);
-    showStatus('❌ ' + error.message, 'error');
-  }
-}
-
-// ================== Google Pay ==================
-
-async function handleGooglePay() {
-  if (!window.google?.payments?.api) {
-    showStatus('Google Pay n\'est pas disponible', 'error');
-    return;
-  }
-
-  showStatus('Initialisation de Google Pay...', 'loading');
-
-  try {
-    const client = new google.payments.api.PaymentsClient({
-      environment: 'PRODUCTION'
-    });
-
-    const paymentsData = {
-      apiVersion: 2,
-      apiVersionMinor: 0,
-      allowedPaymentMethods: [{
-        type: 'CARD',
-        parameters: {
-          allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-          allowedCardNetworks: ['MASTERCARD', 'VISA']
-        }
-      }],
-      merchantInfo: {
-        merchantName: 'LOWA'
-      },
-      transactionInfo: {
-        totalPriceStatus: 'FINAL',
-        totalPrice: cartTotal.toString(),
-        currencyCode: 'EUR'
-      }
-    };
-
-    const paymentDataRequest = paymentsData;
-    paymentDataRequest.merchantInfo = {
-      merchantName: 'LOWA',
-      merchantId: 'LOWA_MERCHANT_ID'
-    };
-
-    client.loadPaymentData(paymentDataRequest).then(async (paymentData) => {
-      const response = await fetch('/api/google-pay/process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          paymentData,
-          items: cartItems
-        })
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        showStatus('✅ Paiement Google Pay réussi!', 'success');
-        setTimeout(() => {
-          window.location.href = `/public/pages/order-success.html?orderId=${result.orderId}`;
-        }, 2000);
-      }
-    }).catch((err) => {
-      console.error('Erreur Google Pay:', err);
-      showStatus('❌ ' + err, 'error');
-    });
-  } catch (error) {
-    console.error('Erreur Google Pay:', error);
-    showStatus('❌ ' + error.message, 'error');
-  }
-}
-
-// ================== Virement Bancaire ==================
-
-async function handleBankTransfer() {
-  if (cartItems.length === 0) {
-    showStatus('⚠️ Votre panier est vide', 'error');
-    return;
-  }
-
-  showStatus('Création de la commande...', 'loading');
-
-  try {
-    const response = await fetch('/api/bank-transfer/create-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        items: cartItems,
-        method: 'bank_transfer'
-      })
-    });
-
-    const data = await response.json();
-    if (data.success) {
-      showStatus('✅ Commande créée! En attente du virement bancaire.', 'success');
-      setTimeout(() => {
-        window.location.href = `/public/pages/order-success.html?orderId=${data.orderId}&method=bank_transfer`;
-      }, 2000);
     }
   } catch (error) {
-    console.error('Erreur création commande:', error);
-    showStatus('❌ ' + error.message, 'error');
+    console.error('❌ Erreur confirmation:', error);
+    processingPayment = false;
+    showStatus(`❌ ${error.message}`, "error");
   }
 }
 
-// ================== Utilitaires ==================
+// ===============================
+// Page Initialization
+// ===============================
+document.addEventListener("DOMContentLoaded", async () => {
+  console.log('📄 Page chargée');
+  
+  // Footer year
+  const year = document.getElementById("year");
+  if (year) year.textContent = new Date().getFullYear();
 
-function showStatus(message, type = 'info') {
-  const status = document.getElementById('checkout-status');
-  if (!status) return;
+  // Charger le panier
+  loadCartItems();
+  renderOrderSummary();
   
-  status.textContent = message;
-  status.className = `checkout-status ${type}`;
-  status.classList.remove('hidden');
-  
-  if (type !== 'loading' && type !== 'info') {
-    setTimeout(() => {
-      status.classList.add('hidden');
-    }, 5000);
+  // Initialiser Stripe
+  await initStripePayment();
+
+  // Attacher le bouton de paiement
+  const payBtn = document.getElementById("pay-button");
+  if (payBtn) {
+    payBtn.addEventListener("click", handlePayClick);
   }
-}
 
-// Gestion du retour au cart depuis le modal
-window.addEventListener('beforeunload', (e) => {
-  if (currentPaymentMethod === 'paypal' && window.paypalLoaded) {
-    // Laisser PayPal gérer la navigation
-    return;
+  // Switcher méthodes de paiement
+  document.querySelectorAll(".payment-option-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".payment-option-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      const method = btn.dataset.method;
+      document.querySelectorAll(".payment-form").forEach(f => f.classList.add("hidden"));
+      document.getElementById(`${method}-payment`)?.classList.remove("hidden");
+      
+      console.log('Méthode sélectionnée:', method);
+    });
+  });
+
+  // Bouton virement bancaire
+  const bankBtn = document.getElementById("bank-transfer-btn");
+  if (bankBtn) {
+    bankBtn.addEventListener("click", async () => {
+      console.log('Virement bancaire sélectionné');
+      showStatus("⏳ Création de la commande...", "loading");
+      
+      try {
+        const res = await fetch("/api/bank-transfer/create-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: cartTotal,
+            items: cartItems
+          })
+        });
+
+        if (!res.ok) throw new Error(`Erreur ${res.status}`);
+        
+        const data = await res.json();
+        
+        // Vider le panier
+        localStorage.removeItem("lowa_cart");
+        localStorage.removeItem("Lowa_cart");
+        
+        // Rediriger
+        window.location.href = `/public/pages/payment-success.html?id=${data.orderId}&method=bank`;
+      } catch (e) {
+        console.error('❌ Erreur virement:', e);
+        showStatus(`❌ ${e.message}`, "error");
+      }
+    });
   }
 });
+
+console.log('✓ checkout.js chargé');
