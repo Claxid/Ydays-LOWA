@@ -1,181 +1,143 @@
 // Snow effect animation for LOWA hero section
-// Vérifier que GSAP est chargé avant d'exécuter
-if (typeof gsap === 'undefined') {
-    console.warn('Snow effect: GSAP not loaded yet, waiting...')
-    document.addEventListener('DOMContentLoaded', initSnow)
-} else {
-    initSnow()
-}
-
 function initSnow() {
-    if (typeof gsap === 'undefined') {
-        console.error('Snow effect: GSAP library not found')
+    const c = document.querySelector('#snow-canvas')
+    if (!c) {
+        console.warn('Snow effect: canvas not found')
         return
     }
 
-const arr = [] // particles
-const c = document.querySelector('#snow-canvas')
-if (!c) {
-    console.warn('Snow effect: canvas not found')
-} else {
-    console.log('✅ Canvas found!', c)
-}
+    const ctx = c.getContext('2d')
+    let cw = window.innerWidth
+    let ch = window.innerHeight
+    c.width = cw
+    c.height = ch
 
-const ctx = c.getContext('2d')
-// Use actual viewport dimensions
-const cw = (c.width = window.innerWidth)
-const ch = (c.height = window.innerHeight)
-console.log('📐 Canvas dimensions:', cw, 'x', ch)
+    const SEGMENTS = 100
+    let SEG_W = cw / SEGMENTS
+    const pileHeights = new Array(SEGMENTS).fill(0)
+    let MAX_PILE = Math.max(20, ch * 0.08)
+    const LAND_MARGIN = 2
+    let smoothCounter = 0
+    let lastTime = performance.now()
 
-const c2 = c.cloneNode(true)
-const ctx2 = c2.getContext('2d', { willReadFrequently: true })
+    const flakes = []
+    const NUM_FLAKES = Math.max(100, Math.min(220, Math.floor(cw / 6)))
+    const BASE_SPEED = Math.max(30, ch * 0.03)
 
-// Draw LOWA text mask at appropriate size for current viewport
-ctx2.fillStyle = '#000'
-ctx2.textAlign = 'center'
-ctx2.textBaseline = 'middle'
-// Taille de texte réduite (20% de la largeur, max 300px)
-const fontSize = Math.min(cw * 0.2, 300)
-ctx2.font = `bold ${fontSize}px "Arial Black", "Segoe UI", sans-serif`
-ctx2.translate(cw / 2, ch / 2)
-ctx2.fillText('LOWA', 0, fontSize * 0.15)
-
-// --- Snow pile model (bottom accumulation) ---
-const SEGMENTS = 150 // Réduit pour perf
-const SEG_W = cw / SEGMENTS
-const pileHeights = new Array(SEGMENTS).fill(0)
-const MAX_PILE = Math.max(20, ch * 0.08)
-const LAND_MARGIN = 2
-let smoothCounter = 0 // Smooth toutes les 2 frames seulement
-
-function getPileHeightAtX(x) {
-    const i = Math.max(0, Math.min(SEGMENTS - 1, Math.floor(x / SEG_W)))
-    return pileHeights[i]
-}
-
-function addSnowToPile(x, amount) {
-    const i = Math.max(0, Math.min(SEGMENTS - 1, Math.floor(x / SEG_W)))
-    // distribute to neighbors for a natural shape
-    const a = amount * 0.08 // ralentir l'accumulation
-    for (let k = -2; k <= 2; k++) {
-        const idx = i + k
-        if (idx >= 0 && idx < SEGMENTS) {
-            const falloff = 1 - Math.abs(k) * 0.15 // less spread to keep pile thin
-            pileHeights[idx] = Math.min(MAX_PILE, pileHeights[idx] + a * falloff)
-        }
-    }
-}
-
-function smoothPile() {
-    // Smooth seulement toutes les 2 frames pour réduire les calculs
-    if (smoothCounter++ % 2 !== 0) return
-    for (let i = 1; i < SEGMENTS - 1; i++) {
-        pileHeights[i] = (pileHeights[i - 1] + pileHeights[i] * 2 + pileHeights[i + 1]) / 4
-    }
-}
-
-for (let i = 0; i < 1200; i++) makeFlake(i, true)
-
-function makeFlake(i, ff) {
-    const size = gsap.utils.random(1.5, 4, 0.2)
-    const xOffset = cw * 0.15
-    arr.push({ i: i, x: 0, x2: 0, y: 0, s: size })
-
-    // Uniform storm from all edges (top, left, right, bottom)
-    const perimeter = 2 * (cw + ch)
-    const r = Math.random() * perimeter
-    let from, to
-
-    if (r < cw) {
-        // Top edge: uniform across full width
-        from = { x: r, y: -15, s: size, x2: 0 }
-        to = { ease: 'none', x: () => r + gsap.utils.random(-xOffset * 0.5, xOffset * 0.5), y: ch + 15, duration: gsap.utils.random(8, 14), x2: gsap.utils.random(-xOffset, xOffset) }
-    } else if (r < cw + ch) {
-        // Right edge: full height
-        const relY = r - cw
-        from = { x: cw + 15, y: relY, s: size, x2: 0 }
-        to = { ease: 'none', x: -15, y: () => relY + gsap.utils.random(-xOffset * 0.3, xOffset * 0.3), duration: gsap.utils.random(8, 14), x2: gsap.utils.random(-xOffset, xOffset) }
-    } else if (r < 2 * cw + ch) {
-        // Bottom edge: full width
-        const relX = r - cw - ch
-        from = { x: cw - relX, y: ch + 15, s: size, x2: 0 }
-        to = { ease: 'none', x: () => (cw - relX) + gsap.utils.random(-xOffset * 0.5, xOffset * 0.5), y: -15, duration: gsap.utils.random(8, 14), x2: gsap.utils.random(-xOffset, xOffset) }
-    } else {
-        // Left edge: full height
-        const relY = r - 2 * cw - ch
-        from = { x: -15, y: relY, s: size, x2: 0 }
-        to = { ease: 'none', x: cw + 15, y: () => relY + gsap.utils.random(-xOffset * 0.3, xOffset * 0.3), duration: gsap.utils.random(8, 14), x2: gsap.utils.random(-xOffset, xOffset) }
+    function resizeCanvas() {
+        cw = window.innerWidth
+        ch = window.innerHeight
+        c.width = cw
+        c.height = ch
+        SEG_W = cw / SEGMENTS
+        MAX_PILE = Math.max(20, ch * 0.08)
+        pileHeights.length = SEGMENTS
+        pileHeights.fill(0)
     }
 
-    arr[i].t = gsap
-        .timeline({ repeat: -1, repeatRefresh: true })
-        .fromTo(arr[i], from, to)
-        .seek(ff ? Math.random() * 99 : 0)
-}
-
-gsap.ticker.add(render)
-
-function render() {
-    ctx.clearRect(0, 0, cw, ch)
-    // Draw pile first (background)
-    smoothPile()
-    ctx.beginPath()
-    ctx.moveTo(0, ch)
-    for (let i = 0; i < SEGMENTS; i++) {
-        const x = i * SEG_W
-        // Ondulations très prononcées au sommet (vallonné dramatique)
-        const wave = Math.sin(i / 18) * 12 + Math.sin(i / 40) * 8
-        const y = ch - pileHeights[i] + wave
-        ctx.lineTo(x, y)
+    function getPileHeightAtX(x) {
+        const i = Math.max(0, Math.min(SEGMENTS - 1, Math.floor(x / SEG_W)))
+        return pileHeights[i]
     }
-    ctx.lineTo(cw, ch)
-    ctx.closePath()
-    ctx.fillStyle = '#ffffff'
-    ctx.fill()
 
-    // Draw flakes and handle landing
-    arr.forEach(c => {
-        if (c.t) {
-            if (c.t.isActive()) {
-                const d = ctx2.getImageData(c.x + c.x2, c.y, 1, 1)
-                // Collision : abaisser le seuil à 100 pour plus de sensibilité
-                if (d.data[3] > 100) {
-                    c.t.pause()
-                    if (arr.length < 8000) makeFlake(arr.length - 1, false)
-                }
+    function addSnowToPile(x, amount) {
+        const i = Math.max(0, Math.min(SEGMENTS - 1, Math.floor(x / SEG_W)))
+        const a = amount * 0.1
+        for (let k = -2; k <= 2; k++) {
+            const idx = i + k
+            if (idx >= 0 && idx < SEGMENTS) {
+                const falloff = 1 - Math.abs(k) * 0.18
+                pileHeights[idx] = Math.min(MAX_PILE, pileHeights[idx] + a * falloff)
             }
         }
-        // Dessiner un flocon en forme d'étoile "*"
-        const x = c.x + c.x2
-        const y = c.y
-        const s = c.s * gsap.utils.interpolate(1, 0.2, c.y / ch)
-        // Landing detection and accumulation
-        const pileH = getPileHeightAtX(x)
-        if (y >= ch - pileH - LAND_MARGIN) {
-            addSnowToPile(x, Math.max(0.5, s * 0.45))
-            // Respawn flake from top by restarting its timeline
-            c.t.progress(0)
-            c.t.play()
-            return
+    }
+
+    function smoothPile() {
+        if (smoothCounter++ % 3 !== 0) return
+        for (let i = 1; i < SEGMENTS - 1; i++) {
+            pileHeights[i] = (pileHeights[i - 1] + pileHeights[i] * 2 + pileHeights[i + 1]) / 4
         }
-        
-        ctx.save()
-        ctx.translate(x, y)
+    }
+
+    function resetFlake(flake, initial) {
+        flake.x = Math.random() * cw
+        flake.y = initial ? Math.random() * ch : -10 - Math.random() * ch
+        flake.size = Math.random() * 2 + 1.2
+        flake.speed = BASE_SPEED * (0.6 + Math.random() * 0.8)
+        flake.drift = (Math.random() * 0.5 + 0.2) * (Math.random() < 0.5 ? -1 : 1)
+        flake.offset = Math.random() * Math.PI * 2
+        flake.vx = flake.drift * 10
+        flake.vy = flake.speed
+    }
+
+    for (let i = 0; i < NUM_FLAKES; i++) {
+        flakes.push({ x: 0, y: 0, vx: 0, vy: 0, size: 0, drift: 0, offset: 0 })
+        resetFlake(flakes[i], true)
+    }
+
+    let requestId = null
+    function render() {
+        const now = performance.now()
+        const dt = Math.min(1, (now - lastTime) / 1000)
+        lastTime = now
+
+        ctx.clearRect(0, 0, cw, ch)
+
+        smoothPile()
         ctx.beginPath()
-        // Forme d'étoile: 4 lignes qui se croisent
-        ctx.moveTo(-s, 0)
-        ctx.lineTo(s, 0)
-        ctx.moveTo(0, -s)
-        ctx.lineTo(0, s)
-        ctx.moveTo(-s * 0.7, -s * 0.7)
-        ctx.lineTo(s * 0.7, s * 0.7)
-        ctx.moveTo(s * 0.7, -s * 0.7)
-        ctx.lineTo(-s * 0.7, s * 0.7)
-        ctx.strokeStyle = '#ffffff'
-        ctx.lineWidth = 1
-        ctx.stroke()
-        ctx.restore()
+        ctx.moveTo(0, ch)
+        for (let i = 0; i < SEGMENTS; i++) {
+            const x = i * SEG_W
+            const wave = Math.sin(i / 16) * 8 + Math.sin(i / 40) * 6
+            const y = ch - pileHeights[i] + wave
+            ctx.lineTo(x, y)
+        }
+        ctx.lineTo(cw, ch)
+        ctx.closePath()
+        ctx.fillStyle = '#ffffff'
+        ctx.fill()
+
+        ctx.fillStyle = 'rgba(255,255,255,0.9)'
+        for (let i = 0; i < flakes.length; i++) {
+            const flake = flakes[i]
+            flake.x += flake.vx * dt
+            flake.y += flake.vy * dt
+            flake.x += Math.sin((flake.y + flake.offset) * 0.02) * 0.3
+
+            if (flake.x < -20) {
+                flake.x = cw + 20
+            } else if (flake.x > cw + 20) {
+                flake.x = -20
+            }
+
+            const pileH = getPileHeightAtX(flake.x)
+            if (flake.y >= ch - pileH - LAND_MARGIN) {
+                addSnowToPile(flake.x, Math.max(0.4, flake.size * 0.35))
+                resetFlake(flake, false)
+                continue
+            }
+
+            const radius = flake.size * (1 - flake.y / ch * 0.4)
+            ctx.fillRect(flake.x - radius * 0.5, flake.y - radius * 0.5, radius, radius)
+        }
+
+        requestId = window.requestAnimationFrame(render)
+    }
+
+    window.addEventListener('resize', resizeCanvas)
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            if (requestId) {
+                window.cancelAnimationFrame(requestId)
+                requestId = null
+            }
+        } else if (!requestId) {
+            lastTime = performance.now()
+            requestId = window.requestAnimationFrame(render)
+        }
     })
+
+    requestId = window.requestAnimationFrame(render)
 }
 
-} // Fin de la fonction initSnow()
+document.addEventListener('DOMContentLoaded', initSnow)
