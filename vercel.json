@@ -9,8 +9,7 @@
   "functions": {
     "api/**/*.js": {
       "memory": 1024,
-      "maxDuration": 30,
-      "runtime": "nodejs18.x"
+      "maxDuration": 30
     }
   },
 
@@ -18,19 +17,13 @@
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]
     },
     {
       "source": "/public/(css|js|images)/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]
     }
   ],
