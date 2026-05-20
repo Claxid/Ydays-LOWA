@@ -9,6 +9,9 @@ let cartTotal = 0;
 let stripeInitialized = false;
 let processingPayment = false;
 
+// Base URL de l'API (définie dans /config/supabase.config.js)
+const API_BASE = window.API_BASE || '/api';
+
 // ===============================
 // Utils
 // ===============================
@@ -43,34 +46,53 @@ async function waitForStripe(timeout = 10000) {
 }
 
 // ===============================
+// Attendre l'hydratation du panier depuis le cloud (cart.js)
+// ===============================
+async function waitForCartHydration(timeout = 3000) {
+  const start = Date.now();
+  return new Promise(resolve => {
+    const check = () => {
+      const raw = localStorage.getItem("lowa_cart") || localStorage.getItem("Lowa_cart");
+      const cloudDone = !window.isHydratingCart; // flag exposé par cart.js
+      if ((raw && cloudDone) || Date.now() - start > timeout) {
+        return resolve();
+      }
+      setTimeout(check, 100);
+    };
+    check();
+  });
+}
+
+// ===============================
 // Cart Loading
 // ===============================
 function loadCartItems() {
   try {
-    // Attendre que cart.js ait fini d'hydrater depuis le cloud
-    // En fallback, lire directement le localStorage
     let savedCart = [];
 
+    // 1. Lire depuis localStorage (toutes les variantes de clé)
     const raw = localStorage.getItem("lowa_cart") ||
-                 localStorage.getItem("Lowa_cart") ||
-                 sessionStorage.getItem("lowa_cart");
+                localStorage.getItem("Lowa_cart") ||
+                sessionStorage.getItem("lowa_cart");
 
     savedCart = raw ? JSON.parse(raw) : [];
     cartItems = Array.isArray(savedCart) ? savedCart : [];
 
-    // Si toujours vide, essayer window.cart (partagé depuis cart.js)
-    if (cartItems.length === 0 && Array.isArray(window.cart)) {
+    // 2. Fallback : utiliser window.cart exposé par cart.js
+    if (cartItems.length === 0 && Array.isArray(window.cart) && window.cart.length > 0) {
       cartItems = window.cart;
+      console.log('📦 Panier chargé depuis window.cart');
     }
 
+    // 3. Calculer le total
     cartTotal = cartItems.reduce((sum, item) => {
       return sum + (Number(item.price) || 0) * (Number(item.quantity) || 1);
     }, 0);
 
-    console.log('📦 Panier:', cartItems.length, 'articles, total:', cartTotal);
+    console.log('📦 Panier:', cartItems.length, 'article(s), total:', cartTotal, '€');
     return true;
   } catch (e) {
-    console.error("Erreur chargement panier", e);
+    console.error("❌ Erreur chargement panier", e);
     cartItems = [];
     cartTotal = 0;
     return false;
@@ -82,7 +104,7 @@ function renderOrderSummary() {
   const totalEl = document.getElementById("order-total");
   const subtotalEl = document.getElementById("subtotal");
   const shippingEl = document.getElementById("shipping");
-  
+
   if (!list) return;
 
   list.innerHTML = "";
@@ -92,7 +114,7 @@ function renderOrderSummary() {
     if (subtotalEl) subtotalEl.textContent = formatPrice(0);
     if (shippingEl) shippingEl.textContent = "Gratuit";
     if (totalEl) totalEl.textContent = formatPrice(0);
-    
+
     const payBtn = document.getElementById("pay-button");
     if (payBtn) {
       payBtn.disabled = true;
@@ -102,11 +124,12 @@ function renderOrderSummary() {
   }
 
   cartItems.forEach(item => {
+    const qty = Number(item.quantity) || 1;
     const div = document.createElement("div");
     div.className = "order-item";
     div.innerHTML = `
-      <span>${item.name} × ${item.quantity}</span>
-      <strong>${formatPrice(item.price * item.quantity)}</strong>
+      <span>${item.name} × ${qty}</span>
+      <strong>${formatPrice(Number(item.price) * qty)}</strong>
     `;
     list.appendChild(div);
   });
@@ -122,7 +145,6 @@ function renderOrderSummary() {
 async function initStripePayment() {
   console.log('🚀 Initialisation du paiement...');
 
-  // 1. Vérifier le panier
   if (cartItems.length === 0) {
     console.log('⚠️ Panier vide, paiement désactivé');
     return;
@@ -130,17 +152,17 @@ async function initStripePayment() {
 
   try {
     showStatus("⏳ Initialisation du paiement...", "loading");
+
+    // 1. Attendre Stripe SDK
     console.log('1️⃣ Attendre SDK Stripe...');
-    
-    // 2. Attendre Stripe SDK
     await waitForStripe(10000);
 
-    // 3. Récupérer la clé publique
+    // 2. Récupérer la clé publique via API_BASE
     console.log('2️⃣ Récupérer clé publique Stripe...');
-    const configRes = await fetch("/api/stripe/config", {
+    const configRes = await fetch(`${API_BASE}/stripe/config`, {
       headers: { 'Accept': 'application/json' }
     });
-    
+
     if (!configRes.ok) {
       const err = await configRes.json().catch(() => ({ error: 'Erreur config' }));
       throw new Error(err.error || err.solution || `HTTP ${configRes.status}`);
@@ -148,24 +170,24 @@ async function initStripePayment() {
 
     const config = await configRes.json();
     console.log('✓ Clé reçue');
-    
+
     if (!config.publicKey) {
       throw new Error('Clé publique Stripe manquante');
     }
 
-    // 4. Initialiser Stripe
+    // 3. Initialiser Stripe
     console.log('3️⃣ Initialiser Stripe avec clé...');
     stripe = window.Stripe(config.publicKey);
     console.log('✓ Stripe initialisé');
 
-    // 5. Créer l'intention de paiement
+    // 4. Créer l'intention de paiement via API_BASE
     console.log('4️⃣ Créer PaymentIntent...');
     const amount = Math.round(cartTotal * 100); // En centimes
-    console.log(`  Montant: ${amount} (${cartTotal}€)`);
-    
-    const intentRes = await fetch("/api/stripe/create-intent", {
+    console.log(`  Montant: ${amount} centimes (${cartTotal} €)`);
+
+    const intentRes = await fetch(`${API_BASE}/stripe/create-intent`, {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
         "Accept": "application/json"
       },
@@ -189,9 +211,9 @@ async function initStripePayment() {
       throw new Error('clientSecret manquant');
     }
 
-    // 6. Créer les éléments
+    // 5. Créer les éléments Stripe
     console.log('5️⃣ Créer Payment Element...');
-    elements = stripe.elements({ 
+    elements = stripe.elements({
       clientSecret: intentData.clientSecret,
       appearance: {
         theme: 'stripe',
@@ -211,9 +233,9 @@ async function initStripePayment() {
     stripeInitialized = true;
     showStatus("✓ Paiement prêt", "success");
     console.log('✓✓✓ Paiement initialisé avec succès\n');
-    
+
   } catch (error) {
-    console.error("❌ Erreur initiale:", error);
+    console.error("❌ Erreur initialisation:", error);
     stripeInitialized = false;
     showStatus(`❌ ${error.message}`, "error");
   }
@@ -223,20 +245,17 @@ async function initStripePayment() {
 // Payment Submission
 // ===============================
 async function handlePayClick() {
-  // Sécurité: éviter les double-clics
   if (processingPayment) {
     console.log('⚠️ Paiement déjà en cours');
     return;
   }
 
-  // Vérifier l'initialisation
   if (!stripeInitialized || !stripe || !elements) {
     showStatus("❌ Paiement non initialisé. Rechargez la page.", "error");
     console.error('Stripe ou elements non initialisés');
     return;
   }
 
-  // Vérifier le panier
   if (cartItems.length === 0) {
     showStatus("❌ Votre panier est vide", "error");
     return;
@@ -258,36 +277,32 @@ async function handlePayClick() {
     if (error) {
       console.error('❌ Erreur paiement:', error);
       processingPayment = false;
-      
-      // Message d'erreur détaillé
-      let message = error.message || 'Paiement échoué';
-      if (error.code === 'card_error') {
-        message = error.message; // Ex: "Your card was declined"
-      }
+      const message = error.message || 'Paiement échoué';
       showStatus(`❌ ${message}`, "error");
-      
+
     } else if (paymentIntent) {
       console.log('✓ PaymentIntent status:', paymentIntent.status);
-      
+
       if (paymentIntent.status === 'succeeded') {
         console.log('✅ Paiement réussi!');
         showStatus("✅ Paiement réussi! Redirection...", "success");
-        
-        // Vider le panier
+
+        // Vider le panier partout
         localStorage.removeItem("lowa_cart");
         localStorage.removeItem("Lowa_cart");
+        sessionStorage.removeItem("lowa_cart");
+        window.cart = [];
         console.log('🗑️ Panier vidé');
-        
-        // Rediriger
+
         setTimeout(() => {
           window.location.href = `/public/pages/payment-success.html?id=${paymentIntent.id}`;
         }, 1500);
-        
+
       } else if (paymentIntent.status === 'processing') {
         console.log('⏳ Paiement en cours...');
         showStatus("⏳ Paiement en cours de traitement. Veuillez patienter...", "loading");
         processingPayment = false;
-        
+
       } else {
         console.log('ℹ️ Statut:', paymentIntent.status);
         showStatus(`ℹ️ Statut: ${paymentIntent.status}`, "info");
@@ -306,19 +321,24 @@ async function handlePayClick() {
 // ===============================
 document.addEventListener("DOMContentLoaded", async () => {
   console.log('📄 Page chargée');
-  
+
   // Footer year
   const year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();
 
-  // Charger le panier
+  // ⏳ Attendre que cart.js ait fini d'hydrater le panier depuis le cloud
+  console.log('⏳ Attente hydratation panier...');
+  await waitForCartHydration(3000);
+  console.log('✓ Hydratation terminée');
+
+  // Charger et afficher le panier
   loadCartItems();
   renderOrderSummary();
-  
+
   // Initialiser Stripe
   await initStripePayment();
 
-  // Attacher le bouton de paiement
+  // Bouton payer
   const payBtn = document.getElementById("pay-button");
   if (payBtn) {
     payBtn.addEventListener("click", handlePayClick);
@@ -333,7 +353,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const method = btn.dataset.method;
       document.querySelectorAll(".payment-form").forEach(f => f.classList.add("hidden"));
       document.getElementById(`${method}-payment`)?.classList.remove("hidden");
-      
+
       console.log('Méthode sélectionnée:', method);
     });
   });
@@ -344,9 +364,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     bankBtn.addEventListener("click", async () => {
       console.log('Virement bancaire sélectionné');
       showStatus("⏳ Création de la commande...", "loading");
-      
+
       try {
-        const res = await fetch("/api/bank-transfer/create-order", {
+        const res = await fetch(`${API_BASE}/bank-transfer/create-order`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -356,14 +376,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
 
         if (!res.ok) throw new Error(`Erreur ${res.status}`);
-        
+
         const data = await res.json();
-        
+
         // Vider le panier
         localStorage.removeItem("lowa_cart");
         localStorage.removeItem("Lowa_cart");
-        
-        // Rediriger
+        sessionStorage.removeItem("lowa_cart");
+        window.cart = [];
+
         window.location.href = `/public/pages/payment-success.html?id=${data.orderId}&method=bank`;
       } catch (e) {
         console.error('❌ Erreur virement:', e);
